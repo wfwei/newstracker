@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}news Page{% endblock%}
+
+{% block main %}        
+	<br/>
+	<h2>话题:{{topic.title}}</h2>
+	<hr/><br/>
+	
+	<ul id="news_list" class="note_list">
+    {% for news in news_list %}
+        <li><a href="{{news.link}}">{{news.title}}</a></li>
+        <li>{{news.pubDate}}</li>
+        <br />
+    {% endfor %}
+    </ul>
+    
+{% endblock %}

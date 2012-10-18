@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Topic List{% endblock%}
+
+{% block main %}        
+	<br/>
+	<h2>话题列表</h2>
+	<hr/><br/>
+	
+	<ul id="topic_list" class="note_list">
+    {% for topic in topic_list %}
+        <li><a href="topic_view/{{topic.id}}">{{topic.title}}</a></li>
+        <li>{{topic.time}}</li>
+        <br />
+    {% endfor %}
+    </ul>
+    
+{% endblock %}
