@@ -10,6 +10,7 @@ Created on Oct 6, 2012
 from libgreader import GoogleReader
 from libgnews import googlenews
 from djangodb import djangodb
+from djangodb import dbop
 from libweibo import weiboAPI
 
 from newstracker.account.models import Account
@@ -28,14 +29,15 @@ _DEBUG = True
 #    print 'Google Reader 登录信息:\t' , reader.getUserInfo()['userName']
 #
 ### Init weibo
-#weibo = weiboAPI.weiboAPI()
+weibo = weiboAPI.weiboAPI()
 #if _DEBUG:
 #    print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()['id']
 
 
 
 if __name__ == '__main__':
-#    weibo.postComment(weibo_id = 3502066586256490, content = 'post succeed！')
+    print dbop.get_last_mention_id()
+#    weibo.postComment(weibo_id = 3504267275499498, content = 'post succeed！')
 #    i = djangodb.Weibo.objects.get(id=12)
 #    i.delete()
 #    a = Account.objects.get(id = 4)

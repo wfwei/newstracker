@@ -10,7 +10,7 @@ from newstracker.account.models import Account
 from forms import RegisterForm, LoginForm, UserForm
 
 from libweibo.weiboAPI import weiboAPI
-from djangodb import djangodb
+from djangodb import dbop
 
 import re
 import simplejson
@@ -41,6 +41,7 @@ def register(request):
             context_instance=RequestContext(request))
 
 def login(request):
+    print dbop.Account.objects.all()
     template_var = {}
     ## 用户weibo登录的认证链接
     authorize_url = weiboAPI().getAuthorizeUrl()
@@ -144,7 +145,7 @@ def weiboLogin(request):
     except:
         print 'create new Account for:'+str(user_id)
         _weibo = weiboAPI(oauth_token, expires, user_id)
-        _account = djangodb.get_or_create_account_from_weibo(_weibo.getUserInfo())
+        _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
     
     _login(request, _account.user.username, _account.user.password)
     if _DEBUG:
@@ -153,3 +154,8 @@ def weiboLogin(request):
     ## TODO: bug 这样登录后直接跳转到主页request.user.username是空的，而用户名密码直接登录就OK。。。为什么？？
     ## 目前把需要的参数通过ｕｒｌ传递过去。。。
     return HttpResponseRedirect('/topic_list/' + str(_account.id))
+
+def call_back(request):
+    code = request.GET.get('code')
+    
+    

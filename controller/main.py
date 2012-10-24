@@ -18,18 +18,17 @@ import re
 
 _DEBUG = True
 
-## Init google reader
+# Init google reader
 reader = GoogleReader()
 if _DEBUG:
     print 'Google Reader 登录信息:\t' , reader.getUserInfo()['userName']
 
-## Init weibo
+# Init weibo
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
-weibo.refreshAccessToken()
 
 if _DEBUG:
-    print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()['id']
+    print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()
 
 def fetchHotTopic():
     '''
@@ -51,7 +50,7 @@ def fetchHotTopic():
                                               rss = topicrss,
                                               time = topictime)
                 topic_dict[topictitle] = topicrss
-    ## 订阅话题 
+    ## 订阅话题
     for topic_tile in topic_dict.keys():
         topic_rss = topic_dict.get(topic_tile)
         ## 订阅的时候即便是加了title,最后谷歌还是会在后面加上' - Google 新闻'
@@ -60,14 +59,14 @@ def fetchHotTopic():
             print '\nFail to subscribed ',topic_rss
         elif _DEBUG:
             print 'Subscribed ',topic_rss
-    
+
 def fetchRssUpdates():
     '''
     检查更新rss订阅源,并存储更新的新闻,之后标记rss为已读
     debug模式下,如果数据库中找不到订阅的rss,则会创建之
     '''
     unreadFeedsDict = reader.getUnreadFeeds()
-    
+
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
             excludeRead = True
@@ -81,7 +80,7 @@ def fetchRssUpdates():
                         raise KeyError
                 except KeyError:
                     over = True
-                
+
                 itemSet = feedContent['items']
                 ## title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
@@ -91,7 +90,7 @@ def fetchRssUpdates():
                     print 'continuation:\t', continuation
                     print 'item set size:\t', len(itemSet)
                     print 'feed topic:\t', feedTopic
-                    
+
                 topic = None
                 try:
                     topic = djangodb.Topic.objects.get(title = feedTopic)
@@ -125,27 +124,27 @@ def fetchRssUpdates():
                         nnews.summary = summary
                     nnews.topic.add(topic)
                     nnews.save()
-                    
-                    
+
+
             ## 标记该feed为全部已读
             if not reader.markFeedAsRead(feed):
                 print 'Error in mark ' + feedTopic + ' as read!!!'
             elif _DEBUG:
                 print 'Succeed mark ' + feedTopic + ' as read'
-            
+
             ##　更新话题的news timeline
             create_or_update_news_timeline(feedTopic)
-            
+
             ## 提醒订阅该话题（feed）的用户
             remindUserTopicUpdates(feedTopic)
             pass
-                
+
 def getUserPostTopic():
     '''
     获取微博上用户的订阅话题,之后更新订阅
     用户订阅话题的方式可以发布包含:@新闻追踪007 *订阅或取消订阅* #话题内容#的微博；或者转发上述微博
-    
-    TODO: 
+
+    TODO:
     1. mentions只获取了前５０条，接下来要设法获取全部。。
     '''
     ## 获取,解析和存储话题
@@ -155,7 +154,7 @@ def getUserPostTopic():
     if _DEBUG:
         print mention_list
     topic_user_dict = {}
-    
+
     ## 提取用户@的消息并进行解读,保存话题
     for mention in mention_list:
         ## step 1: 提取并构造微博对象
@@ -166,10 +165,10 @@ def getUserPostTopic():
             mweibo_retweeted = djangodb.get_or_create_weibo(mention['retweeted_status'])
         else:
             is_retweeted = False
-            
+
         ## step 2: 提取并构造用户对象
         muser = djangodb.get_or_create_account_from_weibo(mention['user'])
-        
+
         ## step 3: 提取话题相关的信息
         topic_res = re.search('#([^#]+)#',mweibo.text)
         action_res = re.search('\*([^\*]+)\*',mweibo.text)
@@ -188,7 +187,7 @@ def getUserPostTopic():
             moperation = action_res.group(1)
         else:
             moperation = '订阅'
-        
+
         ## step 4: 构建话题
         if mtopictitle is not None:
             mtopic, created = djangodb.Topic.objects.get_or_create(title = mtopictitle)
@@ -198,14 +197,14 @@ def getUserPostTopic():
                 mtopic.time = mweibo.created_at
             else:
                 topic_user_dict['is_new_topic'] = False
-                
+
             mtopic.watcher.add(muser)
             mtopic.watcher_weibo.add(mweibo)
             mtopic.save()
             topic_user_dict['topic_title'] = mtopic.title
             topic_user_dict['topic_rss'] = mtopic.rss
             topic_user_dict['user'] = muser
-            
+
         ##订阅
         if 'is_new_topic' in topic_user_dict and topic_user_dict['is_new_topic']:
             success = reader.subscribe(topic_user_dict['topic_rss'],
@@ -230,11 +229,11 @@ def remindUserTopicUpdates(topicTitle):
     topciWatcherWeibo = topic.watcher_weibo.all()
     ## TODO: 网站上线，把链接改成自己的
     postMsg = '#'+topicTitle+'# 有新进展：'+topic_news.title + '(' + weibo.getShortUrl(topic_news.link) + ')'
-    
+
     if _DEBUG:
         print 'topicWatchers ', topicWatchers
         print 'topciWatcherWeibo ', topciWatcherWeibo
-    
+
     _user_reminded = []
     for watcherWeibo in topciWatcherWeibo:
         targetStatusId = watcherWeibo.weibo_id
@@ -284,7 +283,7 @@ def create_or_update_news_timeline(topicTitle):
                     "endDate":(news.pubDate.date() + datetime.timedelta(1)).strftime('%Y,%m,%d,%H,%M'),
                     "headline":news.title,
                     "text":'news.summary[12:-22]',
-                    "tag":"Optional Tag",
+                    "tag":"",
                     "asset": {
                         "media":'',
                         "thumbnail":"",
@@ -293,7 +292,7 @@ def create_or_update_news_timeline(topicTitle):
                         }
                      }
             news_list.append(jnews)
-        
+
         timeline = {}
         timeline['headline'] = topic.title
         timeline['type'] = 'default'
@@ -303,7 +302,7 @@ def create_or_update_news_timeline(topicTitle):
 #                "endDate":"2012,1,11",
 #                "headline":news.title,
 #                "tag":"This is Optional"}]
-        
+
         ## Save to file
         f = open('/home/plex/wksp/eclipse/newstracker/newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
         f.write('storyjs_jsonp_data = ')
@@ -322,9 +321,10 @@ def update_all_news_timeline():
         print 'create or update news timeline for: ', topic.title
         create_or_update_news_timeline(topic.title)
     print 'all finished'
-    
+
 
 if __name__ == '__main__':
+    print djangodb.get_last_mention_id()
 #    fetchHotTopic()
 #    getUserPostTopic()
 #    update_all_news_timeline()
@@ -332,4 +332,4 @@ if __name__ == '__main__':
 #    remindUserTopicUpdates('中渔民被韩海警射杀')
 #    remindUserTopicUpdates('军舰驶向钓鱼岛')
 #    create_or_update_news_timeline('中渔民被韩海警射杀')
-    
+
