@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}News Timeline{% endblock%}
+{% block meta%}
+	<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+{% endblock%}
+{% block extra_css %}
+{% endblock %}
+    
+{% block main %}
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}timelinejs.compiled/js/storyjs-embed.js"></script>
+<script>
+    $(document).ready(function() {
+        createStoryJS({
+            type:       'timeline',
+            width:      '100%',
+            height:     '600',
+            source:     '{{STATIC_URL}}news.timeline/{{ news_timeline_file }}',
+            embed_id:   'my-timeline',
+            lang:       'zh-ch',
+            start_at_end:       true,
+            font:		'Merriweather-NewsCycle',
+            start_zoom_adjust:  '-4',
+        });
+    });
+</script>
+<div id="my-timeline"></div>
+{% endblock %}

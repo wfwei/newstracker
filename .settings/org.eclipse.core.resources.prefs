@@ -1,14 +1,13 @@
 eclipse.preferences.version=1
+encoding//controller/freetest.py=utf-8
 encoding//controller/main.py=utf-8
 encoding//djangodb/djangodb.py=utf-8
-encoding//djangodb/utils.py=utf-8
 encoding//libgnews/googlenews.py=utf-8
 encoding//libgreader/__init__.py=utf-8
 encoding//libgreader/auth.py=utf-8
-encoding//libgreader/greader_config.py=utf-8
+encoding//libgreader/googlereader.py=utf-8
 encoding//libweibo/weibo.py=utf-8
 encoding//libweibo/weiboAPI.py=utf-8
-encoding//libweibo/weibo_config.py=utf-8
 encoding//newstracker/account/forms.py=utf-8
 encoding//newstracker/account/models.py=utf-8
 encoding//newstracker/account/views.py=utf-8

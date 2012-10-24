@@ -1,5 +1,5 @@
 #coding=utf-8
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib import messages
@@ -10,7 +10,11 @@ from newstracker.account.models import Account
 from forms import RegisterForm, LoginForm, UserForm
 
 from libweibo.weiboAPI import weiboAPI
+from djangodb import djangodb
+
 import re
+import simplejson
+import base64
 
 _DEBUG = True
  
@@ -94,13 +98,58 @@ def userinfo(request):
     return render_to_response("account/userinfo.html", template_var, context_instance=RequestContext(request))
 
 def weiboLogin(request):
-    code = request.GET.get('code')
-    print code
-#    print 'request'
-#    print request
-#    template_var = {}
-#    authorize_url = weiboAPI().getAuthorizeUrl()
-#    template_var['authorize_url'] = authorize_url
-#    return render_to_response("account/login.html",
-#            template_var,
-#            context_instance=RequestContext(request))
+    # TODO: bug 目前还有错，不知道是哪儿的原因：
+    # 用WeBless和新闻追踪００７可以正常登录，但是用ｚｚｙ和幸运女神的帐号登录就没有user_id!!!
+    signed_request = request.POST.get('signed_request')
+    # signed_request传到python这边, 数据结构是一个字符串型的list
+    if isinstance(signed_request, list):
+        signed_request = signed_request[0]
+    encoded_sig, payload = signed_request.split(".", 2)
+
+    # 余数2, 那么需要补一个=
+    payload = str(payload)
+    if len(payload)%3 == 2:
+        payload += '='
+    # 余数1, 那么需要补两个=  
+    if len(payload)%3 == 1:
+        payload += '=='
+    # urlsafe_b64decode() Decode string s using a URL-safe alphabet, 
+    # which substitutes - instead of + and _ instead of / in the standard Base64 alphabet.
+    # 得到data    
+    data = simplejson.loads(base64.urlsafe_b64decode(payload))
+    
+    # 得到sig
+    encoded_sig = str(encoded_sig)
+    if len(encoded_sig)%3 == 2:
+        encoded_sig += '='
+    if len(encoded_sig)%3 == 1:
+        encoded_sig += '==' 
+    sig = base64.urlsafe_b64decode(encoded_sig)
+
+    try: 
+        user_id = data['user_id']
+        oauth_token = data['oauth_token']
+        expires= data['expires']
+    except:
+        print '认证错误，这个错误还未解决！！！'
+            
+    if _DEBUG:
+        print 'signed_request: ', signed_request
+        print 'data: ',data
+        print user_id
+    
+    ##判断用户是否已经登录过（第一次登录会自动帮用户注册）
+    try:
+        _account = Account.objects.get(weiboId = user_id)
+    except:
+        print 'create new Account for:'+str(user_id)
+        _weibo = weiboAPI(oauth_token, expires, user_id)
+        _account = djangodb.get_or_create_account_from_weibo(_weibo.getUserInfo())
+    
+    _login(request, _account.user.username, _account.user.password)
+    if _DEBUG:
+        print 'login success: ' + str(user_id) + ' ' + _account.user.username
+#        print 'request: ', request
+    ## TODO: bug 这样登录后直接跳转到主页request.user.username是空的，而用户名密码直接登录就OK。。。为什么？？
+    ## 目前把需要的参数通过ｕｒｌ传递过去。。。
+    return HttpResponseRedirect('/topic_list/' + str(_account.id))

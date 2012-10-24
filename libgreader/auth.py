@@ -57,14 +57,14 @@ class AuthenticationMethod(object):
 
 class ClientAuthMethod(AuthenticationMethod):
     """
-    Auth type which requires a valid Google Reader username and password
+    Auth type which requires a valid Google Reader USERNAME and PASSWORD
     """
     CLIENT_URL = 'https://www.google.com/accounts/ClientLogin'
 
-    def __init__(self, username, password):
+    def __init__(self, USERNAME, PASSWORD):
         super(ClientAuthMethod, self).__init__()
-        self.username   = username
-        self.password   = password
+        self.username   = USERNAME
+        self.password   = PASSWORD
         self.auth_token = self._getAuth()
         self.token      = self._getToken()
 
@@ -116,7 +116,7 @@ class ClientAuthMethod(AuthenticationMethod):
             conn.close()
         except urllib2.HTTPError:
             raise IOError("Error getting the Auth token, have you entered a"
-                    "correct username and password?")
+                    "correct USERNAME and PASSWORD?")
         #Strip newline and non token text.
         token_dict = dict(x.split('=') for x in data.split('\n') if x)
         return token_dict["Auth"]
@@ -255,16 +255,16 @@ class OAuth2Method(AuthenticationMethod):
         'https://www.google.com/reader/api/',
     ]
 
-    def __init__(self, client_id, client_secret, refresh_token):
+    def __init__(self, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN):
         super(OAuth2Method, self).__init__()
-        self.client_id         = client_id
-        self.client_secret     = client_secret
+        self.client_id         = CLIENT_ID
+        self.client_secret     = CLIENT_SECRET
         self.authorized_client = None
         self.code              = None
         self.access_token      = None
         self.action_token      = None
         self.redirect_uri      = None
-        self.refresh_token     = refresh_token
+        self.refresh_token     = REFRESH_TOKEN
         self.username          = "OAuth2"
 
     def setRedirectUri(self, redirect_uri):
@@ -272,7 +272,7 @@ class OAuth2Method(AuthenticationMethod):
 
     def buildAuthUrl(self):
         args = {
-            'client_id': self.client_id,
+            'CLIENT_ID': self.client_id,
             'redirect_uri': self.redirect_uri,
             'scope': ' '.join(self.SCOPE),
             'response_type': 'code',
@@ -292,8 +292,8 @@ class OAuth2Method(AuthenticationMethod):
         params = {
             'grant_type': 'authorization_code',  # request auth code
             'code': self.code,                   # server response code
-            'client_id': self.client_id,
-            'client_secret': self.client_secret,
+            'CLIENT_ID': self.client_id,
+            'CLIENT_SECRET': self.client_secret,
             'redirect_uri': self.redirect_uri
         }
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -311,14 +311,14 @@ class OAuth2Method(AuthenticationMethod):
         if 'access_token' not in response:
             raise IOError('Error getting Access Token')
         else:
-            self.authFromAccessToken(response['access_token'],response['refresh_token'])
+            self.authFromAccessToken(response['access_token'],response['REFRESH_TOKEN'])
         
     '''
     @author: plex
     '''
     def refreshAccessToken(self):
         params = {
-            'grant_type': 'refresh_token',  # request refresh_token
+            'grant_type': 'refresh_token',  # request REFRESH_TOKEN
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
             'client_secret': self.client_secret,
@@ -342,10 +342,10 @@ class OAuth2Method(AuthenticationMethod):
             self.authFromAccessToken(response['access_token'])
 
     
-    def authFromAccessToken(self, access_token, refresh_token=None):
+    def authFromAccessToken(self, access_token, REFRESH_TOKEN=None):
         self.access_token = access_token
-        if(refresh_token is not None):
-            self.refresh_token = refresh_token
+        if(REFRESH_TOKEN is not None):
+            self.refresh_token = REFRESH_TOKEN
 
     def get(self, url, parameters=None):
         """

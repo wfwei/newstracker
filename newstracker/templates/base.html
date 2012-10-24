@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        {% block meta%}{% endblock%}
         <title>
             {% block title%}{% endblock%}
         </title>
@@ -10,17 +11,19 @@
         {% block head %}{% endblock %}
     </head>
     <body>
-        {% csrf_token %}
         <div id="wrapper" class="wrapper">
 		    <div id="header" class="header">
 		        <div id="title" class="title">
 		            <a href="/">News Tracker Pro</a>
 		        </div>
 		        <div id="userinfo" class="userinfo">
-		        	current user: {{user.username}}
+		        {% if current_account.user.username != '' %}
+		        	current user: {{current_account.user.username}}
+		        {% else %}
+		        	<a href='/login'>Login</a>
+		        {% endif %}
 		        </div>
 		    </div>
-		
 		    <div id="main" class="main">
 		    {% block main %}
 		    {% endblock %}

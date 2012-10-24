@@ -11,8 +11,9 @@ from djangodb import djangodb
 APP_KEY = '639210256'  # kvpair key
 APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'  # kvpair secret
 #CALLBACK_URL = 'https://api.weibo.com/oauth2/default.html'  # callback url
-#CALLBACK_URL = 'http://localhost:8000/weiboLogin/'
 CALLBACK_URL = 'http://apps.weibo.com/newstracker'
+
+REMIND_WEIBO_ID = 3504267275499498
 
 class weiboAPI(object):         
     '''
@@ -44,11 +45,11 @@ class weiboAPI(object):
     
     def getUserInfo(self, uid=None):
         if uid is None:
-            uid = self.weibo_config.u_id
+            uid = self.u_id
         return self.client.get.users__show(uid=uid)
         
     def getMentions(self, count = 50, page = 1, since_id = 0, trim_user = 0):    
-        return self.client.get.statuses__mentions()
+        return self.client.get.statuses__mentions(count = count, page = page, since_id = since_id, trim_user = trim_user)
         
     def postComment(self, weibo_id, content):
         try:
@@ -59,14 +60,15 @@ class weiboAPI(object):
         return False
     
     def getShortUrl(self, url_long):
-        ## TODO: 容错措施
         return self.client.get.short_url__shorten(url_long=url_long)['urls'][0]['url_short']
     
     def getLongUrl(self, url_short):
-        ## TODO: 容错措施
         return self.client.get.short_url__expand(url_short=url_short)['urls'][0]['url_long']
     
-    def __init__(self, access_token=None, expires_in=None):
+    def setAccessToken(self, access_token, expires_in):
+        self.client.set_access_token(access_token, expires_in)
+        
+    def __init__(self, access_token=None, expires_in=None, u_id = None):
         '''
         Constructor
         '''
@@ -74,17 +76,20 @@ class weiboAPI(object):
                                 app_secret=APP_SECRET,
                                 redirect_uri=CALLBACK_URL,
                                 )
-        if(access_token is not None and expires_in is not None):
+        ## 刚加的，有些引用要改
+        self.u_id = u_id
+        if access_token is not None and len(access_token) > 0:
             self.client.set_access_token(access_token, expires_in)
             self.refreshAccessToken()
         else:
-            print 'not set access token'
+            print 'not set access token yet, need refresh access token'
         
 
 if __name__ == '__main__':
-    weibo = weiboAPI()
+    [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
+    weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
     weibo.refreshAccessToken()
-    
+    print weibo.client.get.statuses__user_timeline()
 #    weibo.getHotTopics()
 
 #    surl = weibo.getShortUrl("http://www.wrfrwrrr.com/")
@@ -92,8 +97,8 @@ if __name__ == '__main__':
 #    print surl
 #    print lurl
 
-    mentions = weibo.getMentions()
-    print mentions
+#    mentions = weibo.getMentions()
+#    print mentions
     
         
     

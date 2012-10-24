@@ -38,6 +38,9 @@ class Useroauth2(models.Model):
     '''
     APP_KEY,    APP_SECRET,    CALLBACK_URL 这些都直接在程序肿配置
     这里只是保存用户授权
+    
+    not in use
+    目前还没有用这个，感觉保存两个小时的用户授权没有价值，目前只是将用户微博帐号和本地帐号关联起来
     '''
     ## weibo or google
     server = models.CharField(max_length=100, db_index=True)
@@ -45,7 +48,7 @@ class Useroauth2(models.Model):
     access_token = models.CharField(max_length=100)
     access_secret = models.CharField(max_length=100)
     refresh_token = models.CharField(max_length =100)
-    expire_in = models.CharField(max_length=100)
+    expires_in = models.CharField(max_length=100)
     
     def __unicode__(self):
         return self.u_id + '@' + self.server + ':' + str(self.access_token)

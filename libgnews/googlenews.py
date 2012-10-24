@@ -10,7 +10,6 @@ Created on Oct 12, 2012
 class GoogleNews(object):
     '''
     根据topic,生成GoogleNews的RSS
-    TODO: 添加定制的RSS
     '''
 
 

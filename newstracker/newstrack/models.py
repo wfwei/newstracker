@@ -63,21 +63,5 @@ class News(models.Model):
     
     class Meta:
         ordering = ["-pubDate"]
-
-class WeiboConfig(models.Model):
-
-    key = models.CharField(max_length=100, unique=True, db_index=True)
-    value = models.CharField(max_length=400)
-
-    def __unicode__(self):
-        return '[' + self.key + ' , ' + self.value,']'
-
-class GReaderConfig(models.Model):
-
-    key = models.CharField(max_length=100, unique=True, db_index=True)
-    value = models.CharField(max_length=400)
-
-    def __unicode__(self):
-        return '[' + self.key + ' , ' + self.value + ']'
    
 

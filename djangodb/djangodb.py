@@ -7,16 +7,16 @@ Created on Oct 12, 2012
 @author: plex
 '''
 ## 为什么去掉这个配置，调试正确，但是运行就报错？？？
-## 但是，留着这个配置，运行ｄｊａｎｇｏ就会报错。。。
-#from django.conf import settings
-#settings.configure(
-#    DATABASE_ENGINE = 'django.db.backends.mysql',
-#    DATABASE_NAME = 'newstracker',
-#    DATABASE_USER = 'root',
-#    DATABASE_PASSWORD = 'wangfengwei',
-#    DATABASE_HOST = 'localhost',
-#    TIME_ZONE = 'America/New_York',
-#)
+## 但是，留着这个配置，运行django就会报错。。。
+from django.conf import settings
+settings.configure(
+    DATABASE_ENGINE = 'django.db.backends.mysql',
+    DATABASE_NAME = 'newstracker',
+    DATABASE_USER = 'root',
+    DATABASE_PASSWORD = 'wangfengwei',
+    DATABASE_HOST = 'localhost',
+    TIME_ZONE = 'America/New_York',
+)
 
 from django.contrib.auth.models import User
 
@@ -32,9 +32,6 @@ Useroauth2 = account_models.Useroauth2
 Weibo = models.Weibo
 Topic = models.Topic
 News = models.News
-WeiboConfig = models.WeiboConfig
-GReaderConfig = models.GReaderConfig
-
 from datetime import datetime
 
 _DEBUG = True
@@ -59,7 +56,6 @@ def get_or_create_weibo(weiboJson):
             nweibo.reposts_count = weiboJson['reposts_count']
         if weiboJson['comments_count'] != '':
             nweibo.comments_count = weiboJson['comments_count']
-        ## TODO: test
         if weiboJson['user'] != '':
             nweibo.user = get_or_create_account_from_weibo(weiboJson['user'])
                 
@@ -77,14 +73,17 @@ def get_or_create_account_from_weibo(weiboUserJson):
         account = Account.objects.get(weiboId = weiboUserJson['id'])
     except Account.DoesNotExist:
         try:
-            user = User.objects.get(username = weiboUserJson['name'])
+            ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
+            user = User.objects.get(USERNAME = weiboUserJson['name'])
         except:
-            user = User.objects.create_user(username = weiboUserJson['name'],
-                                            email = weiboUserJson['name'] + '-' + str(weiboUserJson['id']) + '@fakeemail.com',
-                                            password = weiboUserJson['id'])
+            user = User.objects.create_user(USERNAME = weiboUserJson['name'],
+                                            email = str(weiboUserJson['id']) + '@fakeemail.com',
+                                            PASSWORD = weiboUserJson['id'])
         account, created = Account.objects.get_or_create(user = user)
         if created:
             account.weiboId = weiboUserJson['id']
+            if weiboUserJson['name'] != '':
+                account.weiboName = weiboUserJson['name']
             if weiboUserJson['city'] != '':
                 account.weiboCity = weiboUserJson['city']
             if weiboUserJson['gender'] != '':
@@ -107,17 +106,28 @@ def get_or_create_account_from_weibo(weiboUserJson):
 
 def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
     '''得到或保存更新access_token和expires_in信息
-    如果access_token和expire_in都不是None，则保存更新　返回[None, None]
-    否则从数据库中取u_id对应的access_token和expire_in，并返回[access_token, expire_in]
     '''
+    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id = u_id)
+
     if access_token is None or expires_in is None:
-        try:
-            _oauth2info = Useroauth2.objects.get(server='weibo', u_id=u_id)
-            access_token = _oauth2info.access_token
-            expires_in = _oauth2info.expires_in
-        except:
-            print 'access information for weibo user:'+str(u_id)+' not found'
+        ## 认为是获取信息
+        access_token = _oauth2info.access_token
+        expires_in = _oauth2info.expires_in
+    else:
+        ##　认为是更新信息
+        _oauth2info.access_token = access_token
+        _oauth2info.expires_in = expires_in
+        _oauth2info.save()
     return [access_token, expires_in]
+
+def get_last_mention_id():
+    '''
+    得到最近获取的一条＠微博，由于Weibo模型中已经定义了顺序，所以。。。
+    '''  
+    try:
+        return Weibo.objects.all()[0].weibo_id
+    except:
+        return 0
 
 if __name__ == '__main__':
     #test

@@ -8,8 +8,17 @@ except:
     import simplejson as json
 
 from url import ReaderUrl
-from items import SpecialFeed, Item, Category, Feed
-from greader_config import GReaderConfig
+from items import Item, Category, Feed
+from auth import OAuth2Method
+
+USERNAME = 'newstrackerpro@gmail.com'
+PASSWORD = 'wangfengwei'
+CLIENT_ID = '6030332710.apps.googleusercontent.com'
+CLIENT_SECRET = 'TZv3m1Zbodu_rqwg4XDa9CZC'
+REDIRECT_URL = 'urn:ietf:wg:oauth:2.0:oob'
+REFRESH_TOKEN = '1/Jh_gCO2V3EAtMU0_MbKOHt5Fq0fivY602aN56nikjmk'
+
+_DEBUG = True
 
 class GoogleReader(object):
     """
@@ -28,7 +37,7 @@ class GoogleReader(object):
         return "<Google Reader object: %s>" % self.auth.username
 
     def __init__(self):
-        self.auth           = GReaderConfig().auth
+        self.auth           = self._getOAuth2(CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, REDIRECT_URL)
         self.feeds          = []
         self.categories     = []
         self.feedsById      = {}
@@ -36,6 +45,21 @@ class GoogleReader(object):
         self.specialFeeds   = {}
         self.orphanFeeds    = []
         self.userId         = None
+        
+    def _getOAuth2(self, client_id, client_secret, refresh_token, redirect_url):
+        auth = OAuth2Method(client_id, client_secret, refresh_token)
+        auth.setRedirectUri(redirect_url)
+        if(len(refresh_token)<1):
+            url = auth.buildAuthUrl()
+            print '访问该地址授权',url
+            auth.code = raw_input()
+            auth.setAccessToken()
+        else:
+            auth.refreshAccessToken()
+        auth.setActionToken()
+        if _DEBUG:
+            print 'Google Reader login OK!'
+        return auth
 
     def getUnreadFeeds(self):
         '''
@@ -176,7 +200,6 @@ class GoogleReader(object):
             {'i': item.id, 'a': tag, 'ac': 'edit-tags', })
 
     def markFeedAsRead(self, feed):
-        ## 判断类型 TODO: test
         if isinstance(feed, Feed):
             feedId = feed.id
         else:
