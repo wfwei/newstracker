@@ -13,7 +13,10 @@ from libweibo.weiboAPI import weiboAPI
 from djangodb import dbop
 
 import re
-import simplejson
+try:
+    import simplejson
+except:
+    import json as simplejson
 import base64
 
 _DEBUG = True

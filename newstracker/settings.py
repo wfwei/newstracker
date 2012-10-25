@@ -6,6 +6,12 @@ TEMPLATE_DEBUG = DEBUG
 
 import os
 
+## TODO: remove this
+import sys
+sys.path.append('/home/wangfengwei/wksp/newstracker')
+## end
+
+
 ADMINS = (
      ('plex', 'cf.wfwei@gmail.com'),
 )
@@ -16,7 +22,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'newstracker',                      # Or path to database file if using sqlite3.
-        'USER': 'root',                      # Not used with sqlite3.
+        'USER': 'wangfengwei',                      # Not used with sqlite3.
         'PASSWORD': 'wangfengwei',                  # Not used with sqlite3.
         'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
@@ -109,6 +115,7 @@ ROOT_URLCONF = 'newstracker.urls'
 TEMPLATE_DIRS = (
     ## TODO 如果使用相對路徑???
     '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
+    '/home/wangfengwei/wksp/newstracker/newstracker/templates',
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

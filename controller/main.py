@@ -6,6 +6,8 @@ Created on Oct 10, 2012
 
 @author: plex
 '''
+import sys
+sys.path.append('/home/wangfengwei/wksp/newstracker')
 
 from libgreader import GoogleReader
 from libgnews import googlenews
@@ -312,7 +314,7 @@ def create_or_update_news_timeline(topicTitle):
         f.write('storyjs_jsonp_data = ')
         f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
         json.dump({"timeline": timeline}, f, encoding='utf-8')
-        print 'Generate news timeline OK'
+        print 'Generate news timeline: ' + str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp'
     except djangodb.Topic.DoesNotExist:
         print 'Topic:\t' + topicTitle + ' not exist!!!'
         return False
