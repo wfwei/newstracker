@@ -69,7 +69,7 @@ def news_timeline(request,topic_id):
     topic = Topic.objects.get(pk=topic_id)
     news_timeline_file = topic.title + ".jsonp"
     if _DEBUG:
-        print 'in news_timeline: topic_id: ', topic_id,'\t news count: '
+        print 'in news_timeline: topic_id: ', topic_id
         
     return render_to_response("news_timeline.html",
                               {"news_timeline_file": news_timeline_file},

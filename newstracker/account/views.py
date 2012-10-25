@@ -148,16 +148,11 @@ def weiboLogin(request):
         print 'create new Account for:'+str(user_id)
         _weibo = weiboAPI(oauth_token, expires, user_id)
         _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
-    
-    if _login(request, _account.user.username, _account.user.password):
-        print 'login success: ' + str(user_id) + ' ' + _account.user.username
-    else:
-        print 'log in error'
-    ## TODO: bug 这样登录后直接跳转到主页request.user.username是空的，而用户名密码直接登录就OK。。。为什么？？
-    ## 目前把需要的参数通过ｕｒｌ传递过去。。。
+    ## TODO: 如何实现用户自动登录？？
+    request.session['user'] = _account.user
     return HttpResponseRedirect('/topic_list/' + str(_account.id))
 
-def call_back(request):
+def weibo_callback(request):
     code = request.GET.get('code')
     
     
