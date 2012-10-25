@@ -6,13 +6,16 @@ Created on Oct 13, 2012
 @author: plex
 '''
 from weibo import APIClient
-#TODO: 清空所有数据库相关的
-#考虑这个API就不要保存数据了
-#from djangodb import djangodb
 
+##站内应用的配置
 APP_KEY = '639210256'
 APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'
 CALLBACK_URL = 'http://apps.weibo.com/newstracker'
+
+###网页应用的配置
+#APP_KEY = '4057638893'
+#APP_SECRET = '20771c2157efe0659eead33718e4feae'
+#CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback'
 
 REMIND_WEIBO_ID = 3504267275499498
 
@@ -89,19 +92,11 @@ class weiboAPI(object):
         
 
 if __name__ == '__main__':
-    [access_token, expires_in] = ['2.00l9nr_D0qmDQhc1ef1ea942R3rHrB', 1351052312]
-    weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
-    weibo.refreshAccessToken()
-    print weibo.client.get.statuses__user_timeline()
-#    weibo.getHotTopics()
-
-#    surl = weibo.getShortUrl("http://www.wrfrwrrr.com/")
-#    lurl = weibo.getLongUrl(surl['urls'][0]['url_short'])
-#    print surl
-#    print lurl
-
-#    mentions = weibo.getMentions()
-#    print mentions
+    pass
+#    测试站内应用
+#    [access_token, expires_in] = ['2.00l9nr_D0qmDQhc1ef1ea942R3rHrB', 1351052312]
+#    weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
+#    print weibo.client.get.statuses__user_timeline()
     
         
     
