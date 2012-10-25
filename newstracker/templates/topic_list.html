@@ -11,11 +11,13 @@
 		<ul id="my_topics" class="topic_list">
 	    {% for topic in my_topics %}
 	        <li>
-	        	<a href="/topic_view/{{topic.id}}">{{topic.title}}</a>
-	        	<a href="/news_timeline/{{topic.id}}">timeline_view</a>
-	        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>	
+	        	<a href="/news_timeline/{{topic.id}}">#{{topic.title}}#</a>
+	        	<a href="/topic_view/{{topic.id}}">list_view</a>
+	        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
 	        </li>
-	        <li>{{topic.time}}</li>
+	        <li>
+	        	{{topic.time}}
+	        </li>
 	        <br />
 	    {% endfor %}
 	    </ul>

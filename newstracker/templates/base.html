@@ -17,10 +17,10 @@
 		            <a href="/">News Tracker Pro</a>
 		        </div>
 		        <div id="userinfo" class="userinfo">
-		        {% if current_account.user.username != '' %}
-		        	current user: {{current_account.user.username}}
+		        {% if user.is_authenticated %}
+		        	@{{ user.username }} <a href="/logout">out</a>
 		        {% else %}
-		        	<a href='/login'>Login</a>
+		        	@游客 <a href="/login">in</a>
 		        {% endif %}
 		        </div>
 		    </div>

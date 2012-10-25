@@ -40,7 +40,7 @@ class weiboAPI(object):
     def refreshAccessToken(self):
         if self.client.is_expires():
             url = self.client.get_authorize_url()
-            print '访问url获取认证code\n',url
+            print 'weibo.refreshAccessToken 访问url获取认证code\n',url
             # 获取URL参数code: TODO:impl自动认证
             code = raw_input()
             u_id = raw_input()##TODO: how to get this information

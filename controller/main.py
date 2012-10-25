@@ -15,6 +15,7 @@ from djangodb import djangodb
 import datetime
 import json
 import re
+import os
 
 _DEBUG = True
 
@@ -276,6 +277,9 @@ def create_or_update_news_timeline(topicTitle):
     try:
         topic = djangodb.Topic.objects.get(title = topicTitle)
         topic_news = topic.news_set.all()
+        ## TODO: 改进筛选news的方法
+        if len(topic_news) > 20:
+            topic_news = topic_news[:20]
         news_list = []
         for news in topic_news:
             ##TODO: text提取新闻概要信息
@@ -304,9 +308,9 @@ def create_or_update_news_timeline(topicTitle):
 #                "tag":"This is Optional"}]
 
         ## Save to file
-        f = open('/home/plex/wksp/eclipse/newstracker/newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
+        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
         f.write('storyjs_jsonp_data = ')
-        f = open('/home/plex/wksp/eclipse/newstracker/newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
+        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
         json.dump({"timeline": timeline}, f, encoding='utf-8')
         print 'Generate news timeline OK'
     except djangodb.Topic.DoesNotExist:
@@ -324,12 +328,11 @@ def update_all_news_timeline():
 
 
 if __name__ == '__main__':
-    print djangodb.get_last_mention_id()
 #    fetchHotTopic()
 #    getUserPostTopic()
-#    update_all_news_timeline()
+    update_all_news_timeline()
 #    fetchRssUpdates()
 #    remindUserTopicUpdates('中渔民被韩海警射杀')
 #    remindUserTopicUpdates('军舰驶向钓鱼岛')
 #    create_or_update_news_timeline('中渔民被韩海警射杀')
-
+    pass

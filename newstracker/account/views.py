@@ -41,13 +41,12 @@ def register(request):
             context_instance=RequestContext(request))
 
 def login(request):
-    print dbop.Account.objects.all()
     template_var = {}
     ## 用户weibo登录的认证链接
     authorize_url = weiboAPI().getAuthorizeUrl()
     template_var['authorize_url'] = authorize_url
     
-    form = LoginForm()    
+    form = LoginForm()
     if request.method == 'POST':
         form = LoginForm(request.POST.copy())
         if form.is_valid():
@@ -147,10 +146,10 @@ def weiboLogin(request):
         _weibo = weiboAPI(oauth_token, expires, user_id)
         _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
     
-    _login(request, _account.user.username, _account.user.password)
-    if _DEBUG:
+    if _login(request, _account.user.username, _account.user.password):
         print 'login success: ' + str(user_id) + ' ' + _account.user.username
-#        print 'request: ', request
+    else:
+        print 'log in error'
     ## TODO: bug 这样登录后直接跳转到主页request.user.username是空的，而用户名密码直接登录就OK。。。为什么？？
     ## 目前把需要的参数通过ｕｒｌ传递过去。。。
     return HttpResponseRedirect('/topic_list/' + str(_account.id))

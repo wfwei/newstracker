@@ -16,31 +16,31 @@ _mimetype =  'application/javascript, charset=utf8'
 '''
 TODO: 
 1. 直接传输topic对象太大了，后面要什么传什么
-2. problem 2: 这种判断方法不妥
 3. 
 '''
 def topic_list(request, account_id=None):
+    if not request.user.is_authenticated():
+        print 'in topic_list user not logged in ', request.user
+    else:
+        print 'in topic_list user logged in ', request.user.username
     if account_id is not None:
         current_account = Account.objects.get(pk = account_id)
     else:
-        if request.user.username == '':
-            ## 如果用户没有登录则返回登录界面
-            print 'request.user.username is null, redirect to login page'
+        if not request.user.is_authenticated():
             return HttpResponseRedirect('/login')
-        u = User.objects.get(username = request.user.username)
-        current_account = Account.objects.get(user = u)
+        _user = User.objects.get(username = request.user.username)
+        current_account = _user.account_set.all()[0]
 
     topic_list = Topic.objects.all()
     my_topics = []
     other_topics = []
     for topic in topic_list:
-        if len(topic.watcher.filter(user = current_account.user)) > 0:
-            ## problem 2
+        if current_account in topic.watcher.all():
             my_topics.append(topic)
         else:
             other_topics.append(topic)
-    if _DEBUG:
-        print 'in topic_list:'
+    if False and _DEBUG:
+        print 'DEBUG mode in topic_list:'
         print 'current_account: ', current_account
         print 'my_topics: ', my_topics
         print 'other_topics: ', other_topics
