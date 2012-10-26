@@ -23,6 +23,8 @@ urlpatterns = patterns('',
      url(r'userinfo/$', 'newstracker.account.views.userinfo', name='userinfo'),
      url(r'register/$', 'newstracker.account.views.register', name='register'),
      
+     url(r'weibo_callback/$', 'newstracker.account.views.weibo_callback', name='weibo_callback'),
+     url(r'weibo_callback_rm/$', 'newstracker.account.views.weibo_callback_rm', name='weibo_callback_rm'),
      
 #     url(r'^newstracker/', include('newstracker.foo.urls')),
 

@@ -153,6 +153,28 @@ def weiboLogin(request):
     return HttpResponseRedirect('/topic_list/' + str(_account.id))
 
 def weibo_callback(request):
+    ## 获取code
     code = request.GET.get('code')
-    
-    
+    print 'code', code
+    ## 构建微博对象
+    _wb = weiboAPI()
+    _r = _wb.client.request_access_token(code)
+    access_token = _r.access_token
+    expires_in = _r.expires_in
+    print 'access_token ', access_token
+    print 'expires_in ', expires_in 
+    _wb.client.set_access_token(access_token, expires_in)
+    ## 得到用户信息
+    uinfo = _wb.client.get.users__show(uid = '2638714490')
+    ## uinfo = _wb.getUserInfo()
+    print 'user info: ', uinfo
+
+    ##得到账户信息（第一次登录会自动帮用户注册）
+    _account = dbop.get_or_create_account_from_weibo(uinfo)
+    print 'get _account ', account
+    ## TODO: 如何实现用户自动登录？？
+    _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
+    log_res = auth_login(request, _account.user)
+    print 'log result: ', log_res
+     
+    return HttpResponse(log_res)

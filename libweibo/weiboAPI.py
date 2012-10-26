@@ -8,14 +8,14 @@ Created on Oct 13, 2012
 from weibo import APIClient
 
 ##站内应用的配置
-APP_KEY = '639210256'
-APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'
-CALLBACK_URL = 'http://apps.weibo.com/newstracker'
+#APP_KEY = '639210256'
+#APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'
+#CALLBACK_URL = 'http://apps.weibo.com/newstracker'
 
 ###网页应用的配置
-#APP_KEY = '4057638893'
-#APP_SECRET = '20771c2157efe0659eead33718e4feae'
-#CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback'
+APP_KEY = '4057638893'
+APP_SECRET = '20771c2157efe0659eead33718e4feae'
+CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
 REMIND_WEIBO_ID = 3504267275499498
 
@@ -64,11 +64,12 @@ class weiboAPI(object):
     
     def getUserInfo(self, uid=None):
         '''
-        TODO: 突然这个接口不能用了。。。WHY？？
+        TODO:test 
         '''
-        if uid is None:
-            uid = self.u_id
-        return self.client.get.users__show(uid=uid)
+        if uid is not  None:
+            return self.client.get.users__show(uid=uid)
+        
+        return self.client.get.users__show()
         
     def getMentions(self, count = 50, page = 1, since_id = 0, trim_user = 0):    
         return self.client.get.statuses__mentions(count = count, page = page, since_id = since_id, trim_user = trim_user)

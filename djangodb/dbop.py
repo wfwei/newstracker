@@ -52,11 +52,11 @@ def get_or_create_account_from_weibo(weiboUserJson):
     except Account.DoesNotExist:
         try:
             ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
-            user = User.objects.get(USERNAME = weiboUserJson['name'])
+            user = User.objects.get(username = weiboUserJson['name'])
         except:
-            user = User.objects.create_user(USERNAME = weiboUserJson['name'],
+            user = User.objects.create_user(username = weiboUserJson['name'],
                                             email = str(weiboUserJson['id']) + '@fakeemail.com',
-                                            PASSWORD = weiboUserJson['id'])
+                                            password = str(weiboUserJson['id']))
         account, created = Account.objects.get_or_create(user = user)
         if created:
             account.weiboId = weiboUserJson['id']
