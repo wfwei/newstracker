@@ -8,7 +8,9 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
      url(r'^$', 'newstracker.newstrack.views.topic_list', name='topic_list'),
+     ## remove below
      url(r'^topic_list/(?P<account_id>\d+)$', 'newstracker.newstrack.views.topic_list', name='topic_list'),
+     url(r'^topic_list/$', 'newstracker.newstrack.views.topic_list', name='topic_list'),
      url(r'^topic_view/(?P<topic_id>\d+)$', 'newstracker.newstrack.views.topic_view', name='topic_view'),
      url(r'^news_timeline/(?P<topic_id>\d+)$', 'newstracker.newstrack.views.news_timeline', name='news_timeline'),
      

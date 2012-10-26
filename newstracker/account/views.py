@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 
 from newstracker.account.models import Account
 from forms import RegisterForm, LoginForm, UserForm
-
 from libweibo.weiboAPI import weiboAPI
 from djangodb import dbop
 
@@ -155,26 +154,20 @@ def weiboLogin(request):
 def weibo_callback(request):
     ## 获取code
     code = request.GET.get('code')
-    print 'code', code
     ## 构建微博对象
     _wb = weiboAPI()
     _r = _wb.client.request_access_token(code)
+    ## TODO: remove me
     access_token = _r.access_token
     expires_in = _r.expires_in
-    print 'access_token ', access_token
-    print 'expires_in ', expires_in 
+    u_id = _r.uid
     _wb.client.set_access_token(access_token, expires_in)
-    ## 得到用户信息
-    uinfo = _wb.client.get.users__show(uid = '2638714490')
-    ## uinfo = _wb.getUserInfo()
-    print 'user info: ', uinfo
+    uinfo = _wb.getUserInfo(uid=u_id)
+    ## 保存授权信息
+    dbop.get_or_update_weibo_auth_info(u_id=u_id, access_token=access_token, expires_in=expires_in)
 
-    ##得到账户信息（第一次登录会自动帮用户注册）
+    ## MARK: 数据库编码没设置，导致一直存不进去，直接去该数据库编码貌似也不行，django不知道吧，所以删了数据库，重新syncdb
     _account = dbop.get_or_create_account_from_weibo(uinfo)
-    print 'get _account ', account
-    ## TODO: 如何实现用户自动登录？？
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
-    log_res = auth_login(request, _account.user)
-    print 'log result: ', log_res
-     
-    return HttpResponse(log_res)
+    auth_login(request, _account.user)
+    return HttpResponseRedirect('/topic_list/')
