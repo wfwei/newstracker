@@ -2,6 +2,8 @@
 <html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0">
+    	<meta name="description" content="追踪新闻最新动态 Enjoy!">
         {% block meta%}{% endblock%}
         <title>
             {% block title%}{% endblock%}
@@ -11,32 +13,34 @@
         {% block head %}{% endblock %}
     </head>
     <body>
-        <div id="wrapper" class="wrapper">
-		    <div id="header" class="header">
-		        <div id="title" class="title">
-		            <a href="/">News Tracker Pro</a>
-		        </div>
-		        <div id="userinfo" class="userinfo">
-		        {% if user.is_authenticated %}
-		        	@{{ user.username }} <a href="/logout">out</a>
-		        {% else %}
-		        	@游客 <a href="/login">in</a>
-		        {% endif %}
-		        </div>
-		    </div>
+        <div class="wrapper">
+        
+        	<div id="top">
+       			<div id="logo">
+       				<a href="/home/">
+	            		<img id="logoimage" src="{{STATIC_URL}}images/logo.png" alt="logo">	
+	            		<h1 id="logotitle">新闻追踪007</h1>
+            		</a>
+        		</div>
+        		<div style="text-align:right">
+					{% if user.is_authenticated %}
+			        	<h3>Hey, &quot;@{{ user.username }}&quot; <a href="/logout">out</a></h3>
+			        {% else %}
+						<a href={{ authorize_url }}><img src="http://www.sinaimg.cn/blog/developer/wiki/32.png"></a>
+			        {% endif %}
+        		</div>
+    		</div>
 		    <div id="main" class="main">
 		    {% block main %}
 		    {% endblock %}
 		    </div>
 		
-		    <div id="footer" class="footer">
-		        <ul class="footer-nav">
-		            <li><a href="/about/">About</a></li>
-		            <li><a href="/faq/">FAQ</a></li>
-		            <li><a href="/legal/">Legal</a></li>
-		            <li><a href="#">{% now "Y" %} newstracker | newstrakcer.net</a></li>
-		        </ul>
-		    </div>
+		    <footer id="footer">
+				<div class="wrapper">
+			        <h2 style="text-align:right;text-decoration: none;"><a href="/home/">HOME</a></h2>
+			    </div>
+			    <div class="clearfix"></div>
+			</footer>
 		</div>
         <script type="text/javascript" src="{{STATIC_URL}}js/base.js"></script>
         <script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.7.2.min.js"></script>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}新闻列表{% endblock%}
+
+{% block main %}  
+    <div id="all_topics"> 
+		{% if user.is_authenticated %}
+	    <section id="work">
+	    <hr />
+	    <h1 style="text-align:center">&ndash; 我关注的话题 &ndash;</h1>
+	    <div  id="my_topics" class="topic_list clearfix">
+	    {% for topic in my_topics %}
+	        <div class="item">
+	        	<h3><a href="/news_timeline/{{topic.id}}">#{{topic.title}}#</a></h3>        	
+	        	<a href="/topic_view/{{topic.id}}">list_view</a>
+	        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
+	            <p>{{topic.time}}</p>
+	        </div>
+	    {% endfor %}
+	    </div> 
+	    <div class="clearfix"></div> 
+		</section>
+		{% endif %}
+		
+	    <section id="work"> 
+	    <hr />
+	    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
+	    <div id="other_topics" class="topic_list clearfix">
+	    {% for topic in other_topics %}
+	        <div class="item">
+	        	<h3><a href="/news_timeline/{{topic.id}}">#{{topic.title}}#</a></h3>        	
+	        	<a href="/topic_view/{{topic.id}}">list_view</a>
+	        	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">添加关注</a>
+	            <p>{{topic.time}}</p>
+	        </div>
+	    {% endfor %}
+	    </div> 
+	    <div class="clearfix"></div> 
+		</section>
+	</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript" src="{{STATIC_URL}}js/home.js"></script>
+{% endblock %}

@@ -1,5 +1,4 @@
 #coding=utf-8
-
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -10,6 +9,8 @@ from django.utils import simplejson
 from newstracker.newstrack.models import Topic, News
 from newstracker.account.models import Account
 
+from libweibo.weiboAPI import weiboAPI
+
 _DEBUG = True
 _mimetype =  'application/javascript, charset=utf8'
 
@@ -18,37 +19,37 @@ TODO:
 1. 直接传输topic对象太大了，后面要什么传什么
 3. 
 '''
-def topic_list(request, account_id=None):
-    if not request.user.is_authenticated():
-        print 'in topic_list user not logged in ', request.user
+def home(request):
+    template_var = {}
+    
+    if request.user.is_authenticated():
+        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        template_var['current_account'] = current_account
     else:
-        print 'in topic_list user logged in ', request.user.username
-    if account_id is not None:
-        current_account = Account.objects.get(pk = account_id)
-    else:
-        if not request.user.is_authenticated():
-            return HttpResponseRedirect('/login')
-        _user = User.objects.get(username = request.user.username)
-        current_account = _user.account_set.all()[0]
+        ## 用户weibo登录的认证链接
+        template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
     topic_list = Topic.objects.all()
-    my_topics = []
-    other_topics = []
-    for topic in topic_list:
-        if current_account in topic.watcher.all():
-            my_topics.append(topic)
-        else:
-            other_topics.append(topic)
+    
+    if request.user.is_authenticated():
+        my_topics = []
+        other_topics = []
+        for topic in topic_list:
+            if current_account in topic.watcher.all():
+                my_topics.append(topic)
+            else:
+                other_topics.append(topic)
+        template_var['my_topics'] = my_topics
+        template_var['other_topics'] = other_topics
+    else:
+        template_var['other_topics'] = topic_list
+        
     if False and _DEBUG:
-        print 'DEBUG mode in topic_list:'
-        print 'current_account: ', current_account
-        print 'my_topics: ', my_topics
-        print 'other_topics: ', other_topics
-
-    return render_to_response("topic_list.html",
-                              {"my_topics": my_topics,
-                               "other_topics": other_topics,
-                               "current_account": current_account},
+        for key in template_var:
+            print key, template_var[key]
+        
+    return render_to_response("home.html",
+                              template_var,
                               context_instance=RequestContext(request))
     
 def topic_view(request,topic_id):

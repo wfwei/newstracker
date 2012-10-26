@@ -20,27 +20,58 @@ import base64
 
 _DEBUG = True
 
-def register(request):
-    template_var = {}
-    form = RegisterForm()
-    if request.method == "POST":
-        form = RegisterForm(request.POST.copy())
-        if form.is_valid():
-            username = form.cleaned_data["username"]
-            email = form.cleaned_data["email"]
-            password = form.cleaned_data["password"]
-            user_obj = User.objects.create_user(username, email, password)
-            account = Account(user=user_obj)
-            account.save()
-            _login(request, username, password)  #注册完毕 直接登陆
-            return HttpResponseRedirect("/")
-        else:
-            messages.add_message(request, messages.INFO, 'something is wrong')
+def weiboLogin(request):
+    # TODO: bug 目前还有错，不知道是哪儿的原因：
+    # 用WeBless和新闻追踪００７可以正常登录，但是用ｚｚｙ和幸运女神的帐号登录就没有user_id!!!
+    signed_request = request.POST.get('signed_request')
+    # signed_request传到python这边, 数据结构是一个字符串型的list
+    if isinstance(signed_request, list):
+        signed_request = signed_request[0]
+    encoded_sig, payload = signed_request.split(".", 2)
 
-    template_var["form"] = form
-    return render_to_response("account/register.html",
-            template_var,
-            context_instance=RequestContext(request))
+    # 余数2, 那么需要补一个=
+    payload = str(payload)
+    if len(payload)%3 == 2:
+        payload += '='
+    # 余数1, 那么需要补两个=  
+    if len(payload)%3 == 1:
+        payload += '=='
+    # urlsafe_b64decode() Decode string s using a URL-safe alphabet, 
+    # which substitutes - instead of + and _ instead of / in the standard Base64 alphabet.
+    # 得到data    
+    data = simplejson.loads(base64.urlsafe_b64decode(payload))
+    
+    # 得到sig
+    encoded_sig = str(encoded_sig)
+    if len(encoded_sig)%3 == 2:
+        encoded_sig += '='
+    if len(encoded_sig)%3 == 1:
+        encoded_sig += '==' 
+    sig = base64.urlsafe_b64decode(encoded_sig)
+
+    try: 
+        user_id = data['user_id']
+        oauth_token = data['oauth_token']
+        expires= data['expires']
+    except:
+        print '认证错误，这个错误还未解决！！！'
+            
+    if _DEBUG:
+        print 'signed_request: ', signed_request
+        print 'data: ',data
+        print user_id
+    
+    ##判断用户是否已经登录过（第一次登录会自动帮用户注册）
+    try:
+        _account = Account.objects.get(weiboId = user_id)
+    except:
+        print 'create new Account for:'+str(user_id)
+        _weibo = weiboAPI(oauth_token, expires, user_id)
+        _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
+    ## TODO: 如何实现用户自动登录？？
+    request.session['user'] = _account.user
+    return HttpResponseRedirect('/home/')
+
 
 def login(request):
     template_var = {}
@@ -86,75 +117,6 @@ def logout(request):
     auth_logout(request)
     return HttpResponseRedirect('login/')
 
-def userinfo(request):
-    template_var = {}
-    form = UserForm()
-    if request.method ==  'POST':
-        form = UserForm(request.POST.copy())
-        if form.is_valid():
-            User.objects.filter(id=request.user.id).update(username=form.cleaned_data["username"],
-                                                            email=form.cleaned_data["email"])
-    else :
-        form = UserForm( initial = {'username':request.user.username, 'email':request.user.email})
-    template_var["form"] = form
-    return render_to_response("account/userinfo.html", template_var, context_instance=RequestContext(request))
-
-def weiboLogin(request):
-    # TODO: bug 目前还有错，不知道是哪儿的原因：
-    # 用WeBless和新闻追踪００７可以正常登录，但是用ｚｚｙ和幸运女神的帐号登录就没有user_id!!!
-    signed_request = request.POST.get('signed_request')
-    # signed_request传到python这边, 数据结构是一个字符串型的list
-    if isinstance(signed_request, list):
-        signed_request = signed_request[0]
-    encoded_sig, payload = signed_request.split(".", 2)
-
-    # 余数2, 那么需要补一个=
-    payload = str(payload)
-    if len(payload)%3 == 2:
-        payload += '='
-    # 余数1, 那么需要补两个=  
-    if len(payload)%3 == 1:
-        payload += '=='
-    # urlsafe_b64decode() Decode string s using a URL-safe alphabet,
-    # which substitutes - instead of + and _ instead of / in the standard Base64 alphabet.
-    # 得到data    
-    data = simplejson.loads(base64.urlsafe_b64decode(payload))
-
-    # 得到sig
-    encoded_sig = str(encoded_sig)
-    if len(encoded_sig)%3 == 2:
-        encoded_sig += '='
-    if len(encoded_sig)%3 == 1:
-        encoded_sig += '=='
-    sig = base64.urlsafe_b64decode(encoded_sig)
-
-    try:
-        user_id = data['user_id']
-        oauth_token = data['oauth_token']
-        expires= data['expires']
-    except:
-        print '认证错误，这个错误还未解决！！！'
-
-    if _DEBUG:
-        print 'signed_request: ', signed_request
-        print 'data: ',data
-        print user_id
-
-    ##判断用户是否已经登录过（第一次登录会自动帮用户注册）
-    try:
-        _account = Account.objects.get(weiboId = user_id)
-    except:
-        print 'create new Account for:'+str(user_id)
-        _weibo = weiboAPI(oauth_token, expires, user_id)
-        _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
-    ## TODO: 如何实现用户自动登录？？
-    _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
-    log_res = auth_login(request, _account.user)
-    print 'log result: ', log_res
-    if request.user.is_authenticated():
-        print 'succeed log in'
-    return HttpResponseRedirect('/')
-
 def weibo_callback(request):
     ## 获取code
     code = request.GET.get('code')
@@ -174,4 +136,4 @@ def weibo_callback(request):
     _account = dbop.get_or_create_account_from_weibo(uinfo)
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
     auth_login(request, _account.user)
-    return HttpResponseRedirect('/topic_list/')
+    return HttpResponseRedirect('/home/')
