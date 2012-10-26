@@ -62,14 +62,22 @@ class weiboAPI(object):
         weekHotTopics = self.client.get.trends__weekly()['trends']
         return weekHotTopics
     
+    def getUID(self):
+        '''
+        得到当前授权用户的ID，前提是要授权！！！
+        TODO: 添加判断授权的机制
+        '''
+        return self.client.get.account__get_uid()['uid']
+    
     def getUserInfo(self, uid=None):
         '''
-        TODO:test 
+       　必须配置uid参数，如果没有会报错 
         '''
         if uid is not  None:
             return self.client.get.users__show(uid=uid)
-        
-        return self.client.get.users__show()
+        if self.u_id is None:
+            self.u_id = self.getUID() 
+        return self.client.get.users__show(uid=self.u_id)
         
     def getMentions(self, count = 50, page = 1, since_id = 0, trim_user = 0):    
         return self.client.get.statuses__mentions(count = count, page = page, since_id = since_id, trim_user = trim_user)

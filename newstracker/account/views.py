@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 
 from newstracker.account.models import Account
 from forms import RegisterForm, LoginForm, UserForm
-
 from libweibo.weiboAPI import weiboAPI
 from djangodb import dbop
 
@@ -20,7 +19,7 @@ except:
 import base64
 
 _DEBUG = True
- 
+
 def register(request):
     template_var = {}
     form = RegisterForm()
@@ -37,7 +36,7 @@ def register(request):
             return HttpResponseRedirect("/")
         else:
             messages.add_message(request, messages.INFO, 'something is wrong')
-            
+
     template_var["form"] = form
     return render_to_response("account/register.html",
             template_var,
@@ -48,7 +47,7 @@ def login(request):
     ## 用户weibo登录的认证链接
     authorize_url = weiboAPI().getAuthorizeUrl()
     template_var['authorize_url'] = authorize_url
-    
+
     form = LoginForm()
     if request.method == 'POST':
         form = LoginForm(request.POST.copy())
@@ -116,31 +115,31 @@ def weiboLogin(request):
     # 余数1, 那么需要补两个=  
     if len(payload)%3 == 1:
         payload += '=='
-    # urlsafe_b64decode() Decode string s using a URL-safe alphabet, 
+    # urlsafe_b64decode() Decode string s using a URL-safe alphabet,
     # which substitutes - instead of + and _ instead of / in the standard Base64 alphabet.
     # 得到data    
     data = simplejson.loads(base64.urlsafe_b64decode(payload))
-    
+
     # 得到sig
     encoded_sig = str(encoded_sig)
     if len(encoded_sig)%3 == 2:
         encoded_sig += '='
     if len(encoded_sig)%3 == 1:
-        encoded_sig += '==' 
+        encoded_sig += '=='
     sig = base64.urlsafe_b64decode(encoded_sig)
 
-    try: 
+    try:
         user_id = data['user_id']
         oauth_token = data['oauth_token']
         expires= data['expires']
     except:
         print '认证错误，这个错误还未解决！！！'
-            
+
     if _DEBUG:
         print 'signed_request: ', signed_request
         print 'data: ',data
         print user_id
-    
+
     ##判断用户是否已经登录过（第一次登录会自动帮用户注册）
     try:
         _account = Account.objects.get(weiboId = user_id)
@@ -159,24 +158,20 @@ def weiboLogin(request):
 def weibo_callback(request):
     ## 获取code
     code = request.GET.get('code')
-    print 'code', code
     ## 构建微博对象
     _wb = weiboAPI()
     _r = _wb.client.request_access_token(code)
+    ## TODO: remove me
     access_token = _r.access_token
     expires_in = _r.expires_in
-    print 'access_token ', access_token
-    print 'expires_in ', expires_in 
+    u_id = _r.uid
     _wb.client.set_access_token(access_token, expires_in)
-    ## 得到用户信息
-    uinfo = _wb.client.get.users__show(uid = '2638714490')
-    ## uinfo = _wb.getUserInfo()
-    print 'user info: ', uinfo
+    uinfo = _wb.getUserInfo(uid=u_id)
+    ## 保存授权信息
+    dbop.get_or_update_weibo_auth_info(u_id=u_id, access_token=access_token, expires_in=expires_in)
 
-    ##得到账户信息（第一次登录会自动帮用户注册）
+    ## MARK: 数据库编码没设置，导致一直存不进去，直接去该数据库编码貌似也不行，django不知道吧，所以删了数据库，重新syncdb
     _account = dbop.get_or_create_account_from_weibo(uinfo)
-    print 'get _account ', _account
-    ## TODO: 如何实现用户自动登录？？
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
-    log_res = auth_login(request, _account.user)
-    print 'log result: ', log_res
+    auth_login(request, _account.user)
+    return HttpResponseRedirect('/topic_list/')

@@ -54,6 +54,9 @@ def get_or_create_account_from_weibo(weiboUserJson):
             ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
             user = User.objects.get(username = weiboUserJson['name'])
         except:
+            ## TODO: remove me
+            print weiboUserJson['name']
+            print str(weiboUserJson['id'])
             user = User.objects.create_user(username = weiboUserJson['name'],
                                             email = str(weiboUserJson['id']) + '@fakeemail.com',
                                             password = str(weiboUserJson['id']))

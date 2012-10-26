@@ -11,10 +11,9 @@ from django.conf import settings
 settings.configure(
     DATABASE_ENGINE = 'django.db.backends.mysql',
     DATABASE_NAME = 'newstracker',
-    DATABASE_USER = 'root',
+    DATABASE_USER = 'wangfengwei',
     DATABASE_PASSWORD = 'wangfengwei',
     DATABASE_HOST = 'localhost',
-    TIME_ZONE = 'America/New_York',
 )
 from dbop import *
 
@@ -128,4 +127,3 @@ if __name__ == '__main__':
  'verified_type': 200,
  'weihao': u''}
     get_or_create_account_from_weibo(weiboJson)
-    

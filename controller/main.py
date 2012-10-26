@@ -28,6 +28,9 @@ if _DEBUG:
 
 # Init weibo
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
+## test
+print access_token
+print 'expires_in ', expires_in
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
 
 if _DEBUG:
@@ -72,7 +75,8 @@ def fetchRssUpdates():
 
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
-            excludeRead = True
+            ## TODO: change to True
+            excludeRead = False
             continuation = None
             over = False
             while not over:
@@ -89,10 +93,9 @@ def fetchRssUpdates():
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
 
                 if _DEBUG:
-                    print 'feed content:\n', feedContent
-                    print 'continuation:\t', continuation
-                    print 'item set size:\t', len(itemSet)
                     print 'feed topic:\t', feedTopic
+                    print 'item set size:\t', len(itemSet)
+                    print 'continuation:\t', continuation
 
                 topic = None
                 try:
@@ -103,7 +106,8 @@ def fetchRssUpdates():
                         topic = djangodb.Topic.objects.create(title = feedTopic,
                                                               rss = topicrss,
                                                               time = datetime.datetime.now())
-                        print 'WARNING: 话题 ' + feedTopic + ' 不存在, 重建后保存数据库'
+                        pass
+                        #print 'WARNING: #' + feedTopic + '# 不存在, 重建后保存数据库'
                     else:
                         print 'Error!!!无法找到对应话题,跳过该feed:',feedTopic
                         break
@@ -139,7 +143,7 @@ def fetchRssUpdates():
             create_or_update_news_timeline(feedTopic)
 
             ## 提醒订阅该话题（feed）的用户
-            remindUserTopicUpdates(feedTopic)
+            ##remindUserTopicUpdates(feedTopic)
             pass
 
 def getUserPostTopic():
@@ -332,8 +336,8 @@ def update_all_news_timeline():
 if __name__ == '__main__':
 #    fetchHotTopic()
 #    getUserPostTopic()
-    update_all_news_timeline()
-#    fetchRssUpdates()
+#    update_all_news_timeline()
+    fetchRssUpdates()
 #    remindUserTopicUpdates('中渔民被韩海警射杀')
 #    remindUserTopicUpdates('军舰驶向钓鱼岛')
 #    create_or_update_news_timeline('中渔民被韩海警射杀')
