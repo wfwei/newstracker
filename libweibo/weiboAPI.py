@@ -7,15 +7,15 @@ Created on Oct 13, 2012
 '''
 from weibo import APIClient
 
-##站内应用的配置
-#APP_KEY = '639210256'
-#APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'
-#CALLBACK_URL = 'http://apps.weibo.com/newstracker'
+#站内应用的配置
+APP_KEY = '639210256'
+APP_SECRET = '2f6ab2ac68a561f7e63403e372a61f82'
+CALLBACK_URL = 'http://apps.weibo.com/newstracker'
 
-###网页应用的配置
-APP_KEY = '4057638893'
-APP_SECRET = '20771c2157efe0659eead33718e4feae'
-CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
+####网页应用的配置
+#APP_KEY = '4057638893'
+#APP_SECRET = '20771c2157efe0659eead33718e4feae'
+#CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
 REMIND_WEIBO_ID = 3504267275499498
 
@@ -95,9 +95,9 @@ class weiboAPI(object):
 if __name__ == '__main__':
     pass
 #    测试站内应用
-#    [access_token, expires_in] = ['2.00l9nr_D0qmDQhc1ef1ea942R3rHrB', 1351052312]
-#    weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
-#    print weibo.client.get.statuses__user_timeline()
+    [access_token, expires_in] = ['2.00l9nr_D0qmDQhc1ef1ea942R3rHrB', 1351052312]
+    weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
+    print weibo.getUserInfo()
     
         
     

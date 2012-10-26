@@ -149,8 +149,12 @@ def weiboLogin(request):
         _weibo = weiboAPI(oauth_token, expires, user_id)
         _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
     ## TODO: 如何实现用户自动登录？？
-    request.session['user'] = _account.user
-    return HttpResponseRedirect('/topic_list/' + str(_account.id))
+    _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
+    log_res = auth_login(request, _account.user)
+    print 'log result: ', log_res
+    if request.user.is_authenticated():
+        print 'succeed log in'
+    return HttpResponseRedirect('/')
 
 def weibo_callback(request):
     ## 获取code
@@ -171,10 +175,8 @@ def weibo_callback(request):
 
     ##得到账户信息（第一次登录会自动帮用户注册）
     _account = dbop.get_or_create_account_from_weibo(uinfo)
-    print 'get _account ', account
+    print 'get _account ', _account
     ## TODO: 如何实现用户自动登录？？
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
     log_res = auth_login(request, _account.user)
     print 'log result: ', log_res
-     
-    return HttpResponse(log_res)
