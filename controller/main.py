@@ -21,6 +21,14 @@ import json
 import re
 import os
 
+## 为什么要加上下面两行才不会出错？否则
+## File "main.py", line 241, in remindUserTopicUpdates
+##    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
+## UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-4: ordinal not in range(128)
+## 参考资料http://www.oschina.net/question/119303_21679
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 _DEBUG = True
 
 # Init google reader
@@ -77,8 +85,7 @@ def fetchRssUpdates():
 
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
-            ## TODO: change to True
-            excludeRead = False
+            excludeRead = True 
             continuation = None
             over = False
             while not over:
@@ -124,6 +131,7 @@ def fetchRssUpdates():
                     except:
                         print 'fail to extract link from alternate attr\n', str(item)
                         link = 'http://www.fakeurl.com'
+                        raise
                     if link.find('&url=http') > 0 :
                         link = link[link.find('&url=http')+5:]
                     nnews, created = djangodb.News.objects.get_or_create(title = title)
@@ -145,7 +153,7 @@ def fetchRssUpdates():
             create_or_update_news_timeline(feedTopic)
 
             ## 提醒订阅该话题（feed）的用户
-            ##remindUserTopicUpdates(feedTopic)
+            remindUserTopicUpdates(feedTopic)
             pass
 
 def getUserPostTopic():
@@ -155,17 +163,17 @@ def getUserPostTopic():
 
     TODO:
     1. mentions只获取了前５０条，接下来要设法获取全部。。
+    2. 修改mention_list的顺序，这样，中间出错，不影响后面的
     '''
     ## 获取,解析和存储话题
     lastMentionId = djangodb.get_last_mention_id()
     mentions = weibo.getMentions(since_id = lastMentionId)
     mention_list = mentions['statuses']
-    if _DEBUG:
-        print mention_list
     topic_user_dict = {}
 
     ## 提取用户@的消息并进行解读,保存话题
-    for mention in mention_list:
+    ## 这里拟序mention_list，先访问序号较小的微博,参考TODO2
+    for mention in reversed(mention_list):
         ## step 1: 提取并构造微博对象
         mweibo = djangodb.get_or_create_weibo(mention)
         if 'retweeted_status' in mention:
@@ -179,23 +187,16 @@ def getUserPostTopic():
         muser = djangodb.get_or_create_account_from_weibo(mention['user'])
 
         ## step 3: 提取话题相关的信息
-        topic_res = re.search('#([^#]+)#',mweibo.text)
-        action_res = re.search('\*([^\*]+)\*',mweibo.text)
+        mtopictitle = None
+        _search_content = mweibo.text
+        if is_retweeted:
+            _search_content += mweibo_retweeted.text
+        topic_res = re.search('#([^#]+)#', _search_content)
         if topic_res is not None:
             mtopictitle = topic_res.group(1)
-        elif is_retweeted:
-            topic_res = re.search('#([^#]+)#', mweibo_retweeted.text)
-            if topic_res is not None:
-                mtopictitle = topic_res.group(1)
         else:
-            ## 没有话题,结束并返回False
-            print '本条@微博不含有话题--！\t' + mweibo.text
+            print '本条@微博不含有话题--！\t' + _search_content
             return False
-        ## TODO: 判断用户是要订阅还是取消订阅，暂时不处理，统一认为是订阅话题
-        if action_res is not None:
-            moperation = action_res.group(1)
-        else:
-            moperation = '订阅'
 
         ## step 4: 构建话题
         if mtopictitle is not None:
@@ -237,7 +238,13 @@ def remindUserTopicUpdates(topicTitle):
     topicWatchers = topic.watcher.all()
     topciWatcherWeibo = topic.watcher_weibo.all()
     ## TODO: 网站上线，把链接改成自己的
-    postMsg = '#'+topicTitle+'# 有新进展：'+topic_news.title + '(' + weibo.getShortUrl(topic_news.link) + ')'
+    try:
+        postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
+    except:
+        print 'error in postMsg:'
+        print topicTitle, topic_news.title, weibo.getShortUrl(topic_news.link)
+        raise
+       
 
     if _DEBUG:
         print 'topicWatchers ', topicWatchers
@@ -326,6 +333,7 @@ def create_or_update_news_timeline(topicTitle):
         return False
     except:
         print 'error in create_or_update_news_timeline ', topicTitle
+        raise
 
 def update_all_news_timeline():
     topic_list = djangodb.Topic.objects.all()
@@ -336,17 +344,21 @@ def update_all_news_timeline():
 
 def mt_fetchRssUpdates(interval=60*60):
     while(True):
+        print 'mt_fetchRssUpdates work'
         fetchRssUpdates()
+        print 'mt_fetchRssUpdates in sleep'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
         
 def mt_getUserPostTopic(interval=30*60):
     while(True):
+        print 'mt_getUserPostTopic work'
+        getUserPostTopic()
+        print 'mt_getUserPostTopic in sleep'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
-        getUserPostTopic()
 
 if __name__ == '__main__':
     _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())
