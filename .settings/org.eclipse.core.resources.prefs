@@ -1,5 +1,5 @@
 eclipse.preferences.version=1
-encoding//controller/common.py=utf-8
+encoding//controller/main.py=utf-8
 encoding//djangodb/dbop.py=utf-8
 encoding//djangodb/djangodb.py=utf-8
 encoding//libgreader/googlereader.py=utf-8

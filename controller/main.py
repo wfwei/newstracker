@@ -14,6 +14,8 @@ from libgnews import googlenews
 from libweibo import weiboAPI
 from djangodb import djangodb
 
+import multiprocessing
+import time
 import datetime
 import json
 import re
@@ -332,13 +334,23 @@ def update_all_news_timeline():
         create_or_update_news_timeline(topic.title)
     print 'all finished'
 
+def mt_fetchRssUpdates(interval=60*60):
+    while(True):
+        fetchRssUpdates()
+        time.sleep(interval)
+        if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+            time.sleep((7-time.localtime().tm_hour) * 60 *60)
+        
+def mt_getUserPostTopic(interval=30*60):
+    while(True):
+        time.sleep(interval)
+        if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+            time.sleep((7-time.localtime().tm_hour) * 60 *60)
+        getUserPostTopic()
 
 if __name__ == '__main__':
-#    fetchHotTopic()
-#    getUserPostTopic()
-    update_all_news_timeline()
-    #fetchRssUpdates()
-#    remindUserTopicUpdates('中渔民被韩海警射杀')
-#    remindUserTopicUpdates('军舰驶向钓鱼岛')
-#    create_or_update_news_timeline('中渔民被韩海警射杀')
-    pass
+    _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())
+    _fetchRssUpdates = multiprocessing.Process(target=mt_fetchRssUpdates, args=())
+    
+    _getUserPostTopic.start()
+    _fetchRssUpdates.start()
