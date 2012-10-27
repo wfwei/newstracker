@@ -192,11 +192,11 @@ header h2{
 }
 
 .item{
-  padding:2px;
+	position:relative;
 	border-radius:15px;
 	width:180px;
 	height:185px;
-	background-color:#FFF;
+	background-color:#CDC;
 	margin:10px;
 	float:left;
 	-webkit-box-shadow: 0 1px 3px #c3c3c3;
@@ -237,28 +237,42 @@ header h2{
 	opacity:1;
 }
 
+.item a{
+	color:#3d3d3d;
+	vertical-align:middle
+}
 
-.item h3{
+.item a:hover{
+	text-decoration:none;
+	color:green;
+}
+
+.item .topic_title{
 	font-family:Lato, Arial, Helvetica, sans-serif;
-	font-size:105%;
+	font-size:110%;
 	font-weight:normal;
-	padding:5px 0 0 8px;
-	color:#2d2d2d;
+	padding:10px;
 	text-decoration:none;
 }
 
-.item h3 a{
+.item .recent_news{
+	font-family:Lato, Arial, Helvetica, sans-serif;
+	font-weight:normal;
+	padding:5px;
 	text-decoration:none;
-	color:#2d2d2d;
 }
 
-.item p{
-	font-family:Lato, Arial, Helvetica, sans-serif;
-	font-size:70%;
-	font-weight:normal;
-	padding:0 0 0 8px;
-	color:#f38094;
-	text-decoration:none;
+.item .topic_operation{
+	padding-top:2px;
+	font-size:90%;
+	position:absolute;
+	bottom:0;
+  	width:100%;
+  	height:26px;
+  	border-top:1px solid white;
+  	text-align:center;
+  	border-radius:0 0 15px 15px;
+  	background-color:#DCD;
 }
 /* ----------------------- WORK LINKS END ------------------------- */
 

@@ -30,7 +30,14 @@ def home(request):
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
     topic_list = Topic.objects.all()
-    
+    for topic in topic_list:
+        ## optimize
+        _news = topic.news_set.all()
+        if len(_news) > 0:
+            topic.recent_news_title = _news[0].title
+            topic.recent_news_link = _news[0].link
+        else:
+            topic.recent_news_title= '没有最新更新＝＝!'
     if request.user.is_authenticated():
         my_topics = []
         other_topics = []

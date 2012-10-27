@@ -37,7 +37,9 @@ class Topic(models.Model):
     title = models.CharField(max_length=200, unique=True, db_index=True)
     rss = models.CharField(max_length=400)
     time = models.DateTimeField(default=datetime.datetime.now, db_index=True)
-    
+    ##　recent_news_title, recent_news_link都是属性，数据库中无
+    recent_news_title = ''
+    recent_news_link = ''
     watcher = models.ManyToManyField(account_models.Account)
     watcher_weibo = models.ManyToManyField(Weibo)
     

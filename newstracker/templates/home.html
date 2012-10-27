@@ -11,10 +11,15 @@
 	    <div  id="my_topics" class="topic_list clearfix">
 	    {% for topic in my_topics %}
 	        <div class="item">
-	        	<h3><a href="/news_timeline/{{topic.id}}">#{{topic.title}}#</a></h3>        	
-	        	<a href="/topic_view/{{topic.id}}">list_view</a>
-	        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
-	            <p>{{topic.time}}</p>
+	        	<div class='topic_title'>
+	        		<a href="/news_timeline/{{topic.id}}">话题：{{topic.title}}</a>
+	        	</div>
+	        	<div class='recent_news'>
+	        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        	</div>
+	        	<div class='topic_operation'>
+		        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
+	        	</div>
 	        </div>
 	    {% endfor %}
 	    </div> 
@@ -27,11 +32,17 @@
 	    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
 	    <div id="other_topics" class="topic_list clearfix">
 	    {% for topic in other_topics %}
-	        <div class="item">
-	        	<h3><a href="/news_timeline/{{topic.id}}">#{{topic.title}}#</a></h3>        	
-	        	<a href="/topic_view/{{topic.id}}">list_view</a>
-	        	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
-	            <p>{{topic.time}}</p>
+	    
+	    	<div class="item">
+	        	<div class='topic_title'>
+	        		<a href="/news_timeline/{{topic.id}}">话题：{{topic.title}}</a>
+	        	</div>
+	        	<div class='recent_news'>
+	        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        	</div>
+	        	<div class='topic_operation'>
+		        	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
+	        	</div>
 	        </div>
 	    {% endfor %}
 	    </div> 
