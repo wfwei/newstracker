@@ -9,6 +9,9 @@
 	border:0;
 }
 
+a{
+  text-decoration:none;
+}
 /* ----------------- Website background and general text colour ----------------- */
 body{
 	background-image:url(../images/backgroundtexture.png);
@@ -27,11 +30,19 @@ body{
 
 /* The rest is pretty self explanatory - it appears in the order that it occurs on the HTML document */
 #top{
-	height:40px;
+  margin-top:15px;
+	height:30px;
 }
 
+.userinfo{
+  float:right;
+  padding-top:10px;
+  padding-right:4.5%;
+}
+.userinfo h4{
+  float:right;
+}
 #logo{
-	margin-top:5%;
 	text-decoration:none;
 }
 
@@ -54,51 +65,12 @@ body{
 	text-decoration:none;
 }
 
-nav{
-	float:right;
-	width:400px;
-	display:block;
-	height:40px;
-}
-
-nav ul li{
-	display:block;
-	width:25%;
-	float:left;
-	text-align:center;	
-}
-
-nav ul li a{
-	font-family:Lato, Helvetica, Arial, sans-serif;
-	width:90%;
-	text-decoration:none;
-	text-transform:uppercase;
-	font-weight:400;
-	line-height:250%;
-	display:block;
-	color:#2d2d2d;
-}
-
-nav ul li a:hover{
-	color:#f38094;
-}
-
-nav ul li p{
-	font-family:Lato, Helvetica, Arial, sans-serif;
-	width:90%;
-	text-decoration:none;
-	text-transform:uppercase;
-	font-weight:400;
-	line-height:250%;
-	display:block;
-	color:#f38094;
-}
 
 hr{
 	height:1px;
 	width:100%;
 	background-color:#2d2d2d;
-	margin:3% 0;
+	margin:0 0 3% 0;
 }
 
 header{
@@ -220,6 +192,7 @@ header h2{
 }
 
 .item{
+  padding:2px;
 	border-radius:15px;
 	width:180px;
 	height:185px;

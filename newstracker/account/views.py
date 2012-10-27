@@ -88,9 +88,7 @@ def login(request):
                    form.cleaned_data["password"]):
                 return HttpResponseRedirect("/")
     template_var["form"] = form
-    return render_to_response("account/login.html",
-            template_var,
-            context_instance=RequestContext(request))
+    return HttpResponseRedirect('/home/')
 
 def _login(request, name, password):
     ## check if name is email

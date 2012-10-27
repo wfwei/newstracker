@@ -66,8 +66,7 @@ def topic_view(request,topic_id):
                               context_instance=RequestContext(request))
 
 def news_timeline(request,topic_id):
-
-    topic = Topic.objects.get(pk=topic_id)
+    topic = Topic.objects.get(id = topic_id)
     news_timeline_file = topic.title + ".jsonp"
     if _DEBUG:
         print 'in news_timeline: topic_id: ', topic_id

@@ -34,7 +34,7 @@ print 'expires_in ', expires_in
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
 
 if _DEBUG:
-    print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()
+    print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()['name']
 
 def fetchHotTopic():
     '''
@@ -336,8 +336,8 @@ def update_all_news_timeline():
 if __name__ == '__main__':
 #    fetchHotTopic()
 #    getUserPostTopic()
-#    update_all_news_timeline()
-    fetchRssUpdates()
+    update_all_news_timeline()
+    #fetchRssUpdates()
 #    remindUserTopicUpdates('中渔民被韩海警射杀')
 #    remindUserTopicUpdates('军舰驶向钓鱼岛')
 #    create_or_update_news_timeline('中渔民被韩海警射杀')

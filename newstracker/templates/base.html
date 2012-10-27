@@ -22,9 +22,10 @@
 	            		<h1 id="logotitle">新闻追踪007</h1>
             		</a>
         		</div>
-        		<div style="text-align:right">
+        		<div class="userinfo" >
 					{% if user.is_authenticated %}
-			        	<h3>Hey, &quot;@{{ user.username }}&quot; <a href="/logout">out</a></h3>
+                    <a href="{{user_weibo_link}}"><h3>Hey, @{{ user.username }}</h3></a>
+                        <a href="/logout/"><h4>GetMeOut</h4></a>
 			        {% else %}
 						<a href={{ authorize_url }}><img src="http://www.sinaimg.cn/blog/developer/wiki/32.png"></a>
 			        {% endif %}
