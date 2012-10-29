@@ -16,6 +16,8 @@ from libgnews import googlenews
 from libweibo import weiboAPI
 from djangodb import djangodb
 
+from newstimeline import *
+
 import multiprocessing
 import time
 import datetime
@@ -40,11 +42,7 @@ if _DEBUG:
 
 # Init weibo
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
-## test
-print access_token
-print 'expires_in ', expires_in
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
-
 if _DEBUG:
     print 'Sina Weibo 登录信息:\t' , weibo.getUserInfo()['name']
 
@@ -288,76 +286,18 @@ def remindUserTopicUpdates(topicTitle):
         if weiboId != 0 and weiboId not in _user_reminded:
             ## 如果用户绑定了微博帐号，且没有发微博订阅该话题
             ## 目前做法：主帐号有一条专门提醒用户话题更新的公用微博，每当用户有要更新的话题时，评论该微博，并＠用户和新闻更新信息
-            postMsg = '@' + watcher.weiboName + ' 您关注的事件' + postMsg
+            _postMsg = '@' + watcher.weiboName + ' 您关注的事件' + postMsg
             if len(postMsg) > 139:
-                postMsg = postMsg[:139]
+                _postMsg = _postMsg[:139]
             if _DEBUG:
-                print 'postMsg: ', postMsg
-            if not weibo.postComment(weiboAPI.REMIND_WEIBO_ID, postMsg):
+                print 'postMsg: ', _postMsg
+            if not weibo.postComment(weiboAPI.REMIND_WEIBO_ID, _postMsg):
                 print 'post comment failed! '
                 print 'weiboAPI.REMIND_WEIBO_ID: ', weiboAPI.REMIND_WEIBO_ID
-                print 'postMsg: ', postMsg
+                print 'postMsg: ', _postMsg
     print 'remindUserTopicUpdates(%s): OK' % topicTitle
 
-def create_or_update_news_timeline(topicTitle):
-    '''
-     生成指定话题的timeline，并保存到文件中
-     文件放在newstrack的static目录下，以后可以放到media目录中
-     文件的保存名称为: topicTitle.jsonp
-    '''
-    try:
-        topic = djangodb.Topic.objects.get(title = topicTitle)
-        topic_news = topic.news_set.all()
-        ## TODO: 改进筛选news的方法
-        if len(topic_news) > 20:
-            topic_news = topic_news[:20]
-        
-        news_list = []
-        for news in topic_news:
-            ##TODO: text提取新闻概要信息
-            jnews = {"startDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
-                    "endDate":(news.pubDate.date() + datetime.timedelta(1)).strftime('%Y,%m,%d,%H,%M'),
-                    "headline":news.title,
-                    "text":news.summary[15:-24].decode('unicode-escape'),
-                    "tag":"",
-                    "asset": {
-                        "media":'',
-                        "thumbnail":"",
-                        "credit":"",
-                        "caption":"",
-                        }
-                     }
-            news_list.append(jnews)
 
-        timeline = {}
-        timeline['headline'] = topic.title
-        timeline['type'] = 'default'
-        timeline['text'] = 'topic'
-        timeline['date'] = news_list
-#        timeline['era'] = [{"startDate":"2012,1,10",
-#                "endDate":"2012,1,11",
-#                "headline":news.title,
-#                "tag":"This is Optional"}]
-
-        ## Save to file
-        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
-        f.write('storyjs_jsonp_data = ')
-        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
-        json.dump({"timeline": timeline}, f, encoding='utf-8')
-        print 'Generate news timeline: ' + str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp'
-    except djangodb.Topic.DoesNotExist:
-        print 'Topic:\t' + topicTitle + ' not exist!!!'
-        return False
-    except:
-        print 'error in create_or_update_news_timeline ', topicTitle
-        raise
-
-def update_all_news_timeline():
-    topic_list = djangodb.Topic.objects.all()
-    for topic in topic_list:
-        print 'create or update news timeline for: ', topic.title
-        create_or_update_news_timeline(topic.title)
-    print 'all finished'
 
 def mt_fetchRssUpdates(interval=60*60):
     while(True):
@@ -382,6 +322,9 @@ def mt_getUserPostTopic(interval=30*60):
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
 
 if __name__ == '__main__':
+    
+    getUserPostTopic()
+    
     update_all_news_timeline()
     
     _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())
