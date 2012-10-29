@@ -9,6 +9,7 @@ import os
 ## TODO: remove this
 import sys
 sys.path.append('/home/wangfengwei/wksp/newstracker')
+sys.path.append('/home/nginx/newstracker')
 ## end
 
 
@@ -116,6 +117,7 @@ TEMPLATE_DIRS = (
     ## TODO 如果使用相對路徑???
     '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
     '/home/wangfengwei/wksp/newstracker/newstracker/templates',
+    '/home/nginx/newstracker/newstracker/templates',
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

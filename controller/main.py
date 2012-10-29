@@ -6,8 +6,10 @@ Created on Oct 10, 2012
 
 @author: plex
 '''
+## TODO: 更改服务器的PYTHONPATH
 import sys
 sys.path.append('/home/wangfengwei/wksp/newstracker')
+sys.path.append('/home/nginx/newstracker')
 
 from libgreader import GoogleReader
 from libgnews import googlenews
@@ -155,6 +157,7 @@ def fetchRssUpdates():
             ## 提醒订阅该话题（feed）的用户
             remindUserTopicUpdates(feedTopic)
             pass
+    print 'fetchRssUpdates() OK'
 
 def getUserPostTopic():
     '''
@@ -190,7 +193,7 @@ def getUserPostTopic():
         mtopictitle = None
         _search_content = mweibo.text
         if is_retweeted:
-            _search_content += mweibo_retweeted.text
+            _search_content += ' ' + mweibo_retweeted.text
         topic_res = re.search('#([^#]+)#', _search_content)
         if topic_res is not None:
             mtopictitle = topic_res.group(1)
@@ -223,6 +226,7 @@ def getUserPostTopic():
                 print '\nFail to subscribed ', topic_user_dict['topic_rss']
             elif _DEBUG:
                 print 'Subscribed ', topic_user_dict['topic_rss']
+    print 'getUserPostTopic() OK'
 
 def remindUserTopicUpdates(topicTitle):
     try:
@@ -282,6 +286,7 @@ def remindUserTopicUpdates(topicTitle):
                 print 'post comment failed! '
                 print 'weiboAPI.REMIND_WEIBO_ID: ', weiboAPI.REMIND_WEIBO_ID
                 print 'postMsg: ', postMsg
+    print 'remindUserTopicUpdates(%s): OK' % topicTitle
 
 def create_or_update_news_timeline(topicTitle):
     '''
@@ -295,13 +300,14 @@ def create_or_update_news_timeline(topicTitle):
         ## TODO: 改进筛选news的方法
         if len(topic_news) > 20:
             topic_news = topic_news[:20]
+        
         news_list = []
         for news in topic_news:
             ##TODO: text提取新闻概要信息
             jnews = {"startDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
                     "endDate":(news.pubDate.date() + datetime.timedelta(1)).strftime('%Y,%m,%d,%H,%M'),
                     "headline":news.title,
-                    "text":'news.summary[12:-22]',
+                    "text":news.summary[15:-24].decode('unicode-escape'),
                     "tag":"",
                     "asset": {
                         "media":'',
@@ -346,21 +352,26 @@ def mt_fetchRssUpdates(interval=60*60):
     while(True):
         print 'mt_fetchRssUpdates work'
         fetchRssUpdates()
-        print 'mt_fetchRssUpdates in sleep'
+        print 'mt_fetchRssUpdates in sleep', interval/60, 'min'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+            print 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
         
 def mt_getUserPostTopic(interval=30*60):
     while(True):
+        print 'mt_getUserPostTopic in sleep 10min'
+        time.sleep(10*60)
         print 'mt_getUserPostTopic work'
         getUserPostTopic()
-        print 'mt_getUserPostTopic in sleep'
+        print 'mt_getUserPostTopic in sleep ', interval/60, 'min'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+            print 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
 
 if __name__ == '__main__':
+    update_all_news_timeline()
     _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())
     _fetchRssUpdates = multiprocessing.Process(target=mt_fetchRssUpdates, args=())
     
