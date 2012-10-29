@@ -48,6 +48,9 @@ class Topic(models.Model):
     
     class Meta:
         ordering = ["-time"]
+        
+    def count_watcher(self):
+        return self.watcher.count()
 
 class News(models.Model):
 
