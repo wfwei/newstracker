@@ -28,7 +28,7 @@ class Weibo(models.Model):
         return '[Weibo , ' + str(self.weibo_id) + ']'
     
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-weibo_id"]
 
 class Topic(models.Model):
     '''

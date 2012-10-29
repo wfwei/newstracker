@@ -170,6 +170,7 @@ def getUserPostTopic():
     '''
     ## 获取,解析和存储话题
     lastMentionId = djangodb.get_last_mention_id()
+    print lastMentionId
     mentions = weibo.getMentions(since_id = lastMentionId)
     mention_list = mentions['statuses']
     topic_user_dict = {}
@@ -193,13 +194,13 @@ def getUserPostTopic():
         mtopictitle = None
         _search_content = mweibo.text
         if is_retweeted:
-            _search_content += ' ' + mweibo_retweeted.text
+            _search_content += ' / ' + mweibo_retweeted.text
         topic_res = re.search('#([^#]+)#', _search_content)
         if topic_res is not None:
             mtopictitle = topic_res.group(1)
         else:
             print '本条@微博不含有话题--！\t' + _search_content
-            return False
+            continue
 
         ## step 4: 构建话题
         if mtopictitle is not None:
@@ -210,16 +211,27 @@ def getUserPostTopic():
                 mtopic.time = mweibo.created_at
             else:
                 topic_user_dict['is_new_topic'] = False
-
+                
             mtopic.watcher.add(muser)
             mtopic.watcher_weibo.add(mweibo)
             mtopic.save()
             topic_user_dict['topic_title'] = mtopic.title
             topic_user_dict['topic_rss'] = mtopic.rss
             topic_user_dict['user'] = muser
-
-        ##订阅
-        if 'is_new_topic' in topic_user_dict and topic_user_dict['is_new_topic']:
+            
+        ## step 5: 提醒用户订阅成功
+        if topic_user_dict['is_new_topic']:
+            remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您～'
+        else:
+            remind_msg = '订阅成功，您可以到 ' + weibo.getShortUrl('http://110.76.40.188:81/') + ' 获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
+        try:
+            if not weibo.postComment(mweibo.weibo_id, remind_msg):
+                print 'fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg)
+        except:
+            print 'error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg)
+            
+        ##　step 6: 订阅
+        if topic_user_dict['is_new_topic']:
             success = reader.subscribe(topic_user_dict['topic_rss'],
                                       topic_user_dict['topic_title'])
             if not success:
@@ -249,7 +261,6 @@ def remindUserTopicUpdates(topicTitle):
         print topicTitle, topic_news.title, weibo.getShortUrl(topic_news.link)
         raise
        
-
     if _DEBUG:
         print 'topicWatchers ', topicWatchers
         print 'topciWatcherWeibo ', topciWatcherWeibo
@@ -372,6 +383,7 @@ def mt_getUserPostTopic(interval=30*60):
 
 if __name__ == '__main__':
     update_all_news_timeline()
+    
     _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())
     _fetchRssUpdates = multiprocessing.Process(target=mt_fetchRssUpdates, args=())
     
