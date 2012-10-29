@@ -9,6 +9,7 @@ from djangodb import djangodb
 import datetime
 import json
 import os
+import re
 
 def create_or_update_news_timeline(topicTitle):
     '''
@@ -19,14 +20,31 @@ def create_or_update_news_timeline(topicTitle):
     try:
         topic = djangodb.Topic.objects.get(title = topicTitle)
         topic_news = _filter_news(list(topic.news_set.all()))
-
+        summary_template = '<div><div style=\" height:100px; padding:10px; display:inline-block;\">%s</div><div style=\"width:500px; padding:0 10px 0 10px; display:inline-block; letter-spacing:1px; line-height:20px;\">%s</div></div>'
+        headline_template = '<a href=\"%s\" >%s</a>'
         news_list = []
         for news in topic_news:
-            ##TODO: text提取新闻概要信息
+            _summary = news.summary[15:-24].decode('unicode-escape')
+            _res = re.findall('<td[^>]*>(.*?)</td>', _summary)
+            if len(_res) == 2:
+                _summary_pic = _res[0]
+                _summary_content = _res[1]
+                _summary_content = re.sub('<[/]?font[^>]*>', '', _summary_content)
+                _summary_content = re.sub('<[/]?div[^>]*>', '', _summary_content)
+                news_link = re.search('href="([^"]*)"', _summary_content).group(1)
+                _summary_content = re.sub('<a[^>]*>.*?</a>', '', _summary_content)
+                _summary_content = re.sub('[.]{3}.*', '...', _summary_content)
+            else:
+                _summary_content = _summary
+                _summary_pic = ''
+                news_link = ''
+                print '_summary is not well structured in create_or_update_news_timeline()'
+            _summary = summary_template%(_summary_pic, _summary_content)
+            _headline = headline_template%(news_link, news.title)
             jnews = {"startDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
                     "endDate":(news.pubDate.date() + datetime.timedelta(1)).strftime('%Y,%m,%d,%H,%M'),
-                    "headline":news.title,
-                    "text":news.summary[15:-24].decode('unicode-escape'),
+                    "headline":_headline,
+                    "text":_summary,
                     "tag":"",
                     "asset": {
                         "media":'',
@@ -42,10 +60,6 @@ def create_or_update_news_timeline(topicTitle):
         timeline['type'] = 'default'
         timeline['text'] = 'topic'
         timeline['date'] = news_list
-#        timeline['era'] = [{"startDate":"2012,1,10",
-#                "endDate":"2012,1,11",
-#                "headline":news.title,
-#                "tag":"This is Optional"}]
 
         ## Save to file
         f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
@@ -91,5 +105,5 @@ def _filter_news(topic_news, min_delta_time=20*60, limit=20):
     return topic_news
     
 if __name__ == '__main__':
-#    create_or_update_news_timeline("杭州烟花爆炸事故")
-    update_all_news_timeline()
+    create_or_update_news_timeline("杭州烟花爆炸事故")
+#    update_all_news_timeline()

@@ -3,13 +3,15 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.contrib.auth.models import User
-
+from django.db.models import Count
 from django.utils import simplejson
 
 from newstracker.newstrack.models import Topic, News
 from newstracker.account.models import Account
 
 from libweibo.weiboAPI import weiboAPI
+
+import itertools
 
 _DEBUG = True
 _mimetype =  'application/javascript, charset=utf8'
@@ -21,36 +23,28 @@ TODO:
 '''
 def home(request):
     template_var = {}
-    
+    my_topics = []
     if request.user.is_authenticated():
         current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        my_topics = current_account.topic_set.all()
         template_var['current_account'] = current_account
+        template_var['my_topics'] = my_topics
     else:
         ## 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
-
-    topic_list = Topic.objects.all()
-    for topic in topic_list:
-        ## optimize
-        _news = topic.news_set.all()
-        if len(_news) > 0:
-            topic.recent_news_title = _news[0].title
-            topic.recent_news_link = _news[0].link
+    
+    ## 得到数据库其他的比较热门的１０个话题
+    other_topics = Topic.objects.exclude(watcher__in=my_topics).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+    template_var['other_topics'] = other_topics
+    
+    for topic in itertools.chain(my_topics, other_topics):
+        if topic.news_set.count() > 0:
+            _news = topic.news_set.all()[0]
+            topic.recent_news_title = _news.title
+            topic.recent_news_link = _news.link
         else:
             topic.recent_news_title= '没有最新更新＝＝!'
-    if request.user.is_authenticated():
-        my_topics = []
-        other_topics = []
-        for topic in topic_list:
-            if current_account in topic.watcher.all():
-                my_topics.append(topic)
-            else:
-                other_topics.append(topic)
-        template_var['my_topics'] = my_topics
-        template_var['other_topics'] = other_topics
-    else:
-        template_var['other_topics'] = topic_list
-        
+            
     if False and _DEBUG:
         for key in template_var:
             print key, template_var[key]
