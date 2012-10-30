@@ -47,7 +47,6 @@ def home(request):
             topic.recent_news_title= '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
-            print 'topic.timeline_ready:', topic.timeline_ready
             
     if False and _DEBUG:
         for key in template_var:

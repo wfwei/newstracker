@@ -19,7 +19,11 @@
 	        		{% endif %}
 	        	</div>
 	        	<div class='recent_news'>
-	        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        		{% if topic.timeline_ready %}
+		        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        		{% else %}
+	        			最新消息：{{topic.recent_news_title}}
+	        		{% endif %}
 	        	</div>
 	        	<div class='topic_operation'>
 		        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
@@ -46,7 +50,11 @@
 	        		{% endif %}
 	        	</div>
 	        	<div class='recent_news'>
-	        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        		{% if topic.timeline_ready %}
+		        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+	        		{% else %}
+	        			最新消息：{{topic.recent_news_title}}
+	        		{% endif %}
 	        	</div>
 	        	<div class='topic_operation'>
 		        	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
