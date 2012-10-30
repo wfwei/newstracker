@@ -42,8 +42,12 @@ def home(request):
             _news = topic.news_set.all()[0]
             topic.recent_news_title = _news.title
             topic.recent_news_link = _news.link
+            topic.timeline_ready = True
         else:
-            topic.recent_news_title= '没有最新更新＝＝!'
+            topic.recent_news_title= '还没来得及更新＝＝!'
+            topic.recent_news_link = ''
+            topic.timeline_ready = False
+            print 'topic.timeline_ready:', topic.timeline_ready
             
     if False and _DEBUG:
         for key in template_var:
