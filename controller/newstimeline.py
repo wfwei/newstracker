@@ -75,11 +75,12 @@ def create_or_update_news_timeline(topicTitle):
         raise
 
 def update_all_news_timeline():
+    print 'update_all_news_timeline start'
     topic_list = djangodb.Topic.objects.all()
     for topic in topic_list:
         print 'create or update news timeline for: ', topic.title
         create_or_update_news_timeline(topic.title)
-    print 'all finished'
+    print 'update_all_news_timeline finished'
 
 def _filter_news(topic_news, min_delta_time=20*60, limit=20):
     total = len(topic_news)

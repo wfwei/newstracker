@@ -309,13 +309,13 @@ def mt_fetchRssUpdates(interval=60*60):
             print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
         
-def mt_getUserPostTopic(interval=30*60):
+def mt_getUserPostTopic(interval=10*60):
+    print strftime("%Y-%m-%d %H:%M:%S", gmtime()), ' mt_getUserPostTopic in sleep 10min'
+    time.sleep(10*60)
     while(True):
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), ' mt_getUserPostTopic in sleep 10min'
-        time.sleep(10*60)
         print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic work'
         getUserPostTopic()
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', interval/60, 'min'
+        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', interval/60 , 'min'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'

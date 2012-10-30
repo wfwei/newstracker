@@ -38,6 +38,7 @@ class Topic(models.Model):
     rss = models.CharField(max_length=400)
     time = models.DateTimeField(default=datetime.datetime.now, db_index=True)
     ##　recent_news_title, recent_news_link都是属性，数据库中无
+    timeline_ready = True
     recent_news_title = ''
     recent_news_link = ''
     watcher = models.ManyToManyField(account_models.Account)
