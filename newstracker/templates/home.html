@@ -20,7 +20,7 @@
 	        	</div>
 	        	<div class='recent_news'>
 	        		{% if topic.timeline_ready %}
-		        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+		        		<a href="{{topic.recent_news_link}}" target="_blank">最新消息：{{topic.recent_news_title}}</a> 
 	        		{% else %}
 	        			最新消息：{{topic.recent_news_title}}
 	        		{% endif %}
@@ -51,7 +51,7 @@
 	        	</div>
 	        	<div class='recent_news'>
 	        		{% if topic.timeline_ready %}
-		        		<a href="{{topic.recent_news_link}}">最新消息：{{topic.recent_news_title}}</a> 
+		        		<a href="{{topic.recent_news_link}}" target="_blank">最新消息：{{topic.recent_news_title}}</a> 
 	        		{% else %}
 	        			最新消息：{{topic.recent_news_title}}
 	        		{% endif %}
