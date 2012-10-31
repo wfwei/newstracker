@@ -17,7 +17,7 @@ from libweibo import weiboAPI
 from djangodb import djangodb
 
 from newstimeline import create_or_update_news_timeline, update_all_news_timeline
-from time import gmtime, strftime
+from time import localtime, strftime
 
 import multiprocessing
 import time
@@ -83,12 +83,11 @@ def getUserPostTopic():
     用户订阅话题的方式可以发布包含:@新闻追踪007 *订阅或取消订阅* #话题内容#的微博；或者转发上述微博
 
     TODO:
-    1. mentions只获取了前５０条，接下来要设法获取全部。。
+    1. mentions只获取了前50条，接下来要设法获取全部。。
     2. 修改mention_list的顺序，这样，中间出错，不影响后面的
     '''
     ## 获取,解析和存储话题
     lastMentionId = djangodb.get_last_mention_id()
-    print lastMentionId
     mentions = weibo.getMentions(since_id = lastMentionId)
     mention_list = mentions['statuses']
     topic_user_dict = {}
@@ -246,7 +245,6 @@ def fetchRssUpdates():
 def remindUserTopicUpdates(topicTitle):
     try:
         topic = djangodb.Topic.objects.get(title = topicTitle)
-        ## 不知道这样的效率如何，应该还好吧
         topic_news = topic.news_set.all()[0]
     except djangodb.Topic.DoesNotExist:
         print 'Topic:\t' + topicTitle + ' not exist!!!'
@@ -304,28 +302,27 @@ def remindUserTopicUpdates(topicTitle):
 
 def mt_fetchRssUpdates(interval=60*60):
     while(True):
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_fetchRssUpdates work'
+        print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_fetchRssUpdates work'
         fetchRssUpdates()
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_fetchRssUpdates in sleep', interval/60, 'min'
+        print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_fetchRssUpdates in sleep', interval/60, 'min'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
-            print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
+            print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
         
 def mt_getUserPostTopic(interval=10*60):
-    print strftime("%Y-%m-%d %H:%M:%S", gmtime()), ' mt_getUserPostTopic in sleep 10min'
+    print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), ' mt_getUserPostTopic in sleep 10min'
     time.sleep(10*60)
     while(True):
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic work'
+        print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_getUserPostTopic work'
         getUserPostTopic()
-        print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', interval/60 , 'min'
+        print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_getUserPostTopic in sleep ', interval/60 , 'min'
         time.sleep(interval)
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
-            print strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
+            print strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 'mt_getUserPostTopic in sleep ', 7-time.localtime().tm_hour, 'hour'
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
 
 if __name__ == '__main__':
-    
     update_all_news_timeline()
     
     _getUserPostTopic = multiprocessing.Process(target=mt_getUserPostTopic, args=())

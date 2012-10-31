@@ -105,7 +105,6 @@ if __name__ == '__main__':
 #    测试站内应用
     [access_token, expires_in] = ['2.00l9nr_D0qmDQhc1ef1ea942R3rHrB', 1351052312]
     weibo = weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
-    print weibo.getUserInfo()
     
         
     

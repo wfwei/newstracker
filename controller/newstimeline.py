@@ -82,6 +82,7 @@ def update_all_news_timeline():
         create_or_update_news_timeline(topic.title)
     print 'update_all_news_timeline finished'
 
+## TODO: 可能会过滤掉最新消息！！！
 def _filter_news(topic_news, min_delta_time=20*60, limit=20):
     total = len(topic_news)
     if total > limit * 2:
