@@ -40,6 +40,7 @@ _DEBUG = True
 reader = GoogleReader()
 if _DEBUG:
     print 'Google Reader 登录信息:\t' , reader.getUserInfo()['userName']
+    print reader.getUnreadFeeds()
 
 # Init weibo
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)

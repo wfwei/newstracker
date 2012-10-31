@@ -7,6 +7,7 @@ Created on Oct 29, 2012
 '''
 from djangodb import djangodb
 import datetime
+import time
 import json
 import os
 import re
@@ -83,29 +84,38 @@ def update_all_news_timeline():
     print 'update_all_news_timeline finished'
 
 ## TODO: 可能会过滤掉最新消息！！！
-def _filter_news(topic_news, min_delta_time=20*60, limit=20):
+
+def _filter_news(topic_news, limit=22):
     total = len(topic_news)
+    ## set limit
     if total > limit * 2:
         limit = total * 0.618
     if limit > 61:
         limit = 61
-    _last_timestamp = datetime.datetime.now()
-    dist = {}
-    for news in reversed(topic_news):
-        _delta_time = (news.pubDate - _last_timestamp).seconds
-        dist[_delta_time] = news
-        _last_timestamp = news.pubDate
-    keys = dist.keys()
-    keys.sort(reverse = True)
-    del topic_news[:]
-    for key in keys:
-        if key < min_delta_time or limit < 0:
+    ##去掉与前后时间距离最近的新闻
+    while True:
+        if len(topic_news) <= limit:
             break
-        topic_news.append(dist[key])
-        limit -= 1
+        min_dist = 100000000
+        min_news = None
+        for pre,cur,post in zip(topic_news[-1:]+topic_news[2:], topic_news, topic_news[1:]+topic_news[:1]):
+            pre_ts = long(time.mktime(pre.pubDate.timetuple()))
+            cur_ts = long(time.mktime(cur.pubDate.timetuple()))
+            post_ts = long(time.mktime(post.pubDate.timetuple()))
+            _len = (abs(pre_ts - cur_ts) * 0.35 + abs(cur_ts - post_ts) * 0.15) % 100000000
+            if _len < min_dist:
+                min_dist = _len
+                min_news = cur
+            
+        if min_news is not None:
+            topic_news.remove(min_news)
+        else:
+            print 'WARNING: Unreachable Code'
+            break
+
     print 'filter news result: ', len(topic_news), ' / ', total
     return topic_news
     
 if __name__ == '__main__':
-    create_or_update_news_timeline("杭州烟花爆炸事故")
-#    update_all_news_timeline()
+#    create_or_update_news_timeline("中渔民被韩海警射杀")
+    update_all_news_timeline()

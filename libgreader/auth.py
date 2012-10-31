@@ -347,10 +347,12 @@ class OAuth2Method(AuthenticationMethod):
             self.authFromAccessToken(response['access_token'])
 
     def is_access_token_expires(self):
-        return not self.access_token or time.time() > self.expires_access
+        if not self.access_token:
+            print 'ERROR in is_access_token_expires, there is no access_token: ', self.access_token
+        return not self.access_token or time.time() >= self.expires_access
     
     def is_action_token_expires(self):
-        return not self.action_token or time.time() > self.expires_action
+        return not self.action_token or time.time() >= self.expires_action
     
     def authFromAccessToken(self, access_token, refresh_token=None, expires_in=60*60):
         self.access_token = access_token
