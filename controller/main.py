@@ -163,9 +163,9 @@ def fetchRssUpdates():
     检查更新rss订阅源,并存储更新的新闻,之后标记rss为已读
     debug模式下,如果数据库中找不到订阅的rss,则会创建之
     '''
-    reader.auth.refreshAccessToken()
+    print 'fetchRssUpdates():\n'
     unreadFeedsDict = reader.getUnreadFeeds()
-
+    print 'unreadFeedsDict:\t', unreadFeedsDict
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
             excludeRead = True 
@@ -199,7 +199,7 @@ def fetchRssUpdates():
                                                               rss = topicrss,
                                                               time = datetime.datetime.now())
                         pass
-                        #print 'WARNING: #' + feedTopic + '# 不存在, 重建后保存数据库'
+                        print 'WARNING: #' + feedTopic + '# 不存在, 重建后保存数据库'
                     else:
                         print 'Error!!!无法找到对应话题,跳过该feed:',feedTopic
                         break
@@ -227,17 +227,20 @@ def fetchRssUpdates():
 
 
             ## 标记该feed为全部已读
+            print 'begin mark feed as read:'
             if not reader.markFeedAsRead(feed):
                 print 'Error in mark ' + feedTopic + ' as read!!!'
             elif _DEBUG:
                 print 'Succeed mark ' + feedTopic + ' as read'
 
             ##　更新话题的news timeline
+            print 'begin update news.timeline'
             create_or_update_news_timeline(feedTopic)
 
             ## 提醒订阅该话题（feed）的用户
+            print 'begin remind user topic updates'
             remindUserTopicUpdates(feedTopic)
-            pass
+            
     print 'fetchRssUpdates() OK'
 
 def remindUserTopicUpdates(topicTitle):
@@ -253,9 +256,9 @@ def remindUserTopicUpdates(topicTitle):
         return False
     topicWatchers = topic.watcher.all()
     topciWatcherWeibo = topic.watcher_weibo.all()
-    ## TODO: 网站上线，把链接改成自己的
+    ## TODO: 把链接改成特定的时间线
     try:
-        postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
+        postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl("http://110.76.40.188:81/")) + ')'
     except:
         print 'error in postMsg:'
         print topicTitle, topic_news.title, weibo.getShortUrl(topic_news.link)
@@ -322,8 +325,6 @@ def mt_getUserPostTopic(interval=10*60):
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
 
 if __name__ == '__main__':
-    
-    getUserPostTopic()
     
     update_all_news_timeline()
     

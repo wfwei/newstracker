@@ -261,11 +261,13 @@ class OAuth2Method(AuthenticationMethod):
         self.client_secret     = CLIENT_SECRET
         self.authorized_client = None
         self.code              = None
-        self.access_token      = None
-        self.action_token      = None
+        self.access_token      = None ## need in all request
+        self.action_token      = None ## need in post @note: http://code.google.com/p/google-reader-api/wiki/ActionToken
         self.redirect_uri      = None
         self.refresh_token     = REFRESH_TOKEN
         self.username          = "OAuth2"
+        self.expires_access    = None ## access_token的失效日期时间（长度为60min）
+        self.expires_action    = None ## action_token的失效日期时间（长度为30min）
 
     def setRedirectUri(self, redirect_uri):
         self.redirect_uri = redirect_uri
@@ -284,9 +286,11 @@ class OAuth2Method(AuthenticationMethod):
         Get action to prevent XSRF attacks
         http://code.google.com/p/google-reader-api/wiki/ActionToken
 
-        TODO: mask token expiring? handle regenerating?
+        ## ActionToken, The token is valid for 30 minutes.
         '''
         self.action_token = self.get(ReaderUrl.ACTION_TOKEN_URL)
+        current = int(time.time())
+        self.expires_action = current + 30*60
 
     def setAccessToken(self):
         params = {
@@ -333,6 +337,7 @@ class OAuth2Method(AuthenticationMethod):
 
         try:
             response = json.loads(urllib2.urlopen(request).read())
+            print response
         except urllib2.HTTPError:
             raise IOError('Error getting Access Token')
         
@@ -341,16 +346,26 @@ class OAuth2Method(AuthenticationMethod):
         else:
             self.authFromAccessToken(response['access_token'])
 
+    def is_access_token_expires(self):
+        return not self.access_token or time.time() > self.expires_access
     
-    def authFromAccessToken(self, access_token, REFRESH_TOKEN=None):
+    def is_action_token_expires(self):
+        return not self.action_token or time.time() > self.expires_action
+    
+    def authFromAccessToken(self, access_token, refresh_token=None, expires_in=60*60):
         self.access_token = access_token
-        if(REFRESH_TOKEN is not None):
-            self.refresh_token = REFRESH_TOKEN
+        if(refresh_token is not None):
+            self.refresh_token = refresh_token
+        current = int(time.time())
+        self.expires_access = current + expires_in
 
     def get(self, url, parameters=None):
         """
         Convenience method for requesting to google with proper cookies/params.
         """
+        if self.is_access_token_expires():
+            self.refreshAccessToken()
+        
         if not self.access_token:
             raise IOError("No authorized client available.")
         if parameters is None:
@@ -364,6 +379,11 @@ class OAuth2Method(AuthenticationMethod):
             return None
 
     def post(self, url, postParameters=None, urlParameters=None):
+        if self.is_access_token_expires():
+            self.refreshAccessToken()
+        if self.is_action_token_expires():
+            ## action token only needed in post request
+            self.setActionToken()
         """
         Convenience method for requesting to google with proper cookies/params.
         """
