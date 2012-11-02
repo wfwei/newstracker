@@ -15,7 +15,7 @@ import time
 import re
 import logging
 logger = logging.getLogger('checkweibo')
-hdlr = logging.FileHandler('checkweibo.log')
+hdlr = logging.FileHandler('../logs/checkweibo.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
@@ -83,11 +83,11 @@ def fetchUserMention():
             else:
                 logger.debug('topic #%s# already in track' % mtopictitle)
                 is_new_topic = False
-                
+
             mtopic.watcher.add(muser)
             mtopic.watcher_weibo.add(mweibo)
             mtopic.save()
-            
+
         ## step 5: 提醒用户订阅成功
         if is_new_topic:
             remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您～'
@@ -102,9 +102,9 @@ def fetchUserMention():
         except:
             logger.error('error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
         weibo_lock.release()
-            
+
     logger.debug('getUserPostTopic() OK')
-    
+
 def fetchHotTopic():
     '''
     获取微博上*每周*的热门话题,之后更新订阅
@@ -128,7 +128,7 @@ def fetchHotTopic():
                 ## 添加订阅话题任务
                 logger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
                 djangodb.add_subscribe_topic_task(topic=_topic)
-  
+
 
 def t_checkweibo(w_lock):
     global weibo_lock
@@ -138,7 +138,7 @@ def t_checkweibo(w_lock):
         fetchUserMention()
         logger.info('Start sleep for 15 minutes' )
         time.sleep(15*60)
-        
+
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
             time.sleep((7-time.localtime().tm_hour) * 60 *60)

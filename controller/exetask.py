@@ -6,7 +6,6 @@ Created on Nov 1, 2012
 
 @author: plex
 '''
-
 from djangodb import djangodb
 from newstimeline import update_all_news_timeline
 
@@ -14,7 +13,7 @@ import __builtin__
 import time
 import logging
 logger = logging.getLogger('exetask')
-hdlr = logging.FileHandler('exetask.log')
+hdlr = logging.FileHandler('../logs/exetask.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
@@ -53,7 +52,7 @@ def remindUserTopicUpdates(topicTitle):
     logger.debug('topciWatcherWeibo:\n' + str(topciWatcherWeibo))
 
     _user_reminded = []
-    
+
     for watcherWeibo in topciWatcherWeibo:
         targetStatusId = watcherWeibo.weibo_id
         logger.debug('postMsg:\n' + postMsg)
@@ -80,7 +79,7 @@ def remindUserTopicUpdates(topicTitle):
             if not weibo.postComment(weibo.REMIND_WEIBO_ID, _postMsg):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
             weibo_lock.release()
-        
+
     logger.debug('remindUserTopicUpdates(%s): OK' % topicTitle)
 
 def subscribeTopic(topicRss, topicTitle = None):
@@ -100,20 +99,18 @@ def t_exetask(w_lock, r_lock):
     global reader_lock
     weibo_lock = w_lock
     reader_lock = r_lock
-    
+
     while True:
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 10)
         remind_tasks = djangodb.get_tasks(type='remind', count = 10)
-        
-        logger.info('Start execute %d subscribe tasks')
+        logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
             time.sleep('61')
             subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
-        logger.info('Start execute %d remind tasks')
+        logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
             time.sleep('61')
             remindUserTopicUpdates(topicTitle = t.topic.title)
-            
+
         logger.info('long sleep for 30 minutes')
         time.sleep(30*60)
-        

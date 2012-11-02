@@ -14,7 +14,7 @@ import __builtin__
 import time
 import logging
 logger = logging.getLogger('checkreader')
-hdlr = logging.FileHandler('checkreader.log')
+hdlr = logging.FileHandler('../logs/checkreader.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
@@ -37,13 +37,13 @@ def fetchRssUpdates():
     reader_lock.acquire()
     unreadFeedsDict = reader.getUnreadFeeds()
     reader_lock.release()
-    logger.debug('keys of unreadFeedsDict:\t', unreadFeedsDict.keys())
+    logger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
-            excludeRead = True 
+            excludeRead = True
             continuation = None
             over = False
-            
+
             while not over:
                 reader_lock.acquire()
                 feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
@@ -77,7 +77,7 @@ def fetchRssUpdates():
 
                 for item in itemSet:
                     title = item['title']
-                    pubDate = datetime.datetime.fromtimestamp(float(item['published']))
+                    pubDate = datetime.fromtimestamp(float(item['published']))
                     summary = item['summary']
                     try:
                         link = item['alternate'][0]['href']
@@ -115,19 +115,19 @@ def fetchRssUpdates():
             ## 添加提醒任务
             logger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
             djangodb.add_remind_user_task(topic = topic)
-            
+
     logger.debug('Fetch rss update over')
-    
+
 def t_checkreader(r_lock):
     global reader_lock
     reader_lock = r_lock
-    
+
     while True:
         logger.info('Start fetching rss updates')
         fetchRssUpdates()
         logger.info('Start sleep for 2 hours' )
         time.sleep(2*60*60)
-        
+
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
