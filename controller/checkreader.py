@@ -40,10 +40,10 @@ def fetchRssUpdates():
     logger.debug('keys of unreadFeedsDict:\t', unreadFeedsDict.keys())
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
-            excludeRead = True 
+            excludeRead = True
             continuation = None
             over = False
-            
+
             while not over:
                 reader_lock.acquire()
                 feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
@@ -115,19 +115,19 @@ def fetchRssUpdates():
             ## 添加提醒任务
             logger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
             djangodb.add_remind_user_task(topic = topic)
-            
+
     logger.debug('Fetch rss update over')
-    
+
 def t_checkreader(r_lock):
     global reader_lock
     reader_lock = r_lock
-    
+
     while True:
         logger.info('Start fetching rss updates')
         fetchRssUpdates()
         logger.info('Start sleep for 2 hours' )
         time.sleep(2*60*60)
-        
+
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
             time.sleep((7-time.localtime().tm_hour) * 60 *60)

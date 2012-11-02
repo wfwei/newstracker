@@ -57,8 +57,6 @@ class GoogleReader(object):
         else:
             auth.refreshAccessToken()
         auth.setActionToken()
-        if _DEBUG:
-            print 'Google Reader login OK!'
         return auth
 
     def getUnreadFeeds(self):

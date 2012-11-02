@@ -29,6 +29,11 @@ logger.setLevel(logging.DEBUG)
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 
+_DEBUG= True
+
+# Init google reader
+reader = GoogleReader()
+logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 
 # Init weibo
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
@@ -46,15 +51,13 @@ from newstimeline import update_all_news_timeline
 from checkreader import t_checkreader
 from exetask import t_exetask
 
-_DEBUG= True
-
 if __name__ == '__main__':
     logger.info('Start update_all_news_timeline')
     update_all_news_timeline()
-    
+
     weibo_lock = Lock()
     reader_lock = Lock()
-    
+
     logger.info('Start multiprocessing.Process(target=t_checkweibo).start()')
     Process(target=t_checkweibo, args=(weibo_lock,)).start()
     logger.info('Start multiprocessing.Process(target=t_checkreader).start()')
