@@ -7,7 +7,7 @@ Created on Oct 24, 2012
 '''
 from django.contrib.auth.models import User
 
-from newstracker.newstrack.models import Weibo, Topic, News
+from newstracker.newstrack.models import Weibo, Topic, News, Task
 from newstracker.account.models import Account, Useroauth2
 
 from datetime import datetime
@@ -113,3 +113,19 @@ def get_last_mention_id():
         return Weibo.objects.all()[0].weibo_id
     except:
         return 0
+
+def add_remind_user_task(topic):
+    task, created = Task.objects.get_or_create(type = 'remind', topic = topic)
+    if not created:
+        task.status += 1
+        task.save()
+
+def add_subscribe_topic_task(topic):
+    task, created = Task.objects.get_or_create(type = 'subscribe', topic = topic)
+    if not created:
+        task.status += 1
+        task.save()
+
+def get_tasks(type, count=1):
+    tasks = Task.objects.filter(type=type)[:count]
+    return list(tasks)
