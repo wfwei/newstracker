@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 '''
 Created on Oct 24, 2012
 
 @author: plex
 '''
+
 from django.contrib.auth.models import User
 
-from newstracker.newstrack.models import Weibo, Topic, News
+from newstracker.newstrack.models import Weibo, Topic, News, Task
 from newstracker.account.models import Account, Useroauth2
 
 from datetime import datetime
@@ -18,8 +20,6 @@ def get_or_create_weibo(weiboJson):
     '''
     通过微博（status）的json形式构建weibo对象，并保存到数据库
     '''
-    if _DEBUG:
-        print 'in get_or_create_weibo() \t\t', weiboJson
     nweibo, created = Weibo.objects.get_or_create(weibo_id = weiboJson['id'])
     if created:
         nweibo.created_at = datetime.strptime(weiboJson['created_at'], "%a %b %d %H:%M:%S +0800 %Y")
@@ -38,8 +38,6 @@ def get_or_create_weibo(weiboJson):
             nweibo.user = get_or_create_account_from_weibo(weiboJson['user'])
 
         nweibo.save()
-    if _DEBUG:
-        print 'get_or_create_weibo() OK'
     return nweibo
 
 def get_or_create_account_from_weibo(weiboUserJson):
@@ -47,8 +45,6 @@ def get_or_create_account_from_weibo(weiboUserJson):
     通过微博用户（user）的json形式构建weibo用户对象，并保存到数据库
     如果要构建微博用户，用户名使用微博昵称，密码是用户微博id，邮箱是默认的邮箱
     '''
-    if _DEBUG:
-        print 'in get_or_create_weibo() \t\t', weiboUserJson
     try:
         account = Account.objects.get(weiboId = weiboUserJson['id'])
     except Account.DoesNotExist:
@@ -56,9 +52,6 @@ def get_or_create_account_from_weibo(weiboUserJson):
             ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
             user = User.objects.get(username = weiboUserJson['name'])
         except:
-            ## TODO: remove me
-            print weiboUserJson['name']
-            print str(weiboUserJson['id'])
             user = User.objects.create_user(username = weiboUserJson['name'],
                                             email = str(weiboUserJson['id']) + '@fakeemail.com',
                                             password = str(weiboUserJson['id']))
@@ -85,8 +78,6 @@ def get_or_create_account_from_weibo(weiboUserJson):
                 account.verified = weiboUserJson['verified']
 
             account.save()
-    if _DEBUG:
-        print 'get_or_create_account_from_weibo() OK'
     return account
 
 def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
@@ -113,3 +104,19 @@ def get_last_mention_id():
         return Weibo.objects.all()[0].weibo_id
     except:
         return 0
+
+def add_remind_user_task(topic):
+    task, created = Task.objects.get_or_create(type = 'remind', topic = topic)
+    if not created:
+        task.status += 1
+        task.save()
+
+def add_subscribe_topic_task(topic):
+    task, created = Task.objects.get_or_create(type = 'subscribe', topic = topic)
+    if not created:
+        task.status += 1
+        task.save()
+
+def get_tasks(type, count=1):
+    tasks = Task.objects.filter(type=type)[:count]
+    return list(tasks)

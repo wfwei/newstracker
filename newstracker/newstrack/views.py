@@ -19,7 +19,7 @@ _mimetype =  'application/javascript, charset=utf8'
 '''
 TODO: 
 1. 直接传输topic对象太大了，后面要什么传什么
-3. 
+3. 模板改用bootstrap
 '''
 def home(request):
     template_var = {}

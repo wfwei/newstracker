@@ -198,7 +198,8 @@ class GoogleReader(object):
         return self.httpPost(
             ReaderUrl.EDIT_TAG_URL,
             {'i': item.id, 'a': tag, 'ac': 'edit-tags', })
-
+        
+    ## TODO: this is stupid
     def markFeedAsRead(self, feed):
         if isinstance(feed, Feed):
             feedId = feed.id
