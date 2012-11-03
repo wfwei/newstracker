@@ -79,7 +79,7 @@ def fetchUserMention():
                 mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
                 mtopic.time = mweibo.created_at
                 logger.debug('add subscribe (#%s#) task to taskqueue' % mtopictitle)
-                djangodb.add_subscribe_topic_task(topic = mtopic)
+                djangodb.add_task(topic = mtopic, type = 'remind')
             else:
                 logger.debug('topic #%s# already in track' % mtopictitle)
                 is_new_topic = False
@@ -127,7 +127,7 @@ def fetchHotTopic():
                                               time = topictime)
                 ## 添加订阅话题任务
                 logger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
-                djangodb.add_subscribe_topic_task(topic=_topic)
+                djangodb.add_task(topic = _topic, type = 'remind')
 
 
 def t_checkweibo(w_lock):

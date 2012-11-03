@@ -114,7 +114,7 @@ def fetchRssUpdates():
 
             ## 添加提醒任务
             logger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
-            djangodb.add_remind_user_task(topic = topic)
+            djangodb.add_task(topic = topic, type = 'subscribe')
 
     logger.debug('Fetch rss update over')
 

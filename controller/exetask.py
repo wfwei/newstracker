@@ -101,16 +101,20 @@ def t_exetask(w_lock, r_lock):
     reader_lock = r_lock
 
     while True:
-        subs_tasks = djangodb.get_tasks(type='subscribe', count = 10)
-        remind_tasks = djangodb.get_tasks(type='remind', count = 10)
+        subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
+        remind_tasks = djangodb.get_tasks(type='remind', count = 5)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
-            time.sleep('61')
+            time.sleep(61)
             subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
+            t.status = 0
+            t.save()
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
-            time.sleep('61')
+            time.sleep(61)
             remindUserTopicUpdates(topicTitle = t.topic.title)
+            t.status = 0
+            t.save()
 
         logger.info('long sleep for 30 minutes')
         time.sleep(30*60)

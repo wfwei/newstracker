@@ -26,8 +26,9 @@ logger.setLevel(logging.DEBUG)
 ##    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
 ## UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-4: ordinal not in range(128)
 ## 参考资料http://www.oschina.net/question/119303_21679
-#reload(sys)
-#sys.setdefaultencoding('utf-8')
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 _DEBUG= True
 

@@ -71,14 +71,13 @@ class News(models.Model):
         ordering = ["-pubDate"]
    
 class Task(models.Model):
-    ## TODO: implement
     type = models.CharField(max_length=50, db_index=True) # remind:remind user topic updates; subscribe:subscribe topic
     topic = models.ForeignKey(Topic)
     status = models.IntegerField(default = 1, db_index=True) # 0:dead;1:alive;2:important;3...more important
     time = models.DateTimeField(default=datetime.datetime.now, db_index=True)
     
     def __unicode__(self):
-        return '[Task, ' + self.type + ',' + self.topic + ']'
+        return '[Task, ' + str(self.type) + ',' + self.topic.title + ']'
     
     class Meta:
         ordering = ["-status"]

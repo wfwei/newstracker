@@ -104,19 +104,14 @@ def get_last_mention_id():
         return Weibo.objects.all()[0].weibo_id
     except:
         return 0
-
-def add_remind_user_task(topic):
-    task, created = Task.objects.get_or_create(type = 'remind', topic = topic)
+        
+def add_task(topic, type):
+    task, created = Task.objects.get_or_create(type = type, topic = topic)
     if not created:
         task.status += 1
         task.save()
 
-def add_subscribe_topic_task(topic):
-    task, created = Task.objects.get_or_create(type = 'subscribe', topic = topic)
-    if not created:
-        task.status += 1
-        task.save()
-
-def get_tasks(type, count=1):
-    tasks = Task.objects.filter(type=type)[:count]
-    return list(tasks)
+def get_tasks(type, count=1, excludeDead=True):
+    ## TODO:test
+    tasks = Task.objects.exclude(status=0).filter(type=type)[:count]
+    return tasks
