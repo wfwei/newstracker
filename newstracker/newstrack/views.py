@@ -12,6 +12,7 @@ from newstracker.account.models import Account
 from libweibo.weiboAPI import weiboAPI
 
 import itertools
+import re
 
 _DEBUG = True
 _mimetype =  'application/javascript, charset=utf8'
@@ -70,6 +71,15 @@ def topic_view(request,topic_id):
                               context_instance=RequestContext(request))
 
 def news_timeline(request,topic_id):
+    _ua = request.META['HTTP_USER_AGENT']
+    _res = re.search('MSIE\s[1-7]\.[^;]*', _ua)
+    if _res:
+        print 'unsurpported browser:\t', _res.group()
+        return HttpResponse('''<p style="text-align:center;">
+        我们的Timeline插件不支持您当前使用的浏览器(%s)，建议您安装Chrome, Firefox或者升级IE到8.0以上的版本。<br>
+        <a href='/'>返回</a></p>
+        ''' % (_res.group()))
+        
     topic = Topic.objects.get(id = topic_id)
     news_timeline_file = topic.title + ".jsonp"
     if _DEBUG:
