@@ -17,7 +17,7 @@ hdlr = logging.FileHandler('../logs/exetask.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('main.log')
+hdlr2 = logging.FileHandler('../logs/main.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr2)
@@ -63,6 +63,7 @@ def remindUserTopicUpdates(topicTitle):
             logger.debug('post comment failed...target status id:%s, postMsg:%s' % (targetStatusId, postMsg))
         else:
             _user_reminded.append(watcherWeibo.user.weiboId)
+        time.sleep(61)
         weibo_lock.release()
 
     ## 有些用户没有发微博关注该事件(将原有微博删除了)，但也要提醒，首先要剔除已经提醒的_user_commented
@@ -78,6 +79,7 @@ def remindUserTopicUpdates(topicTitle):
             weibo_lock.acquire()
             if not weibo.postComment(weibo.REMIND_WEIBO_ID, _postMsg):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
+            time.sleep(61)
             weibo_lock.release()
 
     logger.debug('remindUserTopicUpdates(%s): OK' % topicTitle)
@@ -92,6 +94,7 @@ def subscribeTopic(topicRss, topicTitle = None):
             logger.debug('Succeed to subscribe ' + topicRss)
     except:
         logger.error('Fail to subscribed ' + topicRss)
+    time.sleep(61)
     reader_lock.release()
 
 def t_exetask(w_lock, r_lock):
@@ -102,16 +105,14 @@ def t_exetask(w_lock, r_lock):
 
     while True:
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
-        remind_tasks = djangodb.get_tasks(type='remind', count = 5)
+        remind_tasks = djangodb.get_tasks(type='remind', count = 3)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
-            time.sleep(61)
             subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
             t.status = 0
             t.save()
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
-            time.sleep(61)
             remindUserTopicUpdates(topicTitle = t.topic.title)
             t.status = 0
             t.save()

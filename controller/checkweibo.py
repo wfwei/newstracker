@@ -19,7 +19,7 @@ hdlr = logging.FileHandler('../logs/checkweibo.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('main.log')
+hdlr2 = logging.FileHandler('../logs/main.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr2)
@@ -79,7 +79,7 @@ def fetchUserMention():
                 mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
                 mtopic.time = mweibo.created_at
                 logger.debug('add subscribe (#%s#) task to taskqueue' % mtopictitle)
-                djangodb.add_task(topic = mtopic, type = 'remind')
+                djangodb.add_task(topic = mtopic, type = 'subscribe')
             else:
                 logger.debug('topic #%s# already in track' % mtopictitle)
                 is_new_topic = False
@@ -127,7 +127,7 @@ def fetchHotTopic():
                                               time = topictime)
                 ## 添加订阅话题任务
                 logger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
-                djangodb.add_task(topic = _topic, type = 'remind')
+                djangodb.add_task(topic = _topic, type = 'subscribe')
 
 
 def t_checkweibo(w_lock):

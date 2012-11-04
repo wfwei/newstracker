@@ -18,7 +18,7 @@ hdlr = logging.FileHandler('../logs/checkreader.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('main.log')
+hdlr2 = logging.FileHandler('../logs/main.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr2)
@@ -114,7 +114,7 @@ def fetchRssUpdates():
 
             ## 添加提醒任务
             logger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
-            djangodb.add_task(topic = topic, type = 'subscribe')
+            djangodb.add_task(topic = topic, type = 'remind')
 
     logger.debug('Fetch rss update over')
 

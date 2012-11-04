@@ -39,13 +39,22 @@ $(document).ready(function () {
     }
     t_id = parseInt(e.target.id.split("_")[1], 10)
     u_id = parseInt(e.target.id.split("_")[2], 10)
+    
     switch (e.target.className) {
-    case "follow_topic":
-      follow_topic(t_id, u_id);
-      break;
-    case "unfollow_topic":
-      unfollow_topic(t_id, u_id);
-      break;
+        case "follow_topic":
+            if(!u_id) {
+                alert('请先登录')
+            }else{
+              follow_topic(t_id, u_id);
+            }
+            break;
+        case "unfollow_topic":
+            if(!u_id) {
+                alert('请先登录')
+            }else{
+              unfollow_topic(t_id, u_id);
+            }
+            break;
     }
   });
 });
