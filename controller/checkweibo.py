@@ -10,7 +10,6 @@ Created on Nov 1, 2012
 from djangodb import djangodb
 from libgnews import googlenews
 
-import __builtin__
 import time
 import re
 import logging
@@ -25,8 +24,9 @@ hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr2)
 logger.setLevel(logging.DEBUG)
 
+import __builtin__
 weibo = __builtin__.weibo
-weibo_lock = None
+weibo_lock = __builtin__.weibo_lock
 
 def fetchUserMention():
     '''
@@ -130,9 +130,7 @@ def fetchHotTopic():
                 djangodb.add_task(topic = _topic, type = 'subscribe')
 
 
-def t_checkweibo(w_lock):
-    global weibo_lock
-    weibo_lock = w_lock
+def t_checkweibo():
     while True:
         logger.info('Start fetching user mentions')
         fetchUserMention()

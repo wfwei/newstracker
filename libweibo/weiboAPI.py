@@ -58,7 +58,9 @@ class weiboAPI(object):
         self.acc_limit['user_follow'] = 60 - 10 #这个还有每天的限制，没有考虑
     
     def _checkAccessLimit(self, type='ip_all'):
-        if self.acc_count['hour'] != time.localtime().tm_hour:
+        ##MARK: 两小时刷新一次记录会不会过分了
+        if self.acc_count['hour'] < time.localtime().tm_hour or \
+            self.acc_count['hour'] > time.localtime().tm_hour + 1:
             self._initAccessCount()
         else:
             self.acc_count[type] += 1
@@ -69,9 +71,11 @@ class weiboAPI(object):
             if self.acc_count[type] > self.acc_limit[type] or \
              self.acc_count['ip_all'] > self.acc_limit['ip_all'] or \
              self.acc_count['user_all'] > self.acc_limit['user_all']:
-                sleeptime = (60 - time.localtime().tm_min + 10) * 60 ##多休息10分钟，考虑系统刷新延迟等因素
+                sleeptime = (60 - time.localtime().tm_min + 60) * 60 ##MARK目前多睡１小时。。。
                 print 'access limit reached, sleep for ' + str(sleeptime / 60) + ' minutes'
                 time.sleep(sleeptime)
+            else:
+                time.sleep(30) ##两次请求之间的间隔
                 
             
     

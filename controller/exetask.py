@@ -25,8 +25,8 @@ logger.setLevel(logging.DEBUG)
 
 weibo = __builtin__.weibo
 reader = __builtin__.reader
-weibo_lock = None
-reader_lock = None
+weibo_lock = __builtin__.weibo_lock
+reader_lock = __builtin__.reader_lock
 
 def remindUserTopicUpdates(topicTitle):
     logger.debug('Start remind user for topic: ' + topicTitle)
@@ -63,7 +63,7 @@ def remindUserTopicUpdates(topicTitle):
             logger.debug('post comment failed...target status id:%s, postMsg:%s' % (targetStatusId, postMsg))
         else:
             _user_reminded.append(watcherWeibo.user.weiboId)
-        time.sleep(61)
+         
         weibo_lock.release()
 
     ## 有些用户没有发微博关注该事件(将原有微博删除了)，但也要提醒，首先要剔除已经提醒的_user_commented
@@ -79,7 +79,7 @@ def remindUserTopicUpdates(topicTitle):
             weibo_lock.acquire()
             if not weibo.postComment(weibo.REMIND_WEIBO_ID, _postMsg):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
-            time.sleep(61)
+             
             weibo_lock.release()
 
     logger.debug('remindUserTopicUpdates(%s): OK' % topicTitle)
@@ -94,27 +94,22 @@ def subscribeTopic(topicRss, topicTitle = None):
             logger.debug('Succeed to subscribe ' + topicRss)
     except:
         logger.error('Fail to subscribed ' + topicRss)
-    time.sleep(61)
+     
     reader_lock.release()
 
-def t_exetask(w_lock, r_lock):
-    global weibo_lock
-    global reader_lock
-    weibo_lock = w_lock
-    reader_lock = r_lock
-
+def t_exetask():
     while True:
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
         remind_tasks = djangodb.get_tasks(type='remind', count = 3)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
             subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
-            t.status = 0
+            t.status = 0 ##更新成功，设置标志位
             t.save()
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
             remindUserTopicUpdates(topicTitle = t.topic.title)
-            t.status = 0
+            t.status = 0 ##更新成功，设置标志位
             t.save()
 
         logger.info('long sleep for 30 minutes')

@@ -7,12 +7,9 @@ Created on Oct 10, 2012
 @author: plex
 '''
 
-from libgreader import GoogleReader
-from libweibo import weiboAPI
 from djangodb import djangodb
 
-from multiprocessing import Process, Lock
-import __builtin__
+
 import logging
 logger = logging.getLogger('main')
 hdlr = logging.FileHandler('../logs/main.log')
@@ -30,19 +27,23 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-_DEBUG= True
+import __builtin__
 
-# Init google reader
-reader = GoogleReader()
-logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
+__builtin__._DEBUG= True
+
+from multiprocessing import Process, Lock
+__builtin__.weibo_lock = Lock()
+__builtin__.reader_lock = Lock()
 
 # Init weibo
+from libweibo import weiboAPI
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
 logger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 __builtin__.weibo = weibo
 
 # Init google reader
+from libgreader import GoogleReader
 reader = GoogleReader()
 logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 __builtin__.reader = reader
@@ -56,14 +57,11 @@ if __name__ == '__main__':
     logger.info('Start update_all_news_timeline')
     update_all_news_timeline()
 
-    weibo_lock = Lock()
-    reader_lock = Lock()
-
     logger.info('Start multiprocessing.Process(target=t_checkweibo).start()')
-    Process(target=t_checkweibo, args=(weibo_lock,)).start()
+    Process(target=t_checkweibo, args=()).start()
     logger.info('Start multiprocessing.Process(target=t_checkreader).start()')
-    Process(target=t_checkreader, args=(reader_lock,)).start()
+    Process(target=t_checkreader, args=()).start()
     logger.info('Start multiprocessing.Process(target=t_exetask).start()')
-    Process(target=t_exetask, args=(weibo_lock, reader_lock,)).start()
+    Process(target=t_exetask, args=()).start()
     logger.info('All process started')
 

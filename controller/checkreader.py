@@ -10,7 +10,6 @@ from libgnews import googlenews
 from newstimeline import create_or_update_news_timeline
 
 from datetime import datetime
-import __builtin__
 import time
 import logging
 logger = logging.getLogger('checkreader')
@@ -24,9 +23,10 @@ hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr2)
 logger.setLevel(logging.DEBUG)
 
+import __builtin__
 reader = __builtin__.reader
-reader_lock = None
-_DEBUG = True
+reader_lock = __builtin__.reader_lock
+_DEBUG = __builtin__._DEBUG
 
 def fetchRssUpdates():
     '''
@@ -118,15 +118,12 @@ def fetchRssUpdates():
 
     logger.debug('Fetch rss update over')
 
-def t_checkreader(r_lock):
-    global reader_lock
-    reader_lock = r_lock
-
+def t_checkreader():
     while True:
         logger.info('Start fetching rss updates')
         fetchRssUpdates()
-        logger.info('Start sleep for 2 hours' )
-        time.sleep(2*60*60)
+        logger.info('Start sleep for 3 hours' )
+        time.sleep(3*60*60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
