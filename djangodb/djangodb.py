@@ -16,9 +16,27 @@ settings.configure(
     DATABASE_HOST = 'localhost',
 )
 from dbop import *
-
 if __name__ == '__main__':
-    ## test
+    from newstracker.newstrack.models import Weibo, Topic, News, Task
+    nnews, created = News.objects.get_or_create(title = '街拍合肥三里庵官亭路美女穿搭欧美风御姐PK日系小萝莉 - 万家热线')
+    print nnews
+    print created
+    try:
+        nnews.save()
+    except:
+        raise
+    print 'ok'
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     weiboJson = {'allow_all_act_msg': False,
  'allow_all_comment': True,
  'avatar_large': u'http://tp3.sinaimg.cn/2638714490/180/5620042495/0',
@@ -126,4 +144,4 @@ if __name__ == '__main__':
  'verified_reason': u'',
  'verified_type': 200,
  'weihao': u''}
-    get_or_create_account_from_weibo(weiboJson)
+#    get_or_create_account_from_weibo(weiboJson)

@@ -65,7 +65,8 @@ def fetchUserMention():
             mtopictitle = topic_res.group(1)
             weibologger.info('step3: mtopictitle=' + mtopictitle)
         else:
-            weibologger.debug('step3: 本条@微博不含有话题:\t' + _search_content + ' from user: @' + muser.weiboName)
+            weibologger.debug('step3: 本条@微博不含有话题:\t' + _search_content + \
+                              ' from user: @' + muser.weiboName)
             continue
 
         ## step 4: 构建话题
@@ -86,10 +87,10 @@ def fetchUserMention():
 
         ## step 5: 提醒用户订阅成功
         if is_new_topic:
-            remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您～'
+            remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！登录『' + weibo.getShortUrl("http://110.76.40.188:81") + '』了解更多...'
         else:
             weibo_lock.acquire()
-            remind_msg = '订阅成功，您可以到 ' + weibo.getShortUrl('http://110.76.40.188:81/') + ' 获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
+            remind_msg = '订阅成功，您可以到『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(mtopic.id)) + '』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
             weibo_lock.release()
         weibo_lock.acquire()
         try:
@@ -98,7 +99,7 @@ def fetchUserMention():
             else:
                 weibologger.info('step5: succeed remind user')
         except:
-            weibologger.error('step5: error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
+            weibologger.error('step5: error to weibo.postComment(%s, %s) maybe access key outdated ' % (str(mweibo.weibo_id), remind_msg))
         weibo_lock.release()
 
     weibologger.debug('getUserPostTopic() OK')
@@ -135,9 +136,8 @@ def t_checkweibo():
             fetchUserMention()
         except:
             weibologger.exception("Except in fetchUserMention()")
-            break
         weibologger.info('Start sleep for 15 minutes' )
-        time.sleep(15*60)
+        time.sleep(10*60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             weibologger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')

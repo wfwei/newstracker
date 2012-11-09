@@ -49,7 +49,7 @@ def fetchRssUpdates():
                 ## title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
 
-                readerlogger.debug('feed topic:\t', feedTopic, '\t item size:\t', len(itemSet))
+                readerlogger.debug('feed topic:\t' + feedTopic + '\t item size:\t' + str(len(itemSet)))
 
                 try:
                     topic = djangodb.Topic.objects.get(title = feedTopic)
@@ -95,7 +95,7 @@ def fetchRssUpdates():
                 reader_lock.release()
             except:
                 readerlogger.error('fail to mark feed as read:' + feedTopic)
-                readerlogger.error('reader.auth:\n', reader.auth)
+                readerlogger.error('reader.auth:' + str(reader.auth))
                 return
 
             ##　更新话题的news timeline
@@ -115,7 +115,6 @@ def t_checkreader():
             fetchRssUpdates()
         except:
             readerlogger.exception('Except in fetchRssUpdates')
-            break
         readerlogger.info('Start sleep for 3 hours' )
         time.sleep(3*60*60)
 
