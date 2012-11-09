@@ -111,7 +111,11 @@ def fetchRssUpdates():
 def t_checkreader():
     while True:
         readerlogger.info('Start fetching rss updates')
-        fetchRssUpdates()
+        try:
+            fetchRssUpdates()
+        except:
+            readerlogger.exception('Except in fetchRssUpdates')
+            break
         readerlogger.info('Start sleep for 3 hours' )
         time.sleep(3*60*60)
 
