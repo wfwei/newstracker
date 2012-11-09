@@ -13,6 +13,9 @@ APP_KEY = '4057638893'
 APP_SECRET = '20771c2157efe0659eead33718e4feae'
 CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
+import __builtin__
+logger = __builtin__.splogger
+
 class weiboAPI(object):         
     '''
     TODO: 
@@ -42,22 +45,31 @@ class weiboAPI(object):
             print u_id, ' not set access token yet'
 
     def _initAccessCount(self):
+        logger.info('_initAccessCount')
+        logger.info('old acc_count:\t' + str(self.acc_count))
         self.acc_count['hour'] = time.localtime().tm_hour
         self.acc_count['ip_all'] = 0 #单小时限制:1000
         self.acc_count['user_all'] = 0 #单小时限制:150
         self.acc_count['user_status'] = 0 #单小时限制:30
         self.acc_count['user_comment'] = 0 #单小时限制:60
         self.acc_count['user_follow'] = 0 #单小时限制:60;这个还有每天的限制，没有考虑
+        logger.info('new acc_count:\t' + str(self.acc_count))
         
     def _initAccessLimit(self):
+        logger.info('_initAccessLimit')
+        logger.info('old acc_limit:\t' + str(self.acc_limit))
         self.acc_limit['time_unit'] = 'hour'
         self.acc_limit['ip_all'] = 1000 - 100 ##减去这些值是为了考虑到有漏掉的访问
         self.acc_limit['user_all'] = 150 - 20
         self.acc_limit['user_status'] = 30 - 5
         self.acc_limit['user_comment'] = 60 - 10
         self.acc_limit['user_follow'] = 60 - 10 #这个还有每天的限制，没有考虑
+        logger.info('new acc_limit:\t' + str(self.acc_limit))
     
     def _checkAccessLimit(self, type='ip_all'):
+        logger.info('_checkAccessLimit, type:' + str(type))
+        
+        logger.info('old acc_count:\t' + str(self.acc_count))
         ##MARK: 两小时刷新一次记录会不会过分了
         if self.acc_count['hour'] < time.localtime().tm_hour or \
             self.acc_count['hour'] > time.localtime().tm_hour + 1:
@@ -67,20 +79,22 @@ class weiboAPI(object):
             if type != 'ip_all':
                 self.acc_count['ip_all'] += 1
             self.acc_count['user_all'] += 1
+        logger.info('new acc_count:\t' + str(self.acc_count))
             
-            if self.acc_count[type] > self.acc_limit[type] or \
-             self.acc_count['ip_all'] > self.acc_limit['ip_all'] or \
-             self.acc_count['user_all'] > self.acc_limit['user_all']:
-                sleeptime = (60 - time.localtime().tm_min + 60) * 60 ##MARK目前多睡１小时。。。
-                print 'access limit reached, sleep for ' + str(sleeptime / 60) + ' minutes'
-                time.sleep(sleeptime)
-            else:
-                time.sleep(30) ##两次请求之间的间隔
-                
+        if self.acc_count[type] > self.acc_limit[type] or \
+         self.acc_count['ip_all'] > self.acc_limit['ip_all'] or \
+         self.acc_count['user_all'] > self.acc_limit['user_all']:
+            sleeptime = (60 - time.localtime().tm_min + 65) * 60 ##MARK目前多睡１小时。。。
+            logger.info('access limit reached, sleep for ' + str(sleeptime / 60) + ' minutes')
+            time.sleep(sleeptime)
+        else:
+            time.sleep(61) ##两次请求之间的间隔
             
     
     def refreshAccessToken(self):
+        logger.info('refreshAccessToken')
         if self.client.is_expires():
+            logger.error('refreshAccessToken: access_token is expired')
             url = self.client.get_authorize_url()
             print 'weibo.refreshAccessToken 访问url获取认证code\n',url
             # 获取URL参数code: TODO:impl自动认证
@@ -92,7 +106,6 @@ class weiboAPI(object):
             ## 考虑不要存数据库了，这个refreshAccessToken的功能貌似只有主帐号可以用，其他用户也用不到
 #            djangodb.get_or_update_weibo_auth_info(u_id, access_token, expires_in)
             self.client.set_access_token(access_token, expires_in)
-        print 'Weibo refresh Access Token Ok!!!'
     
     def getAuthorizeUrl(self):
         return self.client.get_authorize_url()
@@ -132,7 +145,7 @@ class weiboAPI(object):
             self.client.post.comments__create(comment=content, id=weibo_id)
             return True
         except:
-            print 'target weibo does not exist!\t'+weibo_id
+            logger.warn('target weibo does not exist!\t' + str(weibo_id))
         return False
     
     def getShortUrl(self, url_long):

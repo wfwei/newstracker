@@ -11,22 +11,14 @@ from newstimeline import update_all_news_timeline
 
 import __builtin__
 import time
-import logging
-logger = logging.getLogger('exetask')
-hdlr = logging.FileHandler('../logs/exetask.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('../logs/main.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr2.setFormatter(formatter)
-logger.addHandler(hdlr2)
-logger.setLevel(logging.DEBUG)
 
 weibo = __builtin__.weibo
 reader = __builtin__.reader
 weibo_lock = __builtin__.weibo_lock
 reader_lock = __builtin__.reader_lock
+logger = __builtin__.tasklogger
+readerlogger = __builtin__.readerlogger
+weibologger = __builtin__.weibologger
 
 def remindUserTopicUpdates(topicTitle):
     logger.debug('Start remind user for topic: ' + topicTitle)
@@ -35,35 +27,36 @@ def remindUserTopicUpdates(topicTitle):
         topic_news = topic.news_set.all()[0]
     except djangodb.Topic.DoesNotExist:
         logger.error('Topic:\t' + topicTitle + ' not exist!!!')
-        return
+        return False
     except:
         logger.debug('No news update for topic:\t' + topicTitle)
-        return
+        return False
     topicWatchers = topic.watcher.all()
-    topciWatcherWeibo = topic.watcher_weibo.all()
-    ## TODO: 把链接具体到特定的时间线
+    topicWatcherWeibo = topic.watcher_weibo.all()
+    
     weibo_lock.acquire()
+    ## TODO: 把链接具体到特定的时间线
     postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl("http://110.76.40.188:81/")) + ')'
     weibo_lock.release()
     if len(postMsg) > 139:
         postMsg = postMsg[:139]
 
     logger.debug('topicWatchers: \n' + str(topicWatchers))
-    logger.debug('topciWatcherWeibo:\n' + str(topciWatcherWeibo))
+    logger.debug('topicWatcherWeibo:\n' + str(topicWatcherWeibo))
 
     _user_reminded = []
 
-    for watcherWeibo in topciWatcherWeibo:
+    for watcherWeibo in topicWatcherWeibo:
         targetStatusId = watcherWeibo.weibo_id
-        logger.debug('postMsg:\n' + postMsg)
+        logger.debug('\tpostMsg:\n' + postMsg)
         ## 如果微博不存在，则将该微博记录从topic的链接中删除,否则添加到已经提醒的用户列表中
         weibo_lock.acquire()
         if not weibo.postComment(weibo_id = targetStatusId, content = postMsg):
             topic.watcher_weibo.remove(watcherWeibo)
             logger.debug('post comment failed...target status id:%s, postMsg:%s' % (targetStatusId, postMsg))
         else:
+            logger.info('Succeed post comment to weibo:' + str(targetStatusId))
             _user_reminded.append(watcherWeibo.user.weiboId)
-         
         weibo_lock.release()
 
     ## 有些用户没有发微博关注该事件(将原有微博删除了)，但也要提醒，首先要剔除已经提醒的_user_commented
@@ -75,14 +68,17 @@ def remindUserTopicUpdates(topicTitle):
             _postMsg = '@' + watcher.weiboName + ' 您关注的事件' + postMsg + ' ps:登录后可取消关注'
             if len(postMsg) > 139:
                 _postMsg = _postMsg[:139]
-            logger.debug('postMsg:\n' + _postMsg)
+            logger.info('\tpostMsg:\n' + _postMsg)
             weibo_lock.acquire()
             if not weibo.postComment(weibo.REMIND_WEIBO_ID, _postMsg):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
+            else:
+                logger.info('Succeed post comment to (static)weibo:' + str(weibo.REMIND_WEIBO_ID))
              
             weibo_lock.release()
 
-    logger.debug('remindUserTopicUpdates(%s): OK' % topicTitle)
+    logger.info('remindUserTopicUpdates(%s): OK' % topicTitle)
+    return True
 
 def subscribeTopic(topicRss, topicTitle = None):
     ## 订阅的时候即便是加了title,最后谷歌还是会在后面加上' - Google 新闻'
@@ -90,27 +86,33 @@ def subscribeTopic(topicRss, topicTitle = None):
     try:
         if not reader.subscribe(feedUrl = topicRss, title = topicTitle):
             logger.error('Fail to subscribed ' + topicRss)
+            readerlogger.error('in exetask:Fail to subscribed ' + topicRss)
+            return False
         else:
             logger.debug('Succeed to subscribe ' + topicRss)
+            readerlogger.debug('in exetask:Succeed to subscribe ' + topicRss)
     except:
         logger.error('Fail to subscribed ' + topicRss)
+        return False
      
     reader_lock.release()
+    return True
 
 def t_exetask():
     while True:
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
-        remind_tasks = djangodb.get_tasks(type='remind', count = 3)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
             subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
             t.status = 0 ##更新成功，设置标志位
             t.save()
+            
+        remind_tasks = djangodb.get_tasks(type='remind', count = 3)
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
             remindUserTopicUpdates(topicTitle = t.topic.title)
             t.status = 0 ##更新成功，设置标志位
             t.save()
 
-        logger.info('long sleep for 30 minutes')
-        time.sleep(30*60)
+        logger.info('long sleep for 61 minutes')
+        time.sleep(61*60)

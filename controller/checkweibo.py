@@ -12,21 +12,11 @@ from libgnews import googlenews
 
 import time
 import re
-import logging
-logger = logging.getLogger('checkweibo')
-hdlr = logging.FileHandler('../logs/checkweibo.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('../logs/main.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr2.setFormatter(formatter)
-logger.addHandler(hdlr2)
-logger.setLevel(logging.DEBUG)
 
 import __builtin__
 weibo = __builtin__.weibo
 weibo_lock = __builtin__.weibo_lock
+weibologger = __builtin__.weibologger
 
 def fetchUserMention():
     '''
@@ -66,27 +56,27 @@ def fetchUserMention():
             _search_content += ' / ' + mweibo_retweeted.text
         topic_res = re.search('#([^#]+)#', _search_content)
         if topic_res is not None:
+            ##只能订阅一个话题，第一个井号标识的话题
             mtopictitle = topic_res.group(1)
         else:
-            logger.debug('本条@微博不含有话题:\t' + _search_content + ' from user: @' + muser.weiboName)
+            weibologger.debug('本条@微博不含有话题:\t' + _search_content + ' from user: @' + muser.weiboName)
             continue
 
         ## step 4: 构建话题
-        if mtopictitle is not None:
-            mtopic, created = djangodb.Topic.objects.get_or_create(title = mtopictitle)
-            if created:
-                is_new_topic = True
-                mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
-                mtopic.time = mweibo.created_at
-                logger.debug('add subscribe (#%s#) task to taskqueue' % mtopictitle)
-                djangodb.add_task(topic = mtopic, type = 'subscribe')
-            else:
-                logger.debug('topic #%s# already in track' % mtopictitle)
-                is_new_topic = False
+        mtopic, created = djangodb.Topic.objects.get_or_create(title = mtopictitle)
+        if created:
+            is_new_topic = True
+            mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
+            mtopic.time = mweibo.created_at
+            weibologger.debug('add subscribe (#%s#) task to taskqueue' % mtopictitle)
+            djangodb.add_task(topic = mtopic, type = 'subscribe')
+        else:
+            weibologger.debug('topic #%s# already in track' % mtopictitle)
+            is_new_topic = False
 
-            mtopic.watcher.add(muser)
-            mtopic.watcher_weibo.add(mweibo)
-            mtopic.save()
+        mtopic.watcher.add(muser)
+        mtopic.watcher_weibo.add(mweibo)
+        mtopic.save()
 
         ## step 5: 提醒用户订阅成功
         if is_new_topic:
@@ -98,12 +88,12 @@ def fetchUserMention():
         weibo_lock.acquire()
         try:
             if not weibo.postComment(mweibo.weibo_id, remind_msg):
-                logger.error('fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg))
+                weibologger.error('fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg))
         except:
-            logger.error('error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
+            weibologger.error('error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
         weibo_lock.release()
 
-    logger.debug('getUserPostTopic() OK')
+    weibologger.debug('getUserPostTopic() OK')
 
 def fetchHotTopic():
     '''
@@ -119,24 +109,24 @@ def fetchHotTopic():
             topictitle = topic['query']
             try:
                 djangodb.Topic.objects.get(title = topictitle)
-                logger.debug('topic #%s# already in track' % topictitle)
+                weibologger.debug('topic #%s# already in track' % topictitle)
             except djangodb.Topic.DoesNotExist:
                 topicrss = googlenews.GoogleNews(topictitle).getRss()
                 _topic = djangodb.Topic.objects.create(title = topictitle,
                                               rss = topicrss,
                                               time = topictime)
                 ## 添加订阅话题任务
-                logger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
+                weibologger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
                 djangodb.add_task(topic = _topic, type = 'subscribe')
 
 
 def t_checkweibo():
     while True:
-        logger.info('Start fetching user mentions')
+        weibologger.info('Start fetching user mentions')
         fetchUserMention()
-        logger.info('Start sleep for 15 minutes' )
+        weibologger.info('Start sleep for 15 minutes' )
         time.sleep(15*60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
-            logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
+            weibologger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
             time.sleep((7-time.localtime().tm_hour) * 60 *60)
