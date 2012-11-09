@@ -92,7 +92,6 @@ reader = GoogleReader()
 fulllogger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 __builtin__.reader = reader
 
-
 from checkweibo import t_checkweibo
 from newstimeline import update_all_news_timeline
 from checkreader import t_checkreader

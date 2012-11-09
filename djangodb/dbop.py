@@ -95,7 +95,7 @@ def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
         ## 认为是获取信息
         access_token = _oauth2info.access_token
         expires_in = _oauth2info.expires_in
-        
+
         logger.info('get weibo auth info:')
         logger.info('u_id:' + str(u_id))
         logger.info('access_token:' + str(access_token))
@@ -106,7 +106,7 @@ def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
         logger.info('u_id:' + str(u_id))
         logger.info('access_token:' + str(access_token))
         logger.info('expires_in:' + str(expires_in))
-        
+
         _oauth2info.access_token = access_token
         _oauth2info.expires_in = expires_in
         _oauth2info.save()
@@ -122,9 +122,9 @@ def get_last_mention_id():
         logger.info('get_last_mention_id:' + str(_lastMentionId))
     except:
         logger.error('error in get_last_mention_id()')
-    
+
     return _lastMentionId
-        
+
 def add_task(topic, type):
     task, created = Task.objects.get_or_create(type = type, topic = topic)
 
