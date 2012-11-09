@@ -33,7 +33,7 @@ def remindUserTopicUpdates(topicTitle):
         return False
     topicWatchers = topic.watcher.all()
     topicWatcherWeibo = topic.watcher_weibo.all()
-    
+
     weibo_lock.acquire()
     postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
     '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '　』'
@@ -74,7 +74,7 @@ def remindUserTopicUpdates(topicTitle):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
             else:
                 logger.info('Succeed post comment to (static)weibo:' + str(weibo.REMIND_WEIBO_ID))
-             
+
             weibo_lock.release()
 
     logger.info('remindUserTopicUpdates(%s): OK' % topicTitle)
@@ -94,7 +94,7 @@ def subscribeTopic(topicRss, topicTitle = None):
     except:
         logger.error('Fail to subscribed ' + topicRss)
         return False
-     
+
     reader_lock.release()
     return True
 
@@ -110,7 +110,7 @@ def t_exetask():
                 break
             t.status = 0 ##更新成功，设置标志位
             t.save()
-            
+
         remind_tasks = djangodb.get_tasks(type='remind', count = 6)
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
