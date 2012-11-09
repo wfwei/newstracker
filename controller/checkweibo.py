@@ -29,10 +29,13 @@ def fetchUserMention():
     '''
     ## 得到用户mentions
     lastMentionId = djangodb.get_last_mention_id()
+    weibologger.info('\nget lastMentionId:' + str(lastMentionId))
+    
     weibo_lock.acquire()
     mentions = weibo.getMentions(since_id = lastMentionId)
     weibo_lock.release()
     mention_list = mentions['statuses']
+    weibologger.info('mention_list length:' + str(len(mention_list)))
 
     ## 提取用户@的消息并进行解读,保存话题
     ## 这里拟序mention_list，先访问序号较小的微博,参考TODO2
@@ -45,10 +48,12 @@ def fetchUserMention():
             mweibo_retweeted = djangodb.get_or_create_weibo(mention['retweeted_status'])
         else:
             is_retweeted = False
-
+        weibologger.info('\nstep1: is_retweeted=' + str(is_retweeted))
+        
         ## step 2: 提取并构造用户对象
         muser = djangodb.get_or_create_account_from_weibo(mention['user'])
-
+        weibologger.info('step3: muser:' + str(muser))
+        
         ## step 3: 提取话题相关的信息
         mtopictitle = None
         _search_content = mweibo.text
@@ -58,8 +63,9 @@ def fetchUserMention():
         if topic_res is not None:
             ##只能订阅一个话题，第一个井号标识的话题
             mtopictitle = topic_res.group(1)
+            weibologger.info('step3: mtopictitle=' + mtopictitle)
         else:
-            weibologger.debug('本条@微博不含有话题:\t' + _search_content + ' from user: @' + muser.weiboName)
+            weibologger.debug('step3: 本条@微博不含有话题:\t' + _search_content + ' from user: @' + muser.weiboName)
             continue
 
         ## step 4: 构建话题
@@ -68,10 +74,10 @@ def fetchUserMention():
             is_new_topic = True
             mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
             mtopic.time = mweibo.created_at
-            weibologger.debug('add subscribe (#%s#) task to taskqueue' % mtopictitle)
+            weibologger.debug('step4: add subscribe (#%s#) task to taskqueue' % mtopictitle)
             djangodb.add_task(topic = mtopic, type = 'subscribe')
         else:
-            weibologger.debug('topic #%s# already in track' % mtopictitle)
+            weibologger.debug('step4: topic #%s# already in track' % mtopictitle)
             is_new_topic = False
 
         mtopic.watcher.add(muser)
@@ -88,9 +94,11 @@ def fetchUserMention():
         weibo_lock.acquire()
         try:
             if not weibo.postComment(mweibo.weibo_id, remind_msg):
-                weibologger.error('fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg))
+                weibologger.error('step5: fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg))
+            else:
+                weibologger.info('step5: succeed remind user')
         except:
-            weibologger.error('error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
+            weibologger.error('step5: error to weibo.postComment(%s, %s) maybe access key outdated ' % (mweibo.weibo_id, remind_msg))
         weibo_lock.release()
 
     weibologger.debug('getUserPostTopic() OK')
@@ -123,7 +131,11 @@ def fetchHotTopic():
 def t_checkweibo():
     while True:
         weibologger.info('Start fetching user mentions')
-        fetchUserMention()
+        try:
+            fetchUserMention()
+        except:
+            weibologger.exception("Except in fetchUserMention()")
+            break
         weibologger.info('Start sleep for 15 minutes' )
         time.sleep(15*60)
 

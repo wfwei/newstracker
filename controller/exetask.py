@@ -35,8 +35,8 @@ def remindUserTopicUpdates(topicTitle):
     topicWatcherWeibo = topic.watcher_weibo.all()
     
     weibo_lock.acquire()
-    ## TODO: 把链接具体到特定的时间线
-    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl("http://110.76.40.188:81/")) + ')'
+    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
+    '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '　』'
     weibo_lock.release()
     if len(postMsg) > 139:
         postMsg = postMsg[:139]
@@ -65,7 +65,7 @@ def remindUserTopicUpdates(topicTitle):
         if weiboId != 0 and weiboId not in _user_reminded:
             ## 如果用户绑定了微博帐号，且没有发微博订阅该话题
             ## 目前做法：主帐号有一条专门提醒用户话题更新的公用微博，每当用户有要更新的话题时，评论该微博，并＠用户和新闻更新信息
-            _postMsg = '@' + watcher.weiboName + ' 您关注的事件' + postMsg + ' ps:登录后可取消关注'
+            _postMsg = '@' + watcher.weiboName + ' 您关注的事件' + postMsg
             if len(postMsg) > 139:
                 _postMsg = _postMsg[:139]
             logger.info('\tpostMsg:\n' + _postMsg)
@@ -103,16 +103,24 @@ def t_exetask():
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
-            subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
+            try:
+                subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
+            except:
+                logger.exception("Except in subscribeTopic()")
+                break
             t.status = 0 ##更新成功，设置标志位
             t.save()
             
-        remind_tasks = djangodb.get_tasks(type='remind', count = 3)
+        remind_tasks = djangodb.get_tasks(type='remind', count = 6)
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
-            remindUserTopicUpdates(topicTitle = t.topic.title)
+            try:
+                remindUserTopicUpdates(topicTitle = t.topic.title)
+            except:
+                logger.exception("Except in remindUserTopicUpdates()")
+                break
             t.status = 0 ##更新成功，设置标志位
             t.save()
 
-        logger.info('long sleep for 61 minutes')
-        time.sleep(61*60)
+        logger.info('long sleep for 30 minutes')
+        time.sleep(30*60)

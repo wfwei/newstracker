@@ -7,6 +7,7 @@ Created on Oct 13, 2012
 '''
 from weibo import APIClient
 import time
+import threading
 
 ####网页应用的配置
 APP_KEY = '4057638893'
@@ -34,6 +35,7 @@ class weiboAPI(object):
                                 )
         self.u_id = u_id
         self.REMIND_WEIBO_ID = 3504267275499498
+        self.lock = threading.Lock()
         self.acc_count = {}
         self.acc_limit = {}
         self._initAccessCount()
@@ -45,20 +47,16 @@ class weiboAPI(object):
             print u_id, ' not set access token yet'
 
     def _initAccessCount(self):
-        logger.info('_initAccessCount')
-        logger.info('old acc_count:\t' + str(self.acc_count))
         self.acc_count['hour'] = time.localtime().tm_hour
         self.acc_count['ip_all'] = 0 #单小时限制:1000
         self.acc_count['user_all'] = 0 #单小时限制:150
         self.acc_count['user_status'] = 0 #单小时限制:30
         self.acc_count['user_comment'] = 0 #单小时限制:60
         self.acc_count['user_follow'] = 0 #单小时限制:60;这个还有每天的限制，没有考虑
-        logger.info('new acc_count:\t' + str(self.acc_count))
+        
+        logger.info('_initAccessCount:\t' + str(self.acc_count))
 
     def _initAccessLimit(self):
-        logger.info('_initAccessLimit')
-        logger.info('old acc_limit:\t' + str(self.acc_limit))
-
         self.acc_limit['time_unit'] = 'hour'
         self.acc_limit['ip_all'] = 1000 - 100 ##减去这些值是为了考虑到有漏掉的访问
         self.acc_limit['user_all'] = 150 - 20
@@ -66,9 +64,10 @@ class weiboAPI(object):
         self.acc_limit['user_comment'] = 60 - 10
         self.acc_limit['user_follow'] = 60 - 10 #这个还有每天的限制，没有考虑
 
-        logger.info('new acc_limit:\t' + str(self.acc_limit))
+        logger.info('_initAccessLimit:\t' + str(self.acc_limit))
 
     def _checkAccessLimit(self, type='ip_all'):
+        self.lock.acquire()
         logger.info('_checkAccessLimit, type:' + str(type))
         logger.info('old acc_count:\t' + str(self.acc_count))
 
@@ -92,7 +91,7 @@ class weiboAPI(object):
             time.sleep(sleeptime)
         else:
             time.sleep(61) ##两次请求之间的间隔
-
+        self.lock.release()
 
     def refreshAccessToken(self):
         logger.info('refreshAccessToken')
