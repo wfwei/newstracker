@@ -12,6 +12,10 @@ import json
 import os
 import re
 
+import __builtin__
+_DEBUG = __builtin__._DEBUG
+logger = __builtin__.fulllogger
+
 def create_or_update_news_timeline(topicTitle):
     '''
      生成指定话题的timeline，并保存到文件中
@@ -39,7 +43,7 @@ def create_or_update_news_timeline(topicTitle):
                 _summary_content = _summary
                 _summary_pic = ''
                 news_link = ''
-                print '_summary is not well structured in create_or_update_news_timeline()'
+                logger.error('_summary is not well structured in create_or_update_news_timeline()')
             _summary = summary_template%(_summary_pic, _summary_content)
             _headline = headline_template%(news_link, news.title)
             jnews = {"startDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
@@ -67,21 +71,22 @@ def create_or_update_news_timeline(topicTitle):
         f.write('storyjs_jsonp_data = ')
         f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
         json.dump({"timeline": timeline}, f, encoding='utf-8')
-        print 'Generate news timeline: ' + str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp'
+        logger.info('Generate news timeline: ' + str(os.getcwd()) + \
+                    '/../newstracker/newstrack/static/news.timeline/' + \
+                    topicTitle + '.jsonp \n')
     except djangodb.Topic.DoesNotExist:
-        print 'Topic:\t' + topicTitle + ' not exist!!!'
+        logger.error('Topic:\t' + topicTitle + ' not exist!!!')
         return False
     except:
-        print 'error in create_or_update_news_timeline ', topicTitle
+        logger.error('error in create_or_update_news_timeline:' + topicTitle)
         raise
 
 def update_all_news_timeline():
-    print 'update_all_news_timeline start'
+    logger.info('update_all_news_timeline start')
     topic_list = djangodb.Topic.objects.all()
     for topic in topic_list:
-        print 'create or update news timeline for: ', topic.title
         create_or_update_news_timeline(topic.title)
-    print 'update_all_news_timeline finished'
+    logger.info('update_all_news_timeline finished')
 
 ## TODO: 可能会过滤掉最新消息！！！
 
@@ -110,10 +115,10 @@ def _filter_news(topic_news, limit=22):
         if min_news is not None:
             topic_news.remove(min_news)
         else:
-            print 'WARNING: Unreachable Code'
+            logger.error('WARNING: Unreachable Code')
             break
 
-    print 'filter news result: ', len(topic_news), ' / ', total
+    logger.info('filter news result: ' + str(len(topic_news)) + ' / ' + str(total))
     return topic_news
     
 if __name__ == '__main__':

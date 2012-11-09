@@ -14,13 +14,17 @@ from newstracker.account.models import Account, Useroauth2
 
 from datetime import datetime
 
-_DEBUG = True
+import __builtin__
+_DEBUG = __builtin__._DEBUG
+logger = __builtin__.fulllogger
 
 def get_or_create_weibo(weiboJson):
     '''
     通过微博（status）的json形式构建weibo对象，并保存到数据库
     '''
+    logger.info('in get_or_create_weibo(weiboJson)\nweiboJson:\n' + str(weiboJson))
     nweibo, created = Weibo.objects.get_or_create(weibo_id = weiboJson['id'])
+    logger.info('created:' + str(created))
     if created:
         nweibo.created_at = datetime.strptime(weiboJson['created_at'], "%a %b %d %H:%M:%S +0800 %Y")
         nweibo.text = weiboJson['text']
@@ -45,8 +49,10 @@ def get_or_create_account_from_weibo(weiboUserJson):
     通过微博用户（user）的json形式构建weibo用户对象，并保存到数据库
     如果要构建微博用户，用户名使用微博昵称，密码是用户微博id，邮箱是默认的邮箱
     '''
+    logger.info('in get_or_create_account_from_weibo(weiboUserJson)\weiboUserJson:\n' + str(weiboUserJson))
     try:
         account = Account.objects.get(weiboId = weiboUserJson['id'])
+        logger.info('account already exists:' + str(account))
     except Account.DoesNotExist:
         try:
             ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
@@ -56,6 +62,7 @@ def get_or_create_account_from_weibo(weiboUserJson):
                                             email = str(weiboUserJson['id']) + '@fakeemail.com',
                                             password = str(weiboUserJson['id']))
         account, created = Account.objects.get_or_create(user = user)
+        logger.info('created:' + str(created))
         if created:
             account.weiboId = weiboUserJson['id']
             if weiboUserJson['name'] != '':
@@ -89,8 +96,18 @@ def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
         ## 认为是获取信息
         access_token = _oauth2info.access_token
         expires_in = _oauth2info.expires_in
+        
+        logger.info('get weibo auth info:')
+        logger.info('u_id:' + str(u_id))
+        logger.info('access_token:' + str(access_token))
+        logger.info('expires_in:' + str(expires_in))
     else:
         ##　认为是更新信息
+        logger.info('update weibo auth info:')
+        logger.info('u_id:' + str(u_id))
+        logger.info('access_token:' + str(access_token))
+        logger.info('expires_in:' + str(expires_in))
+        
         _oauth2info.access_token = access_token
         _oauth2info.expires_in = expires_in
         _oauth2info.save()
@@ -100,18 +117,26 @@ def get_last_mention_id():
     '''
     得到最近获取的一条＠微博，由于Weibo模型中已经定义了顺序，所以。。。
     '''
+    _lastMentionId = 0
     try:
-        return Weibo.objects.all()[0].weibo_id
+        _lastMentionId = Weibo.objects.all()[0].weibo_id
+        logger.info('get_last_mention_id:' + str(_lastMentionId))
     except:
-        return 0
+        logger.error('error in get_last_mention_id()')
+    
+    return _lastMentionId
         
 def add_task(topic, type):
     task, created = Task.objects.get_or_create(type = type, topic = topic)
+
     if not created:
         task.status += 1
         task.save()
+        logger.info('update task:' + str(task))
+    else:
+        logger.info('create task:' + str(task))
 
 def get_tasks(type, count=1, excludeDead=True):
-    ## TODO:test
     tasks = Task.objects.exclude(status=0).filter(type=type)[:count]
+    logger.info('get_tasks:' + str(tasks))
     return tasks

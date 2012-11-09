@@ -11,21 +11,11 @@ from newstimeline import create_or_update_news_timeline
 
 from datetime import datetime
 import time
-import logging
-logger = logging.getLogger('checkreader')
-hdlr = logging.FileHandler('../logs/checkreader.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-hdlr2 = logging.FileHandler('../logs/main.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr2.setFormatter(formatter)
-logger.addHandler(hdlr2)
-logger.setLevel(logging.DEBUG)
 
 import __builtin__
 reader = __builtin__.reader
 reader_lock = __builtin__.reader_lock
+readerlogger = __builtin__.readerlogger
 _DEBUG = __builtin__._DEBUG
 
 def fetchRssUpdates():
@@ -33,11 +23,11 @@ def fetchRssUpdates():
     检查更新rss订阅源,并存储更新的新闻,之后标记rss为已读
     debug模式下,如果数据库中找不到订阅的rss,则会创建之
     '''
-    logger.debug('Start fetch rss update')
+    readerlogger.debug('Start fetch rss update')
     reader_lock.acquire()
     unreadFeedsDict = reader.getUnreadFeeds()
     reader_lock.release()
-    logger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
+    readerlogger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
             excludeRead = True
@@ -59,7 +49,7 @@ def fetchRssUpdates():
                 ## title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
 
-                logger.debug('feed topic:\t', feedTopic, '\t item size:\t', len(itemSet))
+                readerlogger.debug('feed topic:\t', feedTopic, '\t item size:\t', len(itemSet))
 
                 try:
                     topic = djangodb.Topic.objects.get(title = feedTopic)
@@ -70,9 +60,9 @@ def fetchRssUpdates():
                         topic = djangodb.Topic.objects.create(title = feedTopic,
                                                               rss = topicrss,
                                                               time = datetime.now())
-                        logger.warn('#' + feedTopic + '# 不存在, 重建后保存数据库')
+                        readerlogger.warn('#' + feedTopic + '# 不存在, 重建后保存数据库')
                     else:
-                        logger.error('无法在数据库中找到对应话题,跳过该feed:' + feedTopic)
+                        readerlogger.error('无法在数据库中找到对应话题,跳过该feed:' + feedTopic)
                         break
 
                 for item in itemSet:
@@ -82,7 +72,7 @@ def fetchRssUpdates():
                     try:
                         link = item['alternate'][0]['href']
                     except:
-                        logger.warn('fail to extract link from alternate attr\n' + str(item))
+                        readerlogger.warn('fail to extract link from alternate attr\n' + str(item))
                         link = 'http://www.fakeurl.com'
                     if '&url=http' in link:
                         link = link[link.find('&url=http')+5:]
@@ -99,32 +89,32 @@ def fetchRssUpdates():
             try:
                 reader_lock.acquire()
                 if not reader.markFeedAsRead(feed):
-                    logger.error('Error in mark ' + feedTopic + ' as read!!!')
+                    readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
                 else:
-                    logger.debug('Succeed mark ' + feedTopic + ' as read')
+                    readerlogger.debug('Succeed mark ' + feedTopic + ' as read')
                 reader_lock.release()
             except:
-                logger.error('fail to mark feed as read:' + feedTopic)
-                logger.error('reader.auth:\n', reader.auth)
+                readerlogger.error('fail to mark feed as read:' + feedTopic)
+                readerlogger.error('reader.auth:\n', reader.auth)
                 return
 
             ##　更新话题的news timeline
-            logger.debug('begin update news.timeline for:' + feedTopic + '#')
+            readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')
             create_or_update_news_timeline(feedTopic)
 
             ## 添加提醒任务
-            logger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
+            readerlogger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
             djangodb.add_task(topic = topic, type = 'remind')
 
-    logger.debug('Fetch rss update over')
+    readerlogger.debug('Fetch rss update over')
 
 def t_checkreader():
     while True:
-        logger.info('Start fetching rss updates')
+        readerlogger.info('Start fetching rss updates')
         fetchRssUpdates()
-        logger.info('Start sleep for 3 hours' )
+        readerlogger.info('Start sleep for 3 hours' )
         time.sleep(3*60*60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
-            logger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
+            readerlogger.info('night sleep for ' + str(7-time.localtime().tm_hour) +' hours')
             time.sleep((7-time.localtime().tm_hour) * 60 *60)

@@ -168,7 +168,11 @@ class GoogleReader(object):
         if continuation:
             parameters['c'] = continuation
         contentJson = self.httpGet(url, parameters)
-        return json.loads(contentJson, strict=False)
+        try:
+            return json.loads(contentJson, strict=False)
+        except:
+            print 'contentJson:', contentJson
+            raise
 
     def itemsToObjects(self, parent, itemSet):
         objects = []
