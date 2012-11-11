@@ -32,13 +32,17 @@ function unfollow_topic(topic_id, u_id) {
   return false;
 }
 
+function show_more() {
+// TODO: impl
+}
+
 $(document).ready(function () {
   document.getElementById("all_topics").addEventListener("click", function (e) {
     if (!e.target) {
       return;
     }
     t_id = parseInt(e.target.id.split("_")[1], 10)
-    u_id = parseInt(e.target.id.split("_")[2], 10)
+    u_id = parseInt(e.target.id.split("_")[2], 10) 
     
     switch (e.target.className) {
         case "follow_topic":

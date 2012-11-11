@@ -37,6 +37,8 @@ def create_or_update_news_timeline(topicTitle):
                 _summary_content = re.sub('<[/]?font[^>]*>', '', _summary_content)
                 _summary_content = re.sub('<[/]?div[^>]*>', '', _summary_content)
                 news_link = re.search('href="([^"]*)"', _summary_content).group(1)
+                if '&url=http' in news_link:
+                    news_link[news_link.find('&url=http')+5:]
                 _summary_content = re.sub('<a[^>]*>.*?</a>', '', _summary_content)
                 _summary_content = re.sub('[.]{3}.*', '...', _summary_content)
             else:

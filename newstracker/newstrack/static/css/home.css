@@ -1,0 +1,18 @@
+@charset "UTF-8";
+
+a.more{
+	text-align:center;
+	margin:auto;
+	position:relative;
+	display:inline-block;
+	border:1px dashed white;
+	left:2%;
+	padding:1px;
+	width:96%;
+}
+
+a.more:hover {
+	border:1px solid white;
+	background-color:#DCD;
+	border-radius:15px;
+}

@@ -15,7 +15,11 @@ APP_SECRET = '20771c2157efe0659eead33718e4feae'
 CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
 import __builtin__
-logger = __builtin__.splogger
+try:
+    logger = __builtin__.splogger
+except:
+    import logging
+    logger = logging.getLogger('nonlogger')
 
 class weiboAPI(object):
     '''

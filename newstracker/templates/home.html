@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}话题列表{% endblock%}
+{% block extra_css %}
+<link rel="stylesheet" media="all" charset="utf-8" href="{{STATIC_URL}}css/home.css"/>
+{% endblock %}
 
 {% block main %}  
     <div id="all_topics"> 
@@ -63,6 +66,7 @@
 	    {% endfor %}
 	    </div> 
 	    <div class="clearfix"></div> 
+        <a class="more" href="#">more...</a>
 		</section>
 	</div>
 {% endblock %}
