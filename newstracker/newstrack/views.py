@@ -30,13 +30,20 @@ def home(request):
     if request.user.is_authenticated():
         current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
         my_topics = current_account[0].topic_set.all()
+<<<<<<< HEAD
         other_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+=======
+>>>>>>> origin/master
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics
     else:
         ## 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
+<<<<<<< HEAD
         other_topics = Topic.objects.annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+=======
+        current_account = []
+>>>>>>> origin/master
 
     ## 得到数据库其他的比较热门的10个话题
     template_var['other_topics'] = other_topics
@@ -166,7 +173,7 @@ def show_more_topics(request):
             topic.recent_news_title= '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
-            
+
     rendered = render_to_string('topic_item_set.html', {'topics': more_topics})
 
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
