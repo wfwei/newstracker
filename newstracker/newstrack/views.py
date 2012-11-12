@@ -166,7 +166,7 @@ def show_more_topics(request):
             topic.recent_news_title= '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
-            
+
     rendered = render_to_string('topic_item_set.html', {'topics': more_topics})
 
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
