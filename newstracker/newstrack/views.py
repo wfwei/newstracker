@@ -6,7 +6,6 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.utils import simplejson
-from django.core import serializers
 
 from newstracker.newstrack.models import Topic, News
 from newstracker.account.models import Account
@@ -27,18 +26,19 @@ TODO:
 def home(request):
     template_var = {}
     my_topics = []
+    exclude_set = []
     if request.user.is_authenticated():
-        current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
-        my_topics = current_account[0].topic_set.all()
-        other_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        my_topics = current_account.topic_set.all()
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics
+        exclude_set.append(current_account)
     else:
         ## 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
-        other_topics = Topic.objects.annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
 
     ## 得到数据库其他的比较热门的10个话题
+    other_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
     template_var['other_topics'] = other_topics
 
     for topic in itertools.chain(my_topics, other_topics):
@@ -138,13 +138,12 @@ def show_more_topics(request):
     start_idx = post_data['start_idx']
     count = post_data['count']
     exclude_user = post_data['exclude_user']
-
+    exclude_set = []
     if request.user.is_authenticated() and exclude_user:
         current_account = User.objects.get(username = request.user.username).account_set.all()[0]
-        _available_count = Topic.objects.exclude(watcher__in=current_account).count()
-    else:
-        current_account = []
-        _available_count = Topic.objects.count()
+        exclude_set.append(current_account)
+
+    _available_count = Topic.objects.exclude(watcher__in=exclude_set).count()
 
     if _available_count < start_idx:
         count = 0
@@ -152,7 +151,7 @@ def show_more_topics(request):
         count = _available_count - start_idx
 
     if count > 0:
-        more_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
+        more_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
     else:
         more_topics = []
 
