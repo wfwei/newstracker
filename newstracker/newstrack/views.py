@@ -128,6 +128,7 @@ def show_more_topics(request):
     '''
     对已有的topics按照关注人数排序，返回从start_idx开始的count个topic
     exclude_user：是否除去当前用户关注的话题
+    TODO: exclude用法，简化代码
     '''
     if not request.is_ajax():
         return HttpResponse('ERROR:NOT AJAX REQUEST')
@@ -139,6 +140,7 @@ def show_more_topics(request):
     count = post_data['count']
     exclude_user = post_data['exclude_user']
     exclude_set = []
+
     if request.user.is_authenticated() and exclude_user:
         current_account = User.objects.get(username = request.user.username).account_set.all()[0]
         exclude_set.append(current_account)
@@ -152,8 +154,6 @@ def show_more_topics(request):
 
     if count > 0:
         more_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
-    else:
-        more_topics = []
 
     for topic in more_topics:
         if topic.news_set.count() > 0:
