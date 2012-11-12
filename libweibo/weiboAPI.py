@@ -52,8 +52,8 @@ class weiboAPI(object):
 
     def _initAccessCount(self):
         self.acc_count['hour'] = time.localtime().tm_hour
-        self.acc_count['ip_all'] = 0 #单小时限制:1000
-        self.acc_count['user_all'] = 0 #单小时限制:150
+        self.acc_count['ip_all'] = 0 #单小时限制:10000
+        self.acc_count['user_all'] = 0 #单小时限制:1000
         self.acc_count['user_status'] = 0 #单小时限制:30
         self.acc_count['user_comment'] = 0 #单小时限制:60
         self.acc_count['user_follow'] = 0 #单小时限制:60;这个还有每天的限制，没有考虑
@@ -62,8 +62,8 @@ class weiboAPI(object):
 
     def _initAccessLimit(self):
         self.acc_limit['time_unit'] = 'hour'
-        self.acc_limit['ip_all'] = 1000 - 100 ##减去这些值是为了考虑到有漏掉的访问
-        self.acc_limit['user_all'] = 150 - 20
+        self.acc_limit['ip_all'] = 10000 - 100 ##减去这些值是为了考虑到有漏掉的访问
+        self.acc_limit['user_all'] = 1000 - 20
         self.acc_limit['user_status'] = 30 - 5
         self.acc_limit['user_comment'] = 60 - 10
         self.acc_limit['user_follow'] = 60 - 10 #这个还有每天的限制，没有考虑

@@ -16,6 +16,9 @@ urlpatterns = patterns('',
      url(r'^follow_topic/$', 'newstracker.newstrack.views.follow_topic', name='follow_topic'),
      url(r'^unfollow_topic/$', 'newstracker.newstrack.views.unfollow_topic', name='unfollow_topic'),
      
+     ##show_more_topics
+     url(r'^show_more_topics/$', 'newstracker.newstrack.views.show_more_topics', name='show_more_topics'),
+     
      ## 註冊和登錄部分
      url(r'login/$', 'newstracker.account.views.login', name='login'),
      url(r'weiboLogin/$', 'newstracker.account.views.weiboLogin', name='weibologin'),

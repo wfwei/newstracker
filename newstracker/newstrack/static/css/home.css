@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-a.more{
+a.more_topic{
 	text-align:center;
 	margin:auto;
 	position:relative;
@@ -11,7 +11,7 @@ a.more{
 	width:96%;
 }
 
-a.more:hover {
+a.more_topic:hover {
 	border:1px solid white;
 	background-color:#DCD;
 	border-radius:15px;
