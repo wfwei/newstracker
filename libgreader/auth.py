@@ -337,9 +337,14 @@ class OAuth2Method(AuthenticationMethod):
 
         try:
             response = json.loads(urllib2.urlopen(request).read())
-            print response
-        except urllib2.HTTPError:
-            raise IOError('Error getting Access Token')
+        except :
+            ## TODO: test
+            print 'WARN:'
+            print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +\
+             '\t获取授权失败，可能是网络timeout，休息十分钟后再次请求'
+            time.sleep(10*60)
+            self.refreshAccessToken()
+            return 
         
         if 'access_token' not in response:
             raise IOError('Error getting Access Token')

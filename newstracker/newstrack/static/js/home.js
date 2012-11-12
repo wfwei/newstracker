@@ -32,8 +32,24 @@ function unfollow_topic(topic_id, u_id) {
   return false;
 }
 
-function show_more() {
-// TODO: impl
+function show_more_topics(start_idx, count, exclude_user) {
+	//alert('show_more_topics:\nstart_idx:' + start_idx.toString() + '\ncount:' + count.toString() + '\nexclude_user:' + exclude_user.toString())
+    var post_more_topics = {'start_idx': start_idx, 'count': count, 'exclude_user': exclude_user}
+    $.ajax({
+	    url: '/show_more_topics/',
+	    type: 'post',
+	    dataType: 'json',
+	    data: JSON.stringify(post_more_topics),
+	    success: function (more_topics) {
+	      if (more_topics) {
+	        $('#other_topics').append(more_topics)
+	        $('.more_topic').attr('id', 'more_topic_' + (start_idx + count).toString())
+	      }else{
+	        $('.more_topic').text('no more data available').attr('href', 'javascript:void(0)')
+	      }
+	    }
+    });
+  return false;
 }
 
 $(document).ready(function () {
@@ -41,11 +57,11 @@ $(document).ready(function () {
     if (!e.target) {
       return;
     }
-    t_id = parseInt(e.target.id.split("_")[1], 10)
-    u_id = parseInt(e.target.id.split("_")[2], 10) 
-    
+    e.preventDefault();//stop scrolling to top. ref:http://stackoverflow.com/questions/5449833/stop-scrolling-to-top-after-ajax-request
     switch (e.target.className) {
         case "follow_topic":
+        	t_id = parseInt(e.target.id.split("_")[1], 10)
+    		u_id = parseInt(e.target.id.split("_")[2], 10) 
             if(!u_id) {
                 alert('请先登录')
             }else{
@@ -53,11 +69,19 @@ $(document).ready(function () {
             }
             break;
         case "unfollow_topic":
+        	t_id = parseInt(e.target.id.split("_")[1], 10)
+    		u_id = parseInt(e.target.id.split("_")[2], 10)
             if(!u_id) {
                 alert('请先登录')
             }else{
               unfollow_topic(t_id, u_id);
             }
+            break;
+        case "more_topic":
+        	start_idx = parseInt(e.target.id.split("_")[2], 10)
+        	count = 10
+        	exclude_user = true
+        	show_more_topics(start_idx, count, exclude_user);
             break;
     }
   });

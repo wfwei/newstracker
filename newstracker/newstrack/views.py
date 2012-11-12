@@ -1,10 +1,12 @@
 #coding=utf-8
 from django.shortcuts import render_to_response
+from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.utils import simplejson
+from django.core import serializers
 
 from newstracker.newstrack.models import Topic, News
 from newstracker.account.models import Account
@@ -26,16 +28,19 @@ def home(request):
     template_var = {}
     my_topics = []
     if request.user.is_authenticated():
-        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
-        my_topics = current_account.topic_set.all()
+        current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
+        my_topics = current_account[0].topic_set.all()
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics
     else:
         ## 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
+        current_account = []
     
-    ## 得到数据库其他的比较热门的１０个话题
-    other_topics = Topic.objects.exclude(watcher__in=my_topics).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+    ## 得到数据库其他的比较热门的10个话题
+    other_topics = Topic.objects.exclude(watcher__in=current_account
+                                         ).annotate(watcher_count=Count('watcher')
+                                                    ).order_by( '-watcher_count' )[:10]
     template_var['other_topics'] = other_topics
     
     for topic in itertools.chain(my_topics, other_topics):
@@ -56,7 +61,7 @@ def home(request):
     return render_to_response("home.html",
                               template_var,
                               context_instance=RequestContext(request))
-    
+
 def topic_view(request,topic_id):
 
     topic = Topic.objects.get(pk=topic_id)
@@ -121,3 +126,40 @@ def unfollow_topic(request):
         return HttpResponse(simplejson.dumps(False), _mimetype)
     return HttpResponse(simplejson.dumps(True), _mimetype)
     
+def show_more_topics(request):
+    '''
+    对已有的topics按照关注人数排序，返回从start_idx开始的count个topic
+    exclude_user：是否除去当前用户关注的话题
+    '''
+    if not request.is_ajax():
+        return HttpResponse('ERROR:NOT AJAX REQUEST')
+    
+    post_data = simplejson.loads(request.raw_post_data)
+    if _DEBUG:
+        print post_data
+    start_idx = post_data['start_idx']
+    count = post_data['count']
+    exclude_user = post_data['exclude_user']
+
+    if request.user.is_authenticated() and exclude_user:
+        current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
+    else:
+        current_account = []
+    
+    _available_count = Topic.objects.exclude(watcher__in=current_account).count()
+    if _available_count < start_idx:
+        count = 0
+    elif _available_count < start_idx + count:
+        count = _available_count - start_idx
+    
+    if count > 0:
+        more_topics = Topic.objects.exclude(watcher__in=current_account
+                                         ).annotate(watcher_count=Count('watcher')
+                                                    ).order_by( '-watcher_count' )[start_idx: start_idx + count]
+    else:
+        more_topics = []
+        
+    rendered = render_to_string('topic_item_set.html', {'topics': more_topics})
+        
+    print rendered
+    return HttpResponse(simplejson.dumps(rendered), content_type='application/json')

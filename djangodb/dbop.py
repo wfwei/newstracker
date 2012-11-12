@@ -15,7 +15,11 @@ from newstracker.account.models import Account, Useroauth2
 from datetime import datetime
 
 import __builtin__
-logger = __builtin__.fulllogger
+try:
+    logger = __builtin__.fulllogger
+except:
+    import logging
+    logger = logging.getLogger('nonlogger')
 
 def get_or_create_weibo(weiboJson):
     '''

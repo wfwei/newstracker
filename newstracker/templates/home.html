@@ -9,64 +9,27 @@
     <div id="all_topics"> 
 		{% if user.is_authenticated %}
 	    <section id="work">
-	    <hr />
-	    <h1 style="text-align:center">&ndash; 我关注的话题 &ndash;</h1>
-	    <div  id="my_topics" class="topic_list clearfix">
-	    {% for topic in my_topics %}
-	        <div class="item">
-	        	<div class='topic_title'>
-	        		{% if topic.timeline_ready %}
-	        			<a href="/news_timeline/{{topic.id}}">话题：{{topic.title}}</a>
-	        		{% else %}
-	        			话题：{{topic.title}}
-	        		{% endif %}
-	        	</div>
-	        	<div class='recent_news'>
-	        		{% if topic.timeline_ready %}
-		        		<a href="{{topic.recent_news_link}}" target="_blank">最新消息：{{topic.recent_news_title}}</a> 
-	        		{% else %}
-	        			最新消息：{{topic.recent_news_title}}
-	        		{% endif %}
-	        	</div>
-	        	<div class='topic_operation'>
-		        	<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
-	        	</div>
-	        </div>
-	    {% endfor %}
-	    </div> 
-	    <div class="clearfix"></div> 
+		    <hr />
+		    <h1 style="text-align:center">&ndash; 我关注的话题 &ndash;</h1>
+		    <div  id="my_topics" class="topic_list clearfix">
+		    {% for topic in my_topics %}
+		        {% include "topic_item.html"%}
+		    {% endfor %}
+		    </div> 
+		    <div class="clearfix"></div> 
 		</section>
 		{% endif %}
 		
 	    <section id="work"> 
-	    <hr />
-	    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
-	    <div id="other_topics" class="topic_list clearfix">
-	    {% for topic in other_topics %}
-	    
-	    	<div class="item">
-	        	<div class='topic_title'>
-	        		{% if topic.timeline_ready %}
-	        			<a href="/news_timeline/{{topic.id}}">话题：{{topic.title}}</a>
-	        		{% else %}
-	        			话题：{{topic.title}}
-	        		{% endif %}
-	        	</div>
-	        	<div class='recent_news'>
-	        		{% if topic.timeline_ready %}
-		        		<a href="{{topic.recent_news_link}}" target="_blank">最新消息：{{topic.recent_news_title}}</a> 
-	        		{% else %}
-	        			最新消息：{{topic.recent_news_title}}
-	        		{% endif %}
-	        	</div>
-	        	<div class='topic_operation'>
-		        	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
-	        	</div>
-	        </div>
-	    {% endfor %}
-	    </div> 
-	    <div class="clearfix"></div> 
-        <a class="more" href="#">more...</a>
+		    <hr />
+		    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
+		    <div id="other_topics" class="topic_list clearfix">
+		    {% for topic in other_topics %}
+		    	{% include "topic_item.html"%}
+		    {% endfor %}
+		    </div> 
+		    <div class="clearfix"></div> 
+	        <a class="more_topic" id="more_topic_10" href="#">more...</a>
 		</section>
 	</div>
 {% endblock %}
