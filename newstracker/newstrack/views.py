@@ -20,7 +20,7 @@ _DEBUG = True
 _mimetype =  'application/javascript, charset=utf8'
 
 '''
-TODO: 
+TODO:
 1. 直接传输topic对象太大了，后面要什么传什么
 3. 模板改用bootstrap
 '''
@@ -36,13 +36,13 @@ def home(request):
         ## 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
         current_account = []
-    
+
     ## 得到数据库其他的比较热门的10个话题
     other_topics = Topic.objects.exclude(watcher__in=current_account
                                          ).annotate(watcher_count=Count('watcher')
                                                     ).order_by( '-watcher_count' )[:10]
     template_var['other_topics'] = other_topics
-    
+
     for topic in itertools.chain(my_topics, other_topics):
         if topic.news_set.count() > 0:
             _news = topic.news_set.all()[0]
@@ -53,11 +53,11 @@ def home(request):
             topic.recent_news_title= '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
-            
+
     if False and _DEBUG:
         for key in template_var:
             print key, template_var[key]
-        
+
     return render_to_response("home.html",
                               template_var,
                               context_instance=RequestContext(request))
@@ -66,7 +66,7 @@ def topic_view(request,topic_id):
 
     topic = Topic.objects.get(pk=topic_id)
     news_list = News.objects.filter(topic = topic)
-    
+
     if _DEBUG:
         print 'in topic_view: topic_id: ', topic_id,'\t news count: ',len(news_list)
 
@@ -84,12 +84,12 @@ def news_timeline(request,topic_id):
         我们的Timeline插件不支持您当前使用的浏览器(%s)，建议您安装Chrome, Firefox或者升级IE到8.0以上的版本。<br>
         <a href='/'>返回</a></p>
         ''' % (_res.group()))
-        
+
     topic = Topic.objects.get(id = topic_id)
     news_timeline_file = topic.title + ".jsonp"
     if _DEBUG:
         print 'in news_timeline: topic_id: ', topic_id
-        
+
     return render_to_response("news_timeline.html",
                               {"news_timeline_file": news_timeline_file},
                               context_instance=RequestContext(request))
@@ -125,7 +125,7 @@ def unfollow_topic(request):
         print 'post_data error...'
         return HttpResponse(simplejson.dumps(False), _mimetype)
     return HttpResponse(simplejson.dumps(True), _mimetype)
-    
+
 def show_more_topics(request):
     '''
     对已有的topics按照关注人数排序，返回从start_idx开始的count个topic
@@ -133,7 +133,7 @@ def show_more_topics(request):
     '''
     if not request.is_ajax():
         return HttpResponse('ERROR:NOT AJAX REQUEST')
-    
+
     post_data = simplejson.loads(request.raw_post_data)
     if _DEBUG:
         print post_data
@@ -145,21 +145,21 @@ def show_more_topics(request):
         current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
     else:
         current_account = []
-    
+
     _available_count = Topic.objects.exclude(watcher__in=current_account).count()
     if _available_count < start_idx:
         count = 0
     elif _available_count < start_idx + count:
         count = _available_count - start_idx
-    
+
     if count > 0:
         more_topics = Topic.objects.exclude(watcher__in=current_account
                                          ).annotate(watcher_count=Count('watcher')
                                                     ).order_by( '-watcher_count' )[start_idx: start_idx + count]
     else:
         more_topics = []
-        
+
     rendered = render_to_string('topic_item_set.html', {'topics': more_topics})
-        
+
     print rendered
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
