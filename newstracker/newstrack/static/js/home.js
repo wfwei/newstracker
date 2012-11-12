@@ -57,9 +57,9 @@ $(document).ready(function () {
     if (!e.target) {
       return;
     }
-    e.preventDefault();//stop scrolling to top. ref:http://stackoverflow.com/questions/5449833/stop-scrolling-to-top-after-ajax-request
     switch (e.target.className) {
         case "follow_topic":
+            e.preventDefault();
         	t_id = parseInt(e.target.id.split("_")[1], 10)
     		u_id = parseInt(e.target.id.split("_")[2], 10) 
             if(!u_id) {
@@ -69,6 +69,7 @@ $(document).ready(function () {
             }
             break;
         case "unfollow_topic":
+            e.preventDefault();
         	t_id = parseInt(e.target.id.split("_")[1], 10)
     		u_id = parseInt(e.target.id.split("_")[2], 10)
             if(!u_id) {
@@ -78,6 +79,7 @@ $(document).ready(function () {
             }
             break;
         case "more_topic":
+            e.preventDefault();
         	start_idx = parseInt(e.target.id.split("_")[2], 10)
         	count = 10
         	exclude_user = true

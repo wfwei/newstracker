@@ -154,6 +154,8 @@ def show_more_topics(request):
 
     if count > 0:
         more_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
+    else:
+        more_topics = []
 
     for topic in more_topics:
         if topic.news_set.count() > 0:

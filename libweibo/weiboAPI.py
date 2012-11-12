@@ -11,7 +11,7 @@ import threading
 
 ####网页应用的配置
 APP_KEY = '4057638893'
-APP_SECRET = '20771c2157efe0659eead33718e4feae'
+APP_SECRET = '29a39034c98cbd0c9703192707653f10'
 CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
 import __builtin__
