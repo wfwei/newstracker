@@ -28,8 +28,8 @@ def home(request):
     template_var = {}
     my_topics = []
     if request.user.is_authenticated():
-        current_account = User.objects.get(username = request.user.username).account_set.all()[:1]
-        my_topics = current_account[0].topic_set.all()
+        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        my_topics = current_account.topic_set.all()
         other_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics
@@ -128,6 +128,7 @@ def show_more_topics(request):
     '''
     对已有的topics按照关注人数排序，返回从start_idx开始的count个topic
     exclude_user：是否除去当前用户关注的话题
+    TODO: exclude用法，简化代码
     '''
     if not request.is_ajax():
         return HttpResponse('ERROR:NOT AJAX REQUEST')
@@ -143,7 +144,6 @@ def show_more_topics(request):
         current_account = User.objects.get(username = request.user.username).account_set.all()[0]
         _available_count = Topic.objects.exclude(watcher__in=current_account).count()
     else:
-        current_account = []
         _available_count = Topic.objects.count()
 
     if _available_count < start_idx:
@@ -152,7 +152,10 @@ def show_more_topics(request):
         count = _available_count - start_idx
 
     if count > 0:
-        more_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
+        if request.user.is_authenticated() and exclude_user:
+            more_topics = Topic.objects.exclude(watcher__in=current_account).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
+        else:
+            more_topics = Topic.objects.annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
     else:
         more_topics = []
 
