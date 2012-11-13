@@ -93,8 +93,7 @@ class weiboAPI(object):
             sleeptime = (60 - time.localtime().tm_min + 65) * 60 ##MARK目前多睡１小时。。。
             logger.info('access limit reached, sleep for ' + str(sleeptime / 60) + ' minutes')
             time.sleep(sleeptime)
-        else:
-            time.sleep(61) ##两次请求之间的间隔
+        
         self.lock.release()
 
     def refreshAccessToken(self):
@@ -118,6 +117,7 @@ class weiboAPI(object):
 
     def getHotTopics(self):
         self._checkAccessLimit()
+        time.sleep(10)
         weekHotTopics = self.client.get.trends__weekly()['trends']
         return weekHotTopics
 
@@ -131,7 +131,8 @@ class weiboAPI(object):
 
     def getUserInfo(self, uid=None):
         '''
-       　必须配置uid参数，如果没有会报错
+        　如果uid非空，请求uid的用户信息
+       　如果uid是空，则请求当前授权用户的用户信息
         '''
         if uid is not  None:
             self._checkAccessLimit()
@@ -143,11 +144,13 @@ class weiboAPI(object):
 
     def getMentions(self, count = 50, page = 1, since_id = 0, trim_user = 0):
         self._checkAccessLimit()
+        time.sleep(15)
         return self.client.get.statuses__mentions(count = count, page = page, since_id = since_id, trim_user = trim_user)
 
     def postComment(self, weibo_id, content):
         try:
             self._checkAccessLimit('user_comment')
+            time.sleep(20)
             self.client.post.comments__create(comment=content, id=weibo_id)
             return True
         except:

@@ -22,7 +22,7 @@ _wb = weiboAPI()
 url = _wb.client.get_authorize_url()
 print url
 code = raw_input()
-_r = _wb.client.request_access_token('code')
+_r = _wb.client.request_access_token(code)
 access_token = _r.access_token  # 新浪返回的token，类似abc123xyz456
 expires_in = _r.expires_in
 

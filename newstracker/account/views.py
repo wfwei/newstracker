@@ -121,7 +121,6 @@ def weibo_callback(request):
     ## 构建微博对象
     _wb = weiboAPI()
     _r = _wb.client.request_access_token(code)
-    ## TODO: remove me
     access_token = _r.access_token
     expires_in = _r.expires_in
     u_id = _r.uid
