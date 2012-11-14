@@ -7,15 +7,12 @@ Created on Nov 1, 2012
 @author: plex
 '''
 from djangodb import djangodb
-from newstimeline import update_all_news_timeline
 
 import __builtin__
 import time
 
 weibo = __builtin__.weibo
 reader = __builtin__.reader
-weibo_lock = __builtin__.weibo_lock
-reader_lock = __builtin__.reader_lock
 logger = __builtin__.tasklogger
 readerlogger = __builtin__.readerlogger
 weibologger = __builtin__.weibologger
@@ -34,10 +31,9 @@ def remindUserTopicUpdates(topicTitle):
     topicWatchers = topic.watcher.all()
     topicWatcherWeibo = topic.watcher_weibo.all()
 
-    weibo_lock.acquire()
     postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
     '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '』'
-    weibo_lock.release()
+    time.sleep(15) ## 间隔两次请求
     if len(postMsg) > 139:
         postMsg = postMsg[:139]
 
@@ -50,15 +46,14 @@ def remindUserTopicUpdates(topicTitle):
         targetStatusId = watcherWeibo.weibo_id
         logger.debug('\tpostMsg:\n' + postMsg)
         ## 如果微博不存在，则将该微博记录从topic的链接中删除,否则添加到已经提醒的用户列表中
-        weibo_lock.acquire()
         if not weibo.postComment(weibo_id = targetStatusId, content = postMsg):
             topic.watcher_weibo.remove(watcherWeibo)
             logger.debug('post comment failed...target status id:%s, postMsg:%s' % (targetStatusId, postMsg))
         else:
             logger.info('Succeed post comment to weibo:' + str(targetStatusId))
             _user_reminded.append(watcherWeibo.user.weiboId)
-        weibo_lock.release()
-
+        time.sleep(15) ## 间隔两次请求
+        
     ## 有些用户没有发微博关注该事件(将原有微博删除了)，但也要提醒，首先要剔除已经提醒的_user_commented
     for watcher in topicWatchers:
         weiboId = watcher.weiboId
@@ -69,20 +64,17 @@ def remindUserTopicUpdates(topicTitle):
             if len(postMsg) > 139:
                 _postMsg = _postMsg[:139]
             logger.info('\tpostMsg:\n' + _postMsg)
-            weibo_lock.acquire()
             if not weibo.postComment(weibo.REMIND_WEIBO_ID, _postMsg):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
             else:
                 logger.info('Succeed post comment to (static)weibo:' + str(weibo.REMIND_WEIBO_ID))
-
-            weibo_lock.release()
+            time.sleep(15) ## 间隔两次请求
 
     logger.info('remindUserTopicUpdates(%s): OK' % topicTitle)
     return True
 
 def subscribeTopic(topicRss, topicTitle = None):
     ## 订阅的时候即便是加了title,最后谷歌还是会在后面加上' - Google 新闻'
-    reader_lock.acquire()
     try:
         if not reader.subscribe(feedUrl = topicRss, title = topicTitle):
             logger.error('Fail to subscribed ' + topicRss)
@@ -95,7 +87,6 @@ def subscribeTopic(topicRss, topicTitle = None):
         logger.error('Fail to subscribed ' + topicRss)
         return False
 
-    reader_lock.release()
     return True
 
 def t_exetask():
@@ -105,6 +96,7 @@ def t_exetask():
         for t in subs_tasks:
             try:
                 subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
+                time.sleep(15) ## 间隔两次请求
             except:
                 logger.exception("Except in subscribeTopic()")
                 break
@@ -116,6 +108,7 @@ def t_exetask():
         for t in remind_tasks:
             try:
                 remindUserTopicUpdates(topicTitle = t.topic.title)
+                time.sleep(15) ## 间隔两次请求
             except:
                 logger.exception("Except in remindUserTopicUpdates()")
                 break

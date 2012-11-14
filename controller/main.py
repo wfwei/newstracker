@@ -73,15 +73,15 @@ __builtin__.weibologger = weibologger
 __builtin__.readerlogger = readerlogger
 __builtin__.tasklogger = tasklogger
 
-from multiprocessing import Process, Lock
-__builtin__.weibo_lock = Lock()
-__builtin__.reader_lock = Lock()
-
+from multiprocessing import Process
+import time
 
 # Init weibo
 from libweibo import weiboAPI
 from djangodb import djangodb
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
+if time.time() > expires_in:
+    raise Exception("授权过期了!")
 weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
 fulllogger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 __builtin__.weibo = weibo

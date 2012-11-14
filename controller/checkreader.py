@@ -14,9 +14,9 @@ import time
 
 import __builtin__
 reader = __builtin__.reader
-reader_lock = __builtin__.reader_lock
 readerlogger = __builtin__.readerlogger
-_DEBUG = __builtin__._DEBUG
+
+_DEBUG = True
 
 def fetchRssUpdates():
     '''
@@ -24,9 +24,8 @@ def fetchRssUpdates():
     debug模式下,如果数据库中找不到订阅的rss,则会创建之
     '''
     readerlogger.debug('Start fetch rss update')
-    reader_lock.acquire()
     unreadFeedsDict = reader.getUnreadFeeds()
-    reader_lock.release()
+    time.sleep(20) ## set request interval
     readerlogger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
@@ -35,9 +34,8 @@ def fetchRssUpdates():
             over = False
 
             while not over:
-                reader_lock.acquire()
                 feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
-                reader_lock.release()
+                time.sleep(20) ## set request interval
                 try:
                     continuation = feedContent['continuation']
                     if not continuation:
@@ -87,16 +85,16 @@ def fetchRssUpdates():
 
             ## 标记该feed为全部已读
             try:
-                reader_lock.acquire()
                 if not reader.markFeedAsRead(feed):
                     readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
                 else:
                     readerlogger.debug('Succeed mark ' + feedTopic + ' as read')
-                reader_lock.release()
             except:
                 readerlogger.error('fail to mark feed as read:' + feedTopic)
                 readerlogger.error('reader.auth:' + str(reader.auth))
-                return
+                return ##TODO: 会执行finally么？？
+            finally:
+                time.sleep(20) ## set request interval
 
             ##　更新话题的news timeline
             readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')

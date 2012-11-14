@@ -338,11 +338,10 @@ class OAuth2Method(AuthenticationMethod):
         try:
             response = json.loads(urllib2.urlopen(request).read())
         except :
-            ## TODO: test
             print 'WARN:'
             print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +\
              '\t获取授权失败，可能是网络timeout，休息十分钟后再次请求'
-            time.sleep(10*60)
+            time.sleep(600)
             self.refreshAccessToken()
             return 
         

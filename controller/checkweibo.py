@@ -15,7 +15,6 @@ import re
 
 import __builtin__
 weibo = __builtin__.weibo
-weibo_lock = __builtin__.weibo_lock
 weibologger = __builtin__.weibologger
 
 def fetchUserMention():
@@ -31,9 +30,8 @@ def fetchUserMention():
     lastMentionId = djangodb.get_last_mention_id()
     weibologger.info('\nget lastMentionId:' + str(lastMentionId))
     
-    weibo_lock.acquire()
     mentions = weibo.getMentions(since_id = lastMentionId)
-    weibo_lock.release()
+    time.sleep(15) ## 间隔两次请求
     mention_list = mentions['statuses']
     weibologger.info('mention_list length:' + str(len(mention_list)))
 
@@ -89,10 +87,8 @@ def fetchUserMention():
         if is_new_topic:
             remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！登录『' + weibo.getShortUrl("http://110.76.40.188:81") + '』了解更多...'
         else:
-            weibo_lock.acquire()
             remind_msg = '订阅成功，您可以到『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(mtopic.id)) + '』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
-            weibo_lock.release()
-        weibo_lock.acquire()
+        time.sleep(15) ## 间隔两次请求
         try:
             if not weibo.postComment(mweibo.weibo_id, remind_msg):
                 weibologger.error('step5: fail to weibo.postComment(%s, %s) ' % (mweibo.weibo_id, remind_msg))
@@ -100,8 +96,8 @@ def fetchUserMention():
                 weibologger.info('step5: succeed remind user')
         except:
             weibologger.error('step5: error to weibo.postComment(%s, %s) maybe access key outdated ' % (str(mweibo.weibo_id), remind_msg))
-        weibo_lock.release()
-
+        time.sleep(15) ## 间隔两次请求
+        
     weibologger.debug('getUserPostTopic() OK')
 
 def fetchHotTopic():
@@ -110,9 +106,8 @@ def fetchHotTopic():
     MARK: not in use
     '''
     ## 获取,解析和存储话题
-    weibo_lock.acquire()
     weekHotTopics = weibo.getHotTopics()
-    weibo_lock.release()
+    time.sleep(15) ## 间隔两次请求
     for topictime in weekHotTopics.keys():
         for topic in weekHotTopics.get(topictime):
             topictitle = topic['query']
