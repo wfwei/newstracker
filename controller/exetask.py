@@ -33,7 +33,7 @@ def remindUserTopicUpdates(topicTitle):
 
     postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
     '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '』'
-    time.sleep(15) ## 间隔两次请求
+    time.sleep(61) ## 间隔两次请求
     if len(postMsg) > 139:
         postMsg = postMsg[:139]
 
@@ -52,7 +52,7 @@ def remindUserTopicUpdates(topicTitle):
         else:
             logger.info('Succeed post comment to weibo:' + str(targetStatusId))
             _user_reminded.append(watcherWeibo.user.weiboId)
-        time.sleep(15) ## 间隔两次请求
+        time.sleep(61) ## 间隔两次请求
         
     ## 有些用户没有发微博关注该事件(将原有微博删除了)，但也要提醒，首先要剔除已经提醒的_user_commented
     for watcher in topicWatchers:
@@ -68,7 +68,7 @@ def remindUserTopicUpdates(topicTitle):
                 logger.error('post comment failed...target status id:%s, postMsg:%s' % (weibo.REMIND_WEIBO_ID, _postMsg))
             else:
                 logger.info('Succeed post comment to (static)weibo:' + str(weibo.REMIND_WEIBO_ID))
-            time.sleep(15) ## 间隔两次请求
+            time.sleep(61) ## 间隔两次请求
 
     logger.info('remindUserTopicUpdates(%s): OK' % topicTitle)
     return True
@@ -89,6 +89,40 @@ def subscribeTopic(topicRss, topicTitle = None):
 
     return True
 
+def unSubscribeTopic(topicRss):
+    try:
+        if not reader.unsubscribe(feedUrl = topicRss):
+            logger.error('Fail to unsubscribe ' + topicRss)
+            readerlogger.error('in exetask:Fail to unsubscribe ' + topicRss)
+            return False
+        else:
+            logger.debug('Succeed to unsubscribe ' + topicRss)
+            readerlogger.debug('in exetask:Succeed to unsubscribe ' + topicRss)
+    except:
+        logger.error('Fail to unsubscribe ' + topicRss)
+        return False
+
+    return True
+
+def delTopic(topicTitle):
+    logger.debug('Start delete topic: ' + topicTitle)
+    try:
+        topic = djangodb.Topic.objects.get(title = topicTitle)
+        topic_news = topic.news_set.all()
+    except djangodb.Topic.DoesNotExist:
+        logger.error('Topic:\t' + topicTitle + ' not exist!!!')
+        return False
+    
+    ##取消订阅
+    logger.info('un substribe topic')
+    unSubscribeTopic(topic.rss)
+    ##数据库中删除该话题的信息
+    logger.info('delete news and topic in db')
+    topic_news.delete()
+    topic.delete()
+    logger.info('delete topic: ' + topicTitle + ' OK')
+
+
 def t_exetask():
     while True:
         subs_tasks = djangodb.get_tasks(type='subscribe', count = 5)
@@ -96,7 +130,7 @@ def t_exetask():
         for t in subs_tasks:
             try:
                 subscribeTopic(topicRss = t.topic.rss, topicTitle = t.topic.title)
-                time.sleep(15) ## 间隔两次请求
+                time.sleep(61) ## 间隔两次请求
             except:
                 logger.exception("Except in subscribeTopic()")
                 break
@@ -108,7 +142,7 @@ def t_exetask():
         for t in remind_tasks:
             try:
                 remindUserTopicUpdates(topicTitle = t.topic.title)
-                time.sleep(15) ## 间隔两次请求
+                time.sleep(61) ## 间隔两次请求
             except:
                 logger.exception("Except in remindUserTopicUpdates()")
                 break

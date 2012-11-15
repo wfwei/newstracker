@@ -14,6 +14,10 @@
 		{% endif %}
 	</div>
 	<div class='topic_operation'>
-    	<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
+	    {% if already_follow == 'true' %}
+    		<a href="#" class="unfollow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">取消关注</a>
+		{% else %}
+			<a href="#" class="follow_topic" id = "topic_{{topic.id}}_{{current_account.id}}">关注</a>
+		{% endif %}
 	</div>
 </div>

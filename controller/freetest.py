@@ -17,14 +17,13 @@ _summary = '''<table border=\"0\" cellpadding=\"2\" cellspacing=\"7\" style=\"ve
 #print 'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']
 
 from libweibo.weiboAPI import weiboAPI
-##测试OAuth2登录
-_wb = weiboAPI()
-url = _wb.client.get_authorize_url()
-print url
-code = raw_input()
-_r = _wb.client.request_access_token(code)
-access_token = _r.access_token  # 新浪返回的token，类似abc123xyz456
-expires_in = _r.expires_in
+# Init weibo
+from libweibo import weiboAPI
+
+[access_token, expires_in] = ['2.00l9nr_DbO8b7Ecd650c1bd9clW_MD', 1510466805]
+
+weibo = weiboAPI.weiboAPI(access_token = access_token, expires_in = expires_in, u_id = 3041970403)
+print ('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 
 if __name__ == '__main__':
     _res = re.findall('<td[^>]*>(.*?)</td>', _summary)
