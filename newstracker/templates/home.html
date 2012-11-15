@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load set_var %}
 
 {% block title %}话题列表{% endblock%}
 {% block extra_css %}
@@ -13,6 +14,7 @@
 		    <h1 style="text-align:center">&ndash; 我关注的话题 &ndash;</h1>
 		    <div  id="my_topics" class="topic_list clearfix">
 		    {% for topic in my_topics %}
+		        {% set already_follow = true %}
 		        {% include "topic_item.html"%}
 		    {% endfor %}
 		    </div> 
@@ -25,6 +27,7 @@
 		    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
 		    <div id="other_topics" class="topic_list clearfix">
 		    {% for topic in other_topics %}
+		    	{% set already_follow = false %}
 		    	{% include "topic_item.html"%}
 		    {% endfor %}
 		    </div> 

@@ -168,6 +168,6 @@ def show_more_topics(request):
             topic.recent_news_link = ''
             topic.timeline_ready = False
 
-    rendered = render_to_string('topic_item_set.html', {'topics': more_topics})
+    rendered = render_to_string('other_topic_item_set.html', {'topics': more_topics})
 
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
