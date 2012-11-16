@@ -41,8 +41,8 @@ class Topic(models.Model):
     timeline_ready = True
     recent_news_title = ''
     recent_news_link = ''
-    watcher = models.ManyToManyField(account_models.Account)
-    watcher_weibo = models.ManyToManyField(Weibo)
+    watcher = models.ManyToManyField(account_models.Account, blank=True)
+    watcher_weibo = models.ManyToManyField(Weibo, blank=True)
     
     def __unicode__(self):
         return '[Topic , ' + self.title + ']'
@@ -52,6 +52,11 @@ class Topic(models.Model):
         
     def count_watcher(self):
         return self.watcher.count()
+    
+    def delete(self, *args, **kwargs):
+        ##一并删除话题对应的新闻
+        self.news_set.all().delete()
+        super(Topic, self).delete(*args, **kwargs) # Call the "real" save() method.
 
 class News(models.Model):
 

@@ -28,7 +28,10 @@ def home(request):
     my_topics = []
     exclude_set = []
     if request.user.is_authenticated():
-        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        try:
+            current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        except:
+            return HttpResponse('''当前用户没有Account帐号,<a href="/admin/">Admin?</a>''')
         my_topics = current_account.topic_set.all()
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics

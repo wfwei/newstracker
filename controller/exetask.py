@@ -108,7 +108,6 @@ def delTopic(topicTitle):
     logger.debug('Start delete topic: ' + topicTitle)
     try:
         topic = djangodb.Topic.objects.get(title = topicTitle)
-        topic_news = topic.news_set.all()
     except djangodb.Topic.DoesNotExist:
         logger.error('Topic:\t' + topicTitle + ' not exist!!!')
         return False
@@ -118,7 +117,6 @@ def delTopic(topicTitle):
     unSubscribeTopic(topic.rss)
     ##数据库中删除该话题的信息
     logger.info('delete news and topic in db')
-    topic_news.delete()
     topic.delete()
     logger.info('delete topic: ' + topicTitle + ' OK')
 

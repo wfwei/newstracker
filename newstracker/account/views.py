@@ -134,3 +134,7 @@ def weibo_callback(request):
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
     auth_login(request, _account.user)
     return HttpResponseRedirect('/home/')
+
+def weibo_callback_rm(request):
+    ##TODO: remove user authorization information
+    pass

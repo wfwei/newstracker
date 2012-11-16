@@ -4,13 +4,12 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-import os
+#import os
 
-## TODO: remove this
-import sys
-sys.path.append('/home/wangfengwei/wksp/newstracker')
-sys.path.append('/home/nginx/newstracker')
-## end
+### TODO: remove this
+#import sys
+#sys.path.append('/home/nginx/newstracker')
+### end
 
 
 ADMINS = (
@@ -116,7 +115,6 @@ ROOT_URLCONF = 'newstracker.urls'
 TEMPLATE_DIRS = (
     ## TODO 如果使用相對路徑???
     '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
-    '/home/wangfengwei/wksp/newstracker/newstracker/templates',
     '/home/nginx/newstracker/newstracker/templates',
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
@@ -135,7 +133,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
      'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
-#     'django.contrib.admindocs',
+     'django.contrib.admindocs',
 )
 
 # A sample logging configuration. The only tangible logging

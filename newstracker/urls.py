@@ -27,10 +27,8 @@ urlpatterns = patterns('',
      url(r'weibo_callback/$', 'newstracker.account.views.weibo_callback', name='weibo_callback'),
      url(r'weibo_callback_rm/$', 'newstracker.account.views.weibo_callback_rm', name='weibo_callback_rm'),
      
-#     url(r'^newstracker/', include('newstracker.foo.urls')),
-
     # Uncomment the admin/doc line below to enable admin documentation:
-#     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
      url(r'^admin/', include(admin.site.urls)),
