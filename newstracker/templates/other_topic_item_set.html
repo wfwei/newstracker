@@ -1,6 +1,6 @@
 {% load set_var %}
 
 {% for topic in topics %}
-    {% set already_follow = 'true' %}
+    {% set already_follow = 'false' %}
 	{% include "topic_item.html"%}
 {% endfor %}
