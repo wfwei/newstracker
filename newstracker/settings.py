@@ -1,16 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import os 
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-
-#import os
-
-### TODO: remove this
-#import sys
-#sys.path.append('/home/nginx/newstracker')
-### end
-
 
 ADMINS = (
      ('plex', 'cf.wfwei@gmail.com'),
@@ -65,7 +58,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/home/wangfengwei/wksp/newstracker/newstracker/newstrack/static/'
+STATIC_ROOT = os.path.abspath('newstrack/static/')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -113,9 +106,9 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'newstracker.urls'
 
 TEMPLATE_DIRS = (
-    ## TODO 如果使用相對路徑???
-    '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
-    '/home/nginx/newstracker/newstracker/templates',
+    os.path.abspath('newstracker/newstracker/templates/'),
+#    '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
+#    '/home/nginx/newstracker/newstracker/templates',
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
