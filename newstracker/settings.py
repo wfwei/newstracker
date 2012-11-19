@@ -1,6 +1,6 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
-import os 
+import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -13,12 +13,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'newstracker',                      # Or path to database file if using sqlite3.
-        'USER': 'wangfengwei',                      # Not used with sqlite3.
-        'PASSWORD': 'wangfengwei',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'newstracker',  # Or path to database file if using sqlite3.
+        'USER': 'wangfengwei',  # Not used with sqlite3.
+        'PASSWORD': 'wangfengwei',  # Not used with sqlite3.
+        'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -107,8 +107,7 @@ ROOT_URLCONF = 'newstracker.urls'
 
 TEMPLATE_DIRS = (
     os.path.abspath('newstracker/newstracker/templates/'),
-#    '/home/plex/wksp/eclipse/newstracker/newstracker/templates',
-#    '/home/nginx/newstracker/newstracker/templates',
+    os.path.abspath('templates/'),  # on serv
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

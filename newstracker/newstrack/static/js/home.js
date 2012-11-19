@@ -8,7 +8,7 @@ function follow_topic(topic_id, u_id) {
     success: function (follow_success) {
       if (follow_success) {
         //TODO: 位置移动。。。
-        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("unfollow-topic").removeClass("follow-topic").text("取消关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("unfollow-topic").removeClass("follow-topic").text("<i class="icon-remove"></i>取消关注")
       }
     }
   });
@@ -25,7 +25,7 @@ function unfollow_topic(topic_id, u_id) {
     success: function (unfollow_success) {
       if (unfollow_success) {
         //TODO: 位置移动。。。
-        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("<i class="icon-heart"></i>关注")
       }
     }
   });
@@ -54,26 +54,23 @@ function show_more_topics(start_idx, count, exclude_user) {
 
 $(document).ready(function () {
 	
-  $(".topic-operation").click(function (e) {
-	if (!e.target) {
-	    return;
-	}
-	e.preventDefault();
-	t_id = parseInt(e.target.id.split("-")[1], 10);
-	u_id = parseInt(e.target.id.split("-")[2], 10);
-    if(!u_id) {
-        alert('请先登录');
-        return;
-    }
-    switch (e.target.className) {
-        case "follow-topic":
-            follow_topic(t_id, u_id);
-            break;
-        case "unfollow_topic":
-            unfollow_topic(t_id, u_id);
-            break;
-     }
-   });
+	$(".topic-operation").click(function (e) {
+		if (!e.target) {
+		    return;
+		}
+		e.preventDefault();
+		t_id = parseInt(e.target.id.split("-")[1], 10);
+		u_id = parseInt(e.target.id.split("-")[2], 10);
+		if(!u_id) {
+		    alert('请先登录');
+		    return;
+		}
+		if(e.target.className.indexOf("follow-topic") != -1){
+		    follow_topic(t_id, u_id);
+		}else if(e.target.className.indexOf("unfollow-topic") != -1){
+			unfollow_topic(t_id, u_id);
+		}
+	});
    
    $(".more-topic").click(function (e) {
 	if (!e.target) {

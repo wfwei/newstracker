@@ -88,7 +88,7 @@ __builtin__.weibo = weibo
 
 # Init google reader
 from libgreader import readerAPI
-reader = readerAPI()
+reader = readerAPI.readerAPI()
 fulllogger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 __builtin__.reader = reader
 
