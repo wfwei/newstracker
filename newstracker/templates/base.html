@@ -1,16 +1,20 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
+	    <meta charset="utf-8">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0">
     	<meta name="description" content="把握事件来龙去脉，了解话题最新动态，尽在新闻追踪　＠xwzz新闻追踪　＠newstracker Enjoy!!!">
+	    <meta name="author" content="">
         {% block meta%}{% endblock%}
         <title>
             {% block title%}{% endblock%}
         </title>
+        <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" media="screen">
         <link rel="stylesheet" media="all" charset="utf-8" href="{{STATIC_URL}}css/base.css"/>
         {% block extra_css %}{% endblock %}
         {% block head %}{% endblock %}
+        
         <script type="text/javascript">
 	      var _gaq = _gaq || [];
           _gaq.push(['_setAccount', 'UA-35961632-1']);
@@ -23,57 +27,51 @@
         </script>
         
     </head>
-    <body>
-        <div class="wrapper">
-        
-        	<div id="top">
-       			<div id="logo">
-       				<a href="/home/">
-	            		<img id="logoimage" src="{{STATIC_URL}}images/logo.png" alt="logo">	
-	            		<h1 id="logotitle">新闻追踪</h1><h4>alpha</h4>
-            		</a>
-        		</div>
-        		<div class="userinfo">
-					{% if user.is_authenticated %}
-                    <a href="{{user_weibo_link}}"><h3>Hey, @{{ user.username }}</h3></a>
-                        <a href="/logout/"><h4>GetMeOut</h4></a>
+    <body data-spy="scroll">
+    
+	    <!--top-menu-bar -->
+	    <div class="navbar navbar-inverse navbar-fixed-top" id="top-menu-bar">
+	      <div class="navbar-inner">
+	        <div class="container-fluid">
+	          <a class="brand" href="/">狗狗追踪</a>
+	          <div class="nav-collapse collapse">
+	            <p class="navbar-text pull-right">
+	              {% if user.is_authenticated %}
+	                <a href="{{user_weibo_link}}" class="navbar-link">Hey, @{{ user.username }}</a>
 			        {% else %}
-						<a href={{ authorize_url }}><img src="http://www.sinaimg.cn/blog/developer/wiki/32.png"></a>
-			        {% endif %}
-        		</div>
-    		</div>
-		    <div id="main" class="main">
+						<a href={{ authorize_url }}><img src="http://www.sinaimg.cn/blog/developer/wiki/24.png"></a>
+			      {% endif %}
+	            </p>
+	            <ul class="nav">
+	              <li class="active"><a href="#my-topics">我的话题</a></li>
+	              <li><a href="#other-topics">热门话题</a></li>
+	              <li><a href="#settings">个人设置</a></li>
+	              <li><a href="#zhanzhangsay">站长说</a></li>
+	            </ul>
+          
+	            <form class="navbar-search pull-left">
+	              <input type="text" class="search-query" placeholder="Search topics">
+	            </form>
+	          </div><!--/.nav-collapse -->
+	        </div>
+	      </div>
+	    </div>
+		<!--end-top-menu-bar -->
+	    <br />
+	    <br />
+	    <br />
+    
+	    <div id="main" class="main">
 		    {% block main %}
 		    {% endblock %}
-		    </div>
-		
-		    <footer id="footer">
-				<div class="wrapper" style="margin-bottom:100px">
-			        <h3 style="text-align:right;text-decoration: none;">
-			        	<a href="#">Top</a>
-			        	<a href="#footer">ReadMe</a>
-			        </h3>
-			    </div>
-			    <div class="wrapper" style="line-height:33px;height:1000px;">
-					欢迎使用由　<a href="http://weibo.com/3041970403/profile" target="_blank">@xwzz新闻追踪</a> 开发的新闻追踪应用～<br />
-			        <h4>简介</h4>
-					该应用可以帮助用户<b>追踪感</b>兴趣的话题（事件），比如可以使用这个应用追踪热门事件#宁波PX项目#，了解其来龙去脉！<br />
-					当用户订阅的话题有新进展的时候，我们会在新浪微博上通过＠或评论的形式提醒用户
-					<h4>使用方法</h4>
-					方式1. 用户可以在新浪微博上发布或者转发包含话题（事件）的微博，同时＠xwzz新闻追踪就可以成功订阅该话题。<br />
-					方式2. 用户登录该网站后，可以取消订阅，同时可以浏览并订阅其他热门话题<br />
-					＊　建议通过方式1来订阅微博<br />
-					＊　订阅的话题尽量简练，关键字都可以！<br />
-					<h4>其他</h4>
-					目前该应用只支持新浪微博接入。<br />
-					该应用是个人兴趣开发，不足之处随处可见(= =!)，请多多包涵并多提宝贵意见～<br />
-			    </div>
-			    <div class="clearfix"></div>
-			</footer>
-		</div>
-        <script type="text/javascript" src="{{STATIC_URL}}js/base.js"></script>
-        <script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.7.2.min.js"></script>
-        <script src="http://tjs.sjs.sinajs.cn/t35/apps/opent/js/frames/client.js" language="JavaScript"></script>
-        {% block extra_scripts %}{% endblock %}
+	    </div>
+
+		<footer>
+			<p>© Company 2012</p>
+		</footer>
+
+		<script type="text/javascript" src="{{STATIC_URL}}js/base.js"></script>
+		<script src="http://tjs.sjs.sinajs.cn/t35/apps/opent/js/frames/client.js" language="JavaScript"></script>
+		{% block extra_scripts %}{% endblock %}
     </body>
 </html>

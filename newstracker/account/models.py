@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 
 from django.db import models
@@ -28,7 +28,7 @@ class Account(models.Model):
             wname = '未绑定微博帐号'
         else:
             wname = self.weiboName
-        return self.user.username + ' weibo name:' + wname
+        return '[account:' + self.user.username + ', weibo:' + wname + ']'
 
     @staticmethod
     def get_account(user):
@@ -42,12 +42,12 @@ class Useroauth2(models.Model):
     not in use
     目前还没有用这个，感觉保存两个小时的用户授权没有价值，目前只是将用户微博帐号和本地帐号关联起来
     '''
-    ## weibo or google
+    # # weibo or google
     server = models.CharField(max_length=100, db_index=True)
     u_id = models.BigIntegerField(db_index=True)
     access_token = models.CharField(max_length=100)
     access_secret = models.CharField(max_length=100)
-    refresh_token = models.CharField(max_length =100)
+    refresh_token = models.CharField(max_length=100)
     expires_in = models.CharField(max_length=100)
     
     def __unicode__(self):

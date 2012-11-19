@@ -1,4 +1,4 @@
-#coding=utf-8
+# coding=utf-8
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -31,51 +31,51 @@ def weiboLogin(request):
 
     # 余数2, 那么需要补一个=
     payload = str(payload)
-    if len(payload)%3 == 2:
+    if len(payload) % 3 == 2:
         payload += '='
-    # 余数1, 那么需要补两个=  
-    if len(payload)%3 == 1:
+    # 余数1, 那么需要补两个=
+    if len(payload) % 3 == 1:
         payload += '=='
-    # urlsafe_b64decode() Decode string s using a URL-safe alphabet, 
+    # urlsafe_b64decode() Decode string s using a URL-safe alphabet,
     # which substitutes - instead of + and _ instead of / in the standard Base64 alphabet.
-    # 得到data    
+    # 得到data
     data = simplejson.loads(base64.urlsafe_b64decode(payload))
-    
+
     # 得到sig
     encoded_sig = str(encoded_sig)
-    if len(encoded_sig)%3 == 2:
+    if len(encoded_sig) % 3 == 2:
         encoded_sig += '='
-    if len(encoded_sig)%3 == 1:
-        encoded_sig += '==' 
+    if len(encoded_sig) % 3 == 1:
+        encoded_sig += '=='
     sig = base64.urlsafe_b64decode(encoded_sig)
 
-    try: 
+    try:
         user_id = data['user_id']
         oauth_token = data['oauth_token']
-        expires= data['expires']
+        expires = data['expires']
     except:
         print '认证错误，这个错误还未解决！！！'
-            
+
     if _DEBUG:
         print 'signed_request: ', signed_request
-        print 'data: ',data
+        print 'data: ', data
         print user_id
-    
-    ##判断用户是否已经登录过（第一次登录会自动帮用户注册）
+
+    # #判断用户是否已经登录过（第一次登录会自动帮用户注册）
     try:
-        _account = Account.objects.get(weiboId = user_id)
+        _account = Account.objects.get(weiboId=user_id)
     except:
-        print 'create new Account for:'+str(user_id)
+        print 'create new Account for:' + str(user_id)
         _weibo = weiboAPI(oauth_token, expires, user_id)
         _account = dbop.get_or_create_account_from_weibo(_weibo.getUserInfo())
-    ## TODO: 如何实现用户自动登录？？
+    # # TODO: 如何实现用户自动登录？？
     request.session['user'] = _account.user
     return HttpResponseRedirect('/home/')
 
 
 def login(request):
     template_var = {}
-    ## 用户weibo登录的认证链接
+    # # 用户weibo登录的认证链接
     authorize_url = weiboAPI().getAuthorizeUrl()
     template_var['authorize_url'] = authorize_url
 
@@ -91,7 +91,7 @@ def login(request):
     return HttpResponseRedirect('/home/')
 
 def _login(request, name, password):
-    ## check if name is email
+    # # check if name is email
     if re.match('^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$', name):
         try:
             temp = User.objects.get(email=name)
@@ -116,9 +116,9 @@ def logout(request):
     return HttpResponseRedirect('login/')
 
 def weibo_callback(request):
-    ## 获取code
+    # 获取code
     code = request.GET.get('code')
-    ## 构建微博对象
+    # 构建微博对象
     _wb = weiboAPI()
     _r = _wb.client.request_access_token(code)
     access_token = _r.access_token
@@ -126,15 +126,27 @@ def weibo_callback(request):
     u_id = _r.uid
     _wb.client.set_access_token(access_token, expires_in)
     uinfo = _wb.getUserInfo(uid=u_id)
-    ## 保存授权信息
+    # 保存授权信息
     dbop.get_or_update_weibo_auth_info(u_id=u_id, access_token=access_token, expires_in=expires_in)
 
-    ## MARK: 数据库编码没设置，导致一直存不进去，直接去该数据库编码貌似也不行，django不知道吧，所以删了数据库，重新syncdb
+    # MARK: 数据库编码没设置，导致一直存不进去，直接去该数据库编码貌似也不行，django不知道吧，所以删了数据库，重新syncdb
     _account = dbop.get_or_create_account_from_weibo(uinfo)
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
     auth_login(request, _account.user)
     return HttpResponseRedirect('/home/')
 
 def weibo_callback_rm(request):
-    ##TODO: remove user authorization information
+    '''
+    当用户取消你的应用授权时，开放平台会回调你填写的这个地址。并传递给以下参数
+    source：应用appkey
+    uid ：取消授权的用户
+    auth_end ：取消授权的时间
+    '''
+    appkey = request.GET.get('source')
+    uid = request.GET.get('uid')
+    auth_end = request.GET.get('auth_end')
+
+
+
+
     pass

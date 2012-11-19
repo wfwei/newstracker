@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 '''
@@ -26,7 +26,7 @@ def get_or_create_weibo(weiboJson):
     通过微博（status）的json形式构建weibo对象，并保存到数据库
     '''
     logger.info('in get_or_create_weibo(weiboJson)\nweiboJson:\n' + str(weiboJson))
-    nweibo, created = Weibo.objects.get_or_create(weibo_id = weiboJson['id'])
+    nweibo, created = Weibo.objects.get_or_create(weibo_id=weiboJson['id'])
     logger.info('created:' + str(created))
     if created:
         nweibo.created_at = datetime.strptime(weiboJson['created_at'], "%a %b %d %H:%M:%S +0800 %Y")
@@ -54,17 +54,17 @@ def get_or_create_account_from_weibo(weiboUserJson):
     '''
     logger.info('in get_or_create_account_from_weibo(weiboUserJson)\weiboUserJson:\n' + str(weiboUserJson))
     try:
-        account = Account.objects.get(weiboId = weiboUserJson['id'])
+        account = Account.objects.get(weiboId=weiboUserJson['id'])
         logger.info('account already exists:' + str(account))
     except Account.DoesNotExist:
         try:
-            ## TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
-            user = User.objects.get(username = weiboUserJson['name'])
+            # TODO: bug 没有考虑用户该微博昵称的情况，并认为user和account是一一对应的
+            user = User.objects.get(username=weiboUserJson['name'])
         except:
-            user = User.objects.create_user(username = weiboUserJson['name'],
-                                            email = str(weiboUserJson['id']) + '@fakeemail.com',
-                                            password = str(weiboUserJson['id']))
-        account, created = Account.objects.get_or_create(user = user)
+            user = User.objects.create_user(username=weiboUserJson['name'],
+                                            email=str(weiboUserJson['id']) + '@fakeemail.com',
+                                            password=str(weiboUserJson['id']))
+        account, created = Account.objects.get_or_create(user=user)
         logger.info('created:' + str(created))
         if created:
             account.weiboId = weiboUserJson['id']
@@ -90,13 +90,13 @@ def get_or_create_account_from_weibo(weiboUserJson):
             account.save()
     return account
 
-def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
+def get_or_update_weibo_auth_info(u_id, access_token=None, expires_in=None):
     '''得到或保存更新access_token和expires_in信息
     '''
-    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id = u_id)
+    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
 
     if access_token is None or expires_in is None:
-        ## 认为是获取信息
+        # 认为是获取信息
         access_token = _oauth2info.access_token
         expires_in = _oauth2info.expires_in
 
@@ -105,7 +105,7 @@ def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
         logger.info('access_token:' + str(access_token))
         logger.info('expires_in:' + str(expires_in))
     else:
-        ##　认为是更新信息
+        # 认为是更新信息
         logger.info('update weibo auth info:')
         logger.info('u_id:' + str(u_id))
         logger.info('access_token:' + str(access_token))
@@ -115,6 +115,67 @@ def get_or_update_weibo_auth_info(u_id, access_token = None, expires_in = None):
         _oauth2info.expires_in = expires_in
         _oauth2info.save()
     return [access_token, expires_in]
+
+def get_or_create_weibo_auth_info(u_id, access_token=None, expires_in=None):
+    '''得到或创建access_token和expires_in信息
+    还未使用，TODO:test
+    '''
+    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
+
+    if access_token and expires_in:
+        # 创建
+        _oauth2info.access_token = access_token
+        _oauth2info.expires_in = expires_in
+        _oauth2info.save()
+
+        logger.info('create weibo auth info:')
+        logger.info('u_id:' + str(u_id))
+        logger.info('access_token:' + str(access_token))
+        logger.info('expires_in:' + str(expires_in))
+    elif not created:
+        # 通过u_id获取信息
+        access_token = _oauth2info.access_token
+        expires_in = _oauth2info.expires_in
+
+        logger.info('get weibo auth info:')
+        logger.info('u_id:' + str(u_id))
+        logger.info('access_token:' + str(access_token))
+        logger.info('expires_in:' + str(expires_in))
+    else:
+        logger.error('[u_id:%s]是新的，但是没有access_token等授权信息' % u_id)
+        return None
+
+    return _oauth2info
+
+def update_weibo_auth_info(u_id, access_token, expires_in):
+    '''更新access_token和expires_in信息
+    还未使用，TODO:test
+    '''
+
+    if u_id and access_token and expires_in:
+        _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
+        if created:
+            logger.warn('本方法是更新授权，但是却创建了新的授权！！！　对应的u_id:' + str(u_id))
+        _oauth2info.access_token = access_token
+        _oauth2info.expires_in = expires_in
+        _oauth2info.save()
+    else:
+        logger.warn('参数有误：[u_id:%s, access_token:%s, expires_in:%s]' % \
+                    (str(u_id), str(access_token), str(expires_in)))
+
+
+def rm_weibo_auth(u_id):
+    '''得到或保存更新access_token和expires_in信息
+    TODO:test
+    '''
+    _oauth2info = Useroauth2.objects.filter(u_id=u_id)
+
+    if _oauth2info:
+        _oauth2info.delete()
+        logger.info('succeed to delete auth:' + str(u_id))
+    else:
+        logger.warn('failed to delete auth:' + str(u_id))
+
 
 def get_last_mention_id():
     '''
@@ -130,7 +191,7 @@ def get_last_mention_id():
     return _lastMentionId
 
 def add_task(topic, type):
-    task, created = Task.objects.get_or_create(type = type, topic = topic)
+    task, created = Task.objects.get_or_create(type=type, topic=topic)
 
     if not created:
         task.status += 1

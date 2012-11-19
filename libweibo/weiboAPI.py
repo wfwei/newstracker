@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Created on Oct 13, 2012
@@ -9,7 +9,7 @@ from weibo import APIClient
 import time
 import threading
 
-####网页应用的配置
+# 网页应用的配置
 APP_KEY = '4057638893'
 APP_SECRET = '29a39034c98cbd0c9703192707653f10'
 CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
@@ -29,14 +29,14 @@ class weiboAPI(object):
     1. 添加自动登录功能
     '''
 
-    def __init__(self, access_token=None, expires_in=None, u_id = None):
+    def __init__(self, access_token=None, expires_in=None, u_id=None):
         self.client = APIClient(app_key=APP_KEY,
                                 app_secret=APP_SECRET,
                                 redirect_uri=CALLBACK_URL,
                                 )
         self.u_id = u_id
         self.REMIND_WEIBO_ID = 3504267275499498
-        self.lock = threading.Lock() ##多线程同步
+        self.lock = threading.Lock()  # #多线程同步
         self.acc_count = {}
         self.acc_limit = {}
         self._initAccessCount()
@@ -55,12 +55,12 @@ class weiboAPI(object):
         该方法没有加锁，要求调用的方法必须是线程安全的
         '''
         self.acc_count['hour'] = time.localtime().tm_hour
-        self.acc_count['ip_all'] = 0 #单小时限制:10000
-        self.acc_count['user_all'] = 0 #单小时限制:1000
-        self.acc_count['user_status'] = 0 #单小时限制:30
-        self.acc_count['user_comment'] = 0 #单小时限制:60
-        self.acc_count['user_follow'] = 0 #单小时限制:60;这个还有每天的限制，没有考虑
-        
+        self.acc_count['ip_all'] = 0  # 单小时限制:10000
+        self.acc_count['user_all'] = 0  # 单小时限制:1000
+        self.acc_count['user_status'] = 0  # 单小时限制:30
+        self.acc_count['user_comment'] = 0  # 单小时限制:60
+        self.acc_count['user_follow'] = 0  # 单小时限制:60;这个还有每天的限制，没有考虑
+
         logger.info('_initAccessCount:\t' + str(self.acc_count))
 
     def _initAccessLimit(self):
@@ -68,11 +68,11 @@ class weiboAPI(object):
         该方法没有加锁，要求调用的方法必须是线程安全的
         '''
         self.acc_limit['time_unit'] = 'hour'
-        self.acc_limit['ip_all'] = 10000 - 100 ##减去这些值是为了考虑到有漏掉的访问
+        self.acc_limit['ip_all'] = 10000 - 100  # #减去这些值是为了考虑到有漏掉的访问
         self.acc_limit['user_all'] = 1000 - 20
         self.acc_limit['user_status'] = 30 - 5
         self.acc_limit['user_comment'] = 60 - 10
-        self.acc_limit['user_follow'] = 60 - 10 #这个还有每天的限制，没有考虑
+        self.acc_limit['user_follow'] = 60 - 10  # 这个还有每天的限制，没有考虑
 
         logger.info('_initAccessLimit:\t' + str(self.acc_limit))
 
@@ -83,8 +83,8 @@ class weiboAPI(object):
         with self.lock:
             logger.info('_checkAccessLimit, type:' + str(type))
             logger.info('old acc_count:\t' + str(self.acc_count))
-    
-            ##MARK: 两小时刷新一次记录会不会过分了
+
+            # #MARK: 两小时刷新一次记录会不会过分了
             if self.acc_count['hour'] < time.localtime().tm_hour or \
                 self.acc_count['hour'] > time.localtime().tm_hour + 1:
                 self._initAccessCount()
@@ -93,16 +93,16 @@ class weiboAPI(object):
                 if type != 'ip_all':
                     self.acc_count['ip_all'] += 1
                 self.acc_count['user_all'] += 1
-    
+
             logger.info('new acc_count:\t' + str(self.acc_count))
-    
+
             if self.acc_count[type] > self.acc_limit[type] or \
              self.acc_count['ip_all'] > self.acc_limit['ip_all'] or \
              self.acc_count['user_all'] > self.acc_limit['user_all']:
-                sleeptime = (60 - time.localtime().tm_min + 65) * 60 ##MARK目前多睡１小时。。。
+                sleeptime = (60 - time.localtime().tm_min + 65) * 60  # #MARK目前多睡１小时。。。
                 logger.info('access limit reached, sleep for ' + str(sleeptime / 60) + ' minutes')
                 time.sleep(sleeptime)
-        
+
     def refreshAccessToken(self):
         '''
         这个方法实现自动授权？
@@ -111,10 +111,10 @@ class weiboAPI(object):
         if self.client.is_expires():
             logger.error('refreshAccessToken: access_token is expired')
             self._setAccessTokenManually()
-            
+
     def _setAccessTokenManually(self):
         url = self.client.get_authorize_url()
-        print 'weibo.refreshAccessToken 访问url获取认证code\n',url
+        print 'weibo.refreshAccessToken 访问url获取认证code\n', url
         # TODO:能否impl自动认证
         code = raw_input()
         r = self.client.request_access_token(code)
@@ -151,20 +151,19 @@ class weiboAPI(object):
                 _uid = uid
             elif self.u_id is None:
                 _uid = self.getUID()
-                time.sleep(2) ##间隔两次请求
             else:
                 _uid = self.u_id
             return self.client.get.users__show(uid=_uid)
-        
 
-    def getMentions(self, count = 50, page = 1, since_id = 0, trim_user = 0):
-        '''得到当前授权用户的mention信息'''
+
+    def getMentions(self, count=50, page=1, since_id=0, trim_user=0):
+        ''' 得到当前授权用户的mention信息 '''
         self._checkAccessLimit()
         with self.lock:
-            return self.client.get.statuses__mentions(count = count, \
-                                                 page = page, \
-                                                 since_id = since_id, \
-                                                 trim_user = trim_user)
+            return self.client.get.statuses__mentions(count=count, \
+                                                      page=page, \
+                                                      since_id=since_id, \
+                                                      trim_user=trim_user)
 
     def postComment(self, weibo_id, content):
         ''' 发布评论　'''

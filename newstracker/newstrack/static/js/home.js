@@ -8,7 +8,7 @@ function follow_topic(topic_id, u_id) {
     success: function (follow_success) {
       if (follow_success) {
         //TODO: 位置移动。。。
-        $('#topic_' + topic_id.toString() + '_' + u_id.toString()).addClass("unfollow_topic").removeClass("follow_topic").text("取消关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("unfollow-topic").removeClass("follow-topic").text("取消关注")
       }
     }
   });
@@ -25,7 +25,7 @@ function unfollow_topic(topic_id, u_id) {
     success: function (unfollow_success) {
       if (unfollow_success) {
         //TODO: 位置移动。。。
-        $('#topic_' + topic_id.toString() + '_' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("关注")
       }
     }
   });
@@ -33,7 +33,7 @@ function unfollow_topic(topic_id, u_id) {
 }
 
 function show_more_topics(start_idx, count, exclude_user) {
-	//alert('show_more_topics:\nstart_idx:' + start_idx.toString() + '\ncount:' + count.toString() + '\nexclude_user:' + exclude_user.toString())
+	// alert('show_more_topics:\nstart_idx:' + start_idx.toString() + '\ncount:' + count.toString() + '\nexclude_user:' + exclude_user.toString())
     var post_more_topics = {'start_idx': start_idx, 'count': count, 'exclude_user': exclude_user}
     $.ajax({
 	    url: '/show_more_topics/',
@@ -42,10 +42,10 @@ function show_more_topics(start_idx, count, exclude_user) {
 	    data: JSON.stringify(post_more_topics),
 	    success: function (more_topics) {
 	      if (more_topics) {
-	        $('#other_topics').append(more_topics)
-	        $('.more_topic').attr('id', 'more_topic_' + (start_idx + count).toString())
+	        $('#other-topic-list').append(more_topics)
+	        $('.more-topic').attr('id', 'more-topic-' + (start_idx + count).toString())
 	      }else{
-	        $('.more_topic').text('no more data available').attr('href', 'javascript:void(0)')
+	        $('.more-topic').text('no more data available').attr('href', 'javascript:void(0)')
 	      }
 	    }
     });
@@ -53,39 +53,38 @@ function show_more_topics(start_idx, count, exclude_user) {
 }
 
 $(document).ready(function () {
-  document.getElementById("all_topics").addEventListener("click", function (e) {
-    if (!e.target) {
-      return;
+	
+  $(".topic-operation").click(function (e) {
+	if (!e.target) {
+	    return;
+	}
+	e.preventDefault();
+	t_id = parseInt(e.target.id.split("-")[1], 10);
+	u_id = parseInt(e.target.id.split("-")[2], 10);
+    if(!u_id) {
+        alert('请先登录');
+        return;
     }
     switch (e.target.className) {
-        case "follow_topic":
-            e.preventDefault();
-        	t_id = parseInt(e.target.id.split("_")[1], 10)
-    		u_id = parseInt(e.target.id.split("_")[2], 10) 
-            if(!u_id) {
-                alert('请先登录')
-            }else{
-              follow_topic(t_id, u_id);
-            }
+        case "follow-topic":
+            follow_topic(t_id, u_id);
             break;
         case "unfollow_topic":
-            e.preventDefault();
-        	t_id = parseInt(e.target.id.split("_")[1], 10)
-    		u_id = parseInt(e.target.id.split("_")[2], 10)
-            if(!u_id) {
-                alert('请先登录')
-            }else{
-              unfollow_topic(t_id, u_id);
-            }
+            unfollow_topic(t_id, u_id);
             break;
-        case "more_topic":
-            e.preventDefault();
-        	start_idx = parseInt(e.target.id.split("_")[2], 10)
-        	count = 10
-        	exclude_user = true
-        	show_more_topics(start_idx, count, exclude_user);
-            break;
-    }
-  });
+     }
+   });
+   
+   $(".more-topic").click(function (e) {
+	if (!e.target) {
+	    return;
+	}
+	e.preventDefault();
+	start_idx = parseInt(e.target.id.split("-")[2], 10);
+	count = 5;
+	exclude_user = true;
+	show_more_topics(start_idx, count, exclude_user);
+   });
+        
 });
 

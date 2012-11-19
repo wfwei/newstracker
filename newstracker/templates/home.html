@@ -1,42 +1,97 @@
 {% extends "base.html" %}
 {% load set_var %}
 
-{% block title %}话题列表{% endblock%}
+{% block title %}狗狗追踪{% endblock%}
+
 {% block extra_css %}
 <link rel="stylesheet" media="all" charset="utf-8" href="{{STATIC_URL}}css/home.css"/>
 {% endblock %}
+<div >
 
-{% block main %}  
-    <div id="all_topics"> 
-		{% if user.is_authenticated %}
-	    <section id="work">
-		    <hr />
-		    <h1 style="text-align:center">&ndash; 我关注的话题 &ndash;</h1>
-		    <div  id="my_topics" class="topic_list clearfix">
+{% block main %}
+<div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span9" id="left-part">
+          {% if user.is_authenticated %}
+          <div class="hero-unit topics" id="my-topics">
+            <h2>我关注的话题</h2>
+            <div class="topic-list">
 		    {% for topic in my_topics %}
 		        {% set already_follow = 'true' %}
 		        {% include "topic_item.html"%}
 		    {% endfor %}
-		    </div> 
-		    <div class="clearfix"></div> 
-		</section>
-		{% endif %}
-		
-	    <section id="work"> 
-		    <hr />
-		    <h1 style="text-align:center">&ndash; 热点话题 &ndash;</h1>
-		    <div id="other_topics" class="topic_list clearfix">
-		    {% for topic in other_topics %}
-		    	{% set already_follow = 'false' %}
-		    	{% include "topic_item.html"%}
-		    {% endfor %}
-		    </div> 
-		    <div class="clearfix"></div> 
-	        <a class="more_topic" id="more_topic_10" href="#">more...</a>
-		</section>
-	</div>
-{% endblock %}
+		    </div>
+          </div>
+          {% else %}
+          <div class="alert fade in">
+            <a class="close" data-dismiss="alert" href="#">×</a>
+            <strong>提示！</strong> 使用微博帐号登录后可以订阅话题～
+          </div>
+          {% endif %}
 
+          <div class="hero-unit topics" id="other-topics">
+            <h2>热门话题</h2>
+            <div class="topic-list" id="other-topic-list">
+		    {% for topic in other_topics %}
+		        {% set already_follow = 'false' %}
+		        {% include "topic_item.html"%}
+		    {% endfor %}
+		    </div>
+		    <a class="more-topic" id="more-topic-5" href="#">更多</a>
+          </div>
+			
+		  {% if 'true' or user.is_authenticated %}
+          <div class="hero-unit" id="settings">
+            <div class="part-title">
+              <h2>我的设置</h2>
+              {% include "settings.html"%}
+            </div>
+          </div>
+		  {% endif %}
+		  
+          <div class="hero-unit" id="zhanzhangsay">
+            <div class="part-title">
+              <h2>站长说</h2>
+              {% include "zhanzhangsay.html"%}
+            </div>
+          </div>
+          
+        </div><!-- span9-->
+
+        <div class="span3"  id="right-part">
+        	<!--
+	        <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">导航</li>
+              <li class="active"><a href="#my-topics">我的话题</a></li>
+              <li><a href="#other-topics">热门话题</a></li>
+              <li><a href="#settings">个人设置</a></li>
+              <li><a href="#zhanzhangsay">站长说</a></li>
+            </ul>
+          </div><!--/.well -->
+          
+          <div class="well sidebar-nav">
+            <h2>留言</h2>
+            <p>欢迎宝贵意见～ </p>
+	          <div class="alert fade in">
+	            <a class="close" data-dismiss="alert" href="#">×</a>
+	            <strong>提示！</strong> 功能测试中～
+	          </div>
+            	<!-- UY BEGIN -->
+				<div id="uyan_frame"></div>
+				<script type="text/javascript" id="UYScript" src="http://v1.uyan.cc/js/iframe.js?UYUserId=1709831" async=""></script>
+				<!-- UY END -->
+          </div><!--/.well -->
+          
+        </div><!--/span3-->
+
+      </div><!--/row-->
+
+</div><!--/container-->
+<hr>
+{% endblock %}
 {% block extra_scripts %}
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.8.3.min.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/home.js"></script>
+<script src="{{STATIC_URL}}js/bootstrap.js"></script>
 {% endblock %}

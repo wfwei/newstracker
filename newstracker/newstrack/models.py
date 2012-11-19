@@ -76,7 +76,8 @@ class News(models.Model):
         ordering = ["-pubDate"]
    
 class Task(models.Model):
-    type = models.CharField(max_length=50, db_index=True) # remind:remind user topic updates; subscribe:subscribe topic
+    type = models.CharField(max_length=50, db_index=True) 
+    # remind:remind user topic updates; subscribe:subscribe topic; unsubscribe:unsubscribe
     topic = models.ForeignKey(Topic)
     status = models.IntegerField(default = 1, db_index=True) # 0:dead;1:alive;2:important;3...more important
     time = models.DateTimeField(default=datetime.datetime.now, db_index=True)

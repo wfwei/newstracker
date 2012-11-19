@@ -1,4 +1,4 @@
-#coding=utf-8
+# coding=utf-8
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect
@@ -16,7 +16,7 @@ import itertools
 import re
 
 _DEBUG = True
-_mimetype =  'application/javascript, charset=utf8'
+_mimetype = 'application/javascript, charset=utf8'
 
 '''
 TODO:
@@ -29,7 +29,7 @@ def home(request):
     exclude_set = []
     if request.user.is_authenticated():
         try:
-            current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+            current_account = User.objects.get(username=request.user.username).account_set.all()[0]
         except:
             return HttpResponse('''当前用户没有Account帐号,<a href="/admin/">Admin?</a>''')
         my_topics = current_account.topic_set.all()
@@ -37,11 +37,12 @@ def home(request):
         template_var['my_topics'] = my_topics
         exclude_set.append(current_account)
     else:
-        ## 用户weibo登录的认证链接
+        # # 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
-    ## 得到数据库其他的比较热门的10个话题
-    other_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[:10]
+    # # 得到数据库其他的比较热门的5个话题
+    other_topics = Topic.objects.exclude(watcher__in=exclude_set).\
+    annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[:5]
     template_var['other_topics'] = other_topics
 
     for topic in itertools.chain(my_topics, other_topics):
@@ -51,11 +52,11 @@ def home(request):
             topic.recent_news_link = _news.link
             topic.timeline_ready = True
         else:
-            topic.recent_news_title= '还没来得及更新＝＝!'
+            topic.recent_news_title = '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
 
-    if False and _DEBUG:
+    if _DEBUG:
         for key in template_var:
             print key, template_var[key]
 
@@ -63,20 +64,20 @@ def home(request):
                               template_var,
                               context_instance=RequestContext(request))
 
-def topic_view(request,topic_id):
+def topic_view(request, topic_id):
 
     topic = Topic.objects.get(pk=topic_id)
-    news_list = News.objects.filter(topic = topic)
+    news_list = News.objects.filter(topic=topic)
 
     if _DEBUG:
-        print 'in topic_view: topic_id: ', topic_id,'\t news count: ',len(news_list)
+        print 'in topic_view: topic_id: ', topic_id, '\t news count: ', len(news_list)
 
     return render_to_response("topic_view.html",
                               {"topic": topic,
                                "news_list": news_list},
                               context_instance=RequestContext(request))
 
-def news_timeline(request,topic_id):
+def news_timeline(request, topic_id):
     _ua = request.META['HTTP_USER_AGENT']
     _res = re.search('MSIE\s[1-7]\.[^;]*', _ua)
     if _res:
@@ -86,7 +87,7 @@ def news_timeline(request,topic_id):
         <a href='/'>返回</a></p>
         ''' % (_res.group()))
 
-    topic = Topic.objects.get(id = topic_id)
+    topic = Topic.objects.get(id=topic_id)
     news_timeline_file = topic.title + ".jsonp"
     if _DEBUG:
         print 'in news_timeline: topic_id: ', topic_id
@@ -145,7 +146,7 @@ def show_more_topics(request):
     exclude_set = []
 
     if request.user.is_authenticated() and exclude_user:
-        current_account = User.objects.get(username = request.user.username).account_set.all()[0]
+        current_account = User.objects.get(username=request.user.username).account_set.all()[0]
         exclude_set.append(current_account)
 
     _available_count = Topic.objects.exclude(watcher__in=exclude_set).count()
@@ -156,7 +157,8 @@ def show_more_topics(request):
         count = _available_count - start_idx
 
     if count > 0:
-        more_topics = Topic.objects.exclude(watcher__in=exclude_set).annotate(watcher_count=Count('watcher')).order_by( '-watcher_count' )[start_idx: start_idx + count]
+        more_topics = Topic.objects.exclude(watcher__in=exclude_set).\
+        annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[start_idx: start_idx + count]
     else:
         more_topics = []
 
@@ -167,7 +169,7 @@ def show_more_topics(request):
             topic.recent_news_link = _news.link
             topic.timeline_ready = True
         else:
-            topic.recent_news_title= '还没来得及更新＝＝!'
+            topic.recent_news_title = '还没来得及更新＝＝!'
             topic.recent_news_link = ''
             topic.timeline_ready = False
 

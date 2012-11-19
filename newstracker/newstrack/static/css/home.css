@@ -1,18 +1,43 @@
 @charset "UTF-8";
 
-a.more_topic{
-	text-align:center;
-	margin:auto;
-	position:relative;
-	display:inline-block;
-	border:1px dashed white;
-	left:2%;
-	padding:1px;
-	width:96%;
+.topic-item {
+	padding:26px;
+	padding-bottom:8px;
+	margin-top:20px;
+	border:2px solid transparent;
+	border-top:2px solid white;
+}
+.topic-item:hover {
+	border:2px solid #08C;
 }
 
-a.more_topic:hover {
+.topic-item .topic-title{
+	font-size:26px;
+	margin-bottom:20px;
+}
+
+.topic-item .recent-news {
+	padding-left:6px;
+	font-size:80%;
+}
+
+.topic-item .more-news {
+	padding-top:10px;
+	font-size:60%;	
+}
+
+.topics .more-topic{
+	text-align:center;
+	display:block;
 	border:1px solid white;
-	background-color:#DCD;
-	border-radius:15px;
+	border-top:2px solid white;
+	border-radius:0 0 15px 15px;
+	padding:1px;
+	margin-top:20px;
+}
+
+.topics .more-topic:hover {
+	border:1px solid #08C;
+	border-top:2px solid #08C;
+	text-decoration:none;
 }
