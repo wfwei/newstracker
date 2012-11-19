@@ -8,7 +8,7 @@ function follow_topic(topic_id, u_id) {
     success: function (follow_success) {
       if (follow_success) {
         //TODO: 位置移动。。。
-        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("unfollow-topic").removeClass("follow-topic").text("取消关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("unfollow-topic").removeClass("follow-topic").text("<i class="icon-remove"></i>取消关注")
       }
     }
   });
@@ -25,7 +25,7 @@ function unfollow_topic(topic_id, u_id) {
     success: function (unfollow_success) {
       if (unfollow_success) {
         //TODO: 位置移动。。。
-        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("<i class="icon-heart"></i>关注")
       }
     }
   });
