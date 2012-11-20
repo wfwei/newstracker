@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 '''
 Created on Oct 29, 2012
@@ -13,8 +13,13 @@ import os
 import re
 
 import __builtin__
-_DEBUG = __builtin__._DEBUG
-logger = __builtin__.fulllogger
+try:
+    _DEBUG = __builtin__._DEBUG
+    logger = __builtin__.fulllogger
+except:
+    _DEBUG = True
+    import logging
+    logger = logging.getLogger('nonlogger')
 
 def create_or_update_news_timeline(topicTitle):
     '''
@@ -23,10 +28,10 @@ def create_or_update_news_timeline(topicTitle):
      文件的保存名称为: topicTitle.jsonp
     '''
     try:
-        topic = djangodb.Topic.objects.get(title = topicTitle)
+        topic = djangodb.Topic.objects.get(title=topicTitle)
         topic_news = _filter_news(list(topic.news_set.all()))
         summary_template = '<div><div style=\" height:100px; padding:10px; display:inline-block;\">%s</div><div style=\"width:500px; padding:0 10px 0 10px; display:inline-block; letter-spacing:1px; line-height:20px;\">%s</div></div>'
-        headline_template = '<a href=\"%s\" >%s</a>'
+        headline_template = '<a href=\"%s\" target="_blank">%s</a>'
         news_list = []
         for news in topic_news:
             _summary = news.summary[15:-24].decode('unicode-escape')
@@ -37,19 +42,23 @@ def create_or_update_news_timeline(topicTitle):
                 _summary_content = re.sub('<[/]?font[^>]*>', '', _summary_content)
                 _summary_content = re.sub('<[/]?div[^>]*>', '', _summary_content)
                 news_link = re.search('href="([^"]*)"', _summary_content).group(1)
-                if '&url=http' in news_link:
-                    news_link[news_link.find('&url=http')+5:]
+                if 'url=http' in news_link:
+                    news_link = news_link[news_link.find('url=http') + 4:]
                 _summary_content = re.sub('<a[^>]*>.*?</a>', '', _summary_content)
-                _summary_content = re.sub('[.]{3}.*', '...', _summary_content)
+                _summary_content = re.sub('<b>[.]{3}</b>.*', '...', _summary_content)
             else:
-                _summary_content = _summary
+                _summary_content = "<br /><br />获取摘要失败啦～～～<br /><hr /><br />我们会尽快解决这个问题的！"
                 _summary_pic = ''
                 news_link = ''
                 logger.error('_summary is not well structured in create_or_update_news_timeline()')
-            _summary = summary_template%(_summary_pic, _summary_content)
-            _headline = headline_template%(news_link, news.title)
+                logger.error('_summary:' + _summary)
+            _summary = summary_template % (_summary_pic, _summary_content)
+            news_title = news.title
+            if ' - ' in news_title :
+                news_title = news_title[:news_title.rfind(' - ')]
+            _headline = headline_template % (news_link, news_title)
             jnews = {"startDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
-                    "endDate":(news.pubDate.date() + datetime.timedelta(1)).strftime('%Y,%m,%d,%H,%M'),
+                    "endDate":news.pubDate.strftime('%Y,%m,%d,%H,%M'),
                     "headline":_headline,
                     "text":_summary,
                     "tag":"",
@@ -65,10 +74,10 @@ def create_or_update_news_timeline(topicTitle):
         timeline = {}
         timeline['headline'] = topic.title
         timeline['type'] = 'default'
-        timeline['text'] = 'topic'
+        timeline['text'] = '我们记录并跟踪了该事件的' + str(len(news_list)) + '条新闻，希望可以帮您更好的了解该事件的来龙去脉～'
         timeline['date'] = news_list
 
-        ## Save to file
+        # Save to file
         f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
         f.write('storyjs_jsonp_data = ')
         f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
@@ -90,22 +99,22 @@ def update_all_news_timeline():
         create_or_update_news_timeline(topic.title)
     logger.info('update_all_news_timeline finished')
 
-## TODO: 可能会过滤掉最新消息！！！
+# TODO: 可能会过滤掉最新消息！！！
 
 def _filter_news(topic_news, limit=22):
     total = len(topic_news)
-    ## set limit
+    # set limit
     if total > limit * 2:
         limit = total * 0.618
-    if limit > 61:
-        limit = 61
-    ##去掉与前后时间距离最近的新闻
+    if limit > 45:
+        limit = 45
+    # 去掉与前后时间距离最近的新闻
     while True:
         if len(topic_news) <= limit:
             break
         min_dist = 100000000
         min_news = None
-        for pre,cur,post in zip(topic_news[-1:]+topic_news[2:], topic_news, topic_news[1:]+topic_news[:1]):
+        for pre, cur, post in zip(topic_news[-1:] + topic_news[2:], topic_news, topic_news[1:] + topic_news[:1]):
             pre_ts = long(time.mktime(pre.pubDate.timetuple()))
             cur_ts = long(time.mktime(cur.pubDate.timetuple()))
             post_ts = long(time.mktime(post.pubDate.timetuple()))
@@ -113,7 +122,7 @@ def _filter_news(topic_news, limit=22):
             if _len < min_dist:
                 min_dist = _len
                 min_news = cur
-            
+
         if min_news is not None:
             topic_news.remove(min_news)
         else:
@@ -122,7 +131,7 @@ def _filter_news(topic_news, limit=22):
 
     logger.info('filter news result: ' + str(len(topic_news)) + ' / ' + str(total))
     return topic_news
-    
+
 if __name__ == '__main__':
-#    create_or_update_news_timeline("中渔民被韩海警射杀")
-    update_all_news_timeline()
+    create_or_update_news_timeline("中渔民被韩海警射杀")
+#    update_all_news_timeline()

@@ -12,6 +12,7 @@ from newstracker.account.models import Account
 
 from libweibo.weiboAPI import weiboAPI
 
+import datetime
 import itertools
 import re
 
@@ -37,23 +38,39 @@ def home(request):
         template_var['my_topics'] = my_topics
         exclude_set.append(current_account)
     else:
-        # # 用户weibo登录的认证链接
+        # 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
-    # # 得到数据库其他的比较热门的5个话题
+    # 得到数据库其他的比较热门的5个话题
     other_topics = Topic.objects.exclude(watcher__in=exclude_set).\
     annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[:5]
     template_var['other_topics'] = other_topics
 
     for topic in itertools.chain(my_topics, other_topics):
-        if topic.news_set.count() > 0:
-            _news = topic.news_set.all()[0]
-            topic.recent_news_title = _news.title
-            topic.recent_news_link = _news.link
+        _news_count = topic.news_set.count()
+        if _news_count > 0:
+
+            if _news_count > 6:
+                _lmt = 6
+            else:
+                _lmt = _news_count
+            _news_list = topic.news_set.all()[:_lmt]
+            topic.recent_news[topic.title] = []
+            topic.recent_news[topic.title].append({'title':_news_list[0].title, \
+                                                   'link':_news_list[0].link, \
+                                                   'time_passed':_get_time_passed(_news_list[0].pubDate)})
+            topic.recent_news[topic.title].append({'title':_news_list[_lmt / 2].title, \
+                                                   'link':_news_list[_lmt / 2].link, \
+                                                   'time_passed':_get_time_passed(_news_list[_lmt / 2].pubDate)})
+            topic.recent_news[topic.title].append({'title':_news_list[_lmt - 1].title, \
+                                                   'link':_news_list[_lmt - 1].link, \
+                                                   'time_passed':_get_time_passed(_news_list[_lmt - 1].pubDate)})
             topic.timeline_ready = True
         else:
-            topic.recent_news_title = '还没来得及更新＝＝!'
-            topic.recent_news_link = ''
+            topic.recent_news[topic.title] = []
+            topic.recent_news[topic.title].append({'title':'还木有更新呢＝＝！', \
+                                                   'link':'javascript:void(0)', \
+                                                   'time_passed':_get_time_passed(datetime.datetime.now())})
             topic.timeline_ready = False
 
     if _DEBUG:
@@ -163,16 +180,54 @@ def show_more_topics(request):
         more_topics = []
 
     for topic in more_topics:
-        if topic.news_set.count() > 0:
-            _news = topic.news_set.all()[0]
-            topic.recent_news_title = _news.title
-            topic.recent_news_link = _news.link
+        _news_count = topic.news_set.count()
+        if _news_count > 0:
+
+            if _news_count > 6:
+                _lmt = 6
+            else:
+                _lmt = _news_count
+            _news_list = topic.news_set.all()[:_lmt]
+            topic.recent_news[topic.title] = []
+            topic.recent_news[topic.title].append({'title':_news_list[0].title, \
+                                                   'link':_news_list[0].link, \
+                                                   'time_passed':_get_time_passed(_news_list[0].pubDate)})
+            topic.recent_news[topic.title].append({'title':_news_list[_lmt / 2].title, \
+                                                   'link':_news_list[_lmt / 2].link, \
+                                                   'time_passed':_get_time_passed(_news_list[_lmt / 2].pubDate)})
+            topic.recent_news[topic.title].append({'title':_news_list[_lmt - 1].title, \
+                                                   'link':_news_list[_lmt - 1].link, \
+                                                   'time_passed':_get_time_passed(_news_list[_lmt - 1].pubDate)})
             topic.timeline_ready = True
         else:
-            topic.recent_news_title = '还没来得及更新＝＝!'
-            topic.recent_news_link = ''
+            topic.recent_news[topic.title] = []
+            topic.recent_news[topic.title].append({'title':'还木有更新呢＝＝！', \
+                                                   'link':'javascript:void(0)', \
+                                                   'time_passed':_get_time_passed(datetime.datetime.now())})
             topic.timeline_ready = False
 
     rendered = render_to_string('other_topic_item_set.html', {'topics': more_topics})
 
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
+
+
+
+
+def _get_time_passed(from_dt, to_dt=datetime.datetime.now()):
+    if from_dt > to_dt:
+        return '未来式'
+    tdelta = to_dt - from_dt
+    d = {"days": tdelta.days}
+    d["hours"], rem = divmod(tdelta.seconds, 3600)
+    d["minutes"], d["seconds"] = divmod(rem, 60)
+    if d['days'] > 0:
+        res = str(d['days']) + '天'
+    elif d["hours"] > 0:
+        res = str(d["hours"]) + '小时'
+    else:
+        res = str(d['minutes']) + '分钟'
+    return res + '前'
+
+
+
+

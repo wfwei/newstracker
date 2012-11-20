@@ -4,12 +4,12 @@ dateformats:{
 year:"yyyy",
 month_short:"mmm",
 month:"yyyy mmmm",
-full_short:"mmm d",
-full:"yyyy mmmm d",
+full_short:"mmm d'日'",
+full:"yyyy mmmm d'日'",
 time_no_seconds_short:"HH:MM",
-time_no_seconds_small_date:"HH:MM'<br/><small>'yyyy mmmm d'</small>'",
-full_long:"dddd',' yyyy mmm  d'um' HH:MM",
-full_long_small_date:"HH:MM'<br/><small>' yyyy mmm d'</small>','dddd'"
+time_no_seconds_small_date:"HH:MM'<br/><small>'yyyy mmmm d'日''</small>'",
+full_long:"dddd',' yyyy mmm  d'日' HH:MM",
+full_long_small_date:"HH:MM'<br/><small>' yyyy mmm d'日''</small>','dddd'"
 },
 
 messages:{loading_timeline:"加载时间线... ",return_to_title:"回到开头",expand_timeline:"伸展时间",contract_timeline:"缩短时间",wikipedia:"From Wikipedia, the free encyclopedia",loading_content:"Loading Content",loading:"Loading"}});

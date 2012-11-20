@@ -16,7 +16,7 @@ import __builtin__
 reader = __builtin__.reader
 readerlogger = __builtin__.readerlogger
 
-_DEBUG = True
+_DEBUG = False
 
 def fetchRssUpdates():
     '''
@@ -25,7 +25,7 @@ def fetchRssUpdates():
     '''
     readerlogger.debug('Start fetch rss update')
     unreadFeedsDict = reader.getUnreadFeeds()
-    time.sleep(20)  # # set request interval
+    time.sleep(20)  # set request interval
     readerlogger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
@@ -35,7 +35,7 @@ def fetchRssUpdates():
 
             while not over:
                 feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
-                time.sleep(20)  # # set request interval
+                time.sleep(20)  # set request interval
                 try:
                     continuation = feedContent['continuation']
                     if not continuation:
@@ -44,7 +44,7 @@ def fetchRssUpdates():
                     over = True
 
                 itemSet = feedContent['items']
-                # # title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
+                # title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
 
                 readerlogger.debug('feed topic:\t' + feedTopic + '\t item size:\t' + str(len(itemSet)))
@@ -53,14 +53,14 @@ def fetchRssUpdates():
                     topic = djangodb.Topic.objects.get(title=feedTopic)
                 except djangodb.Topic.DoesNotExist:
                     if _DEBUG:
-                        # # debug 模式下，如果数据库中不存在reader中订阅的话题，则本地重建
+                        # debug 模式下，如果数据库中不存在reader中订阅的话题，则本地重建
                         topicrss = googlenews.GoogleNews(feedTopic).getRss()
                         topic = djangodb.Topic.objects.create(title=feedTopic,
                                                               rss=topicrss,
                                                               time=datetime.now())
                         readerlogger.warn('#' + feedTopic + '# 不存在, 重建后保存数据库')
                     else:
-                        # # 添加删除任务
+                        # 添加删除任务
                         readerlogger.info('无法在数据库中找到对应话题,取消订阅feed:　' + feedTopic)
                         djangodb.add_task(topic=topic, type='unsubscribe')
                         break
@@ -85,7 +85,7 @@ def fetchRssUpdates():
                     nnews.save()
 
 
-            # # 标记该feed为全部已读
+            # 标记该feed为全部已读
             try:
                 if not reader.markFeedAsRead(feed):
                     readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
@@ -94,15 +94,15 @@ def fetchRssUpdates():
             except:
                 readerlogger.error('fail to mark feed as read:' + feedTopic)
                 readerlogger.error('reader.auth:' + str(reader.auth))
-                return  # #TODO: 会执行finally么？？
+                return  # TODO: 会执行finally么？？
             finally:
-                time.sleep(20)  # # set request interval
+                time.sleep(20)  # set request interval
 
-            # #　更新话题的news timeline
+            # 　更新话题的news timeline
             readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')
             create_or_update_news_timeline(feedTopic)
 
-            # # 添加提醒任务
+            # 添加提醒任务
             readerlogger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
             djangodb.add_task(topic=topic, type='remind')
 

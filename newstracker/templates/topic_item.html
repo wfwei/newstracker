@@ -1,32 +1,36 @@
+{% load common_filter %}
 <div class="topic-item thumbnail">
 	<div class='topic-title'>
 		{% if topic.timeline_ready %}
 			<a href="/news_timeline/{{topic.id}}"> {{topic.title}}</a>
 		{% else %}
-			{{topic.title}}
+			<a href="javascript:void(0)" class="disabled"> {{topic.title}}</a>
 		{% endif %}
 		<span class='topic-operation  pull-right'>
 	    {% if already_follow == 'true' %}
-			<a class="btn unfollow-topic" id = "topic-{{ topic.id }}-{{ current_account.id }}">
+			<a class="btn btn-info unfollow-topic" id = "topic-{{ topic.id }}-{{ current_account.id }}">
 				取消关注
 			</a>
 		{% else %}
-			<a class="btn follow-topic" id = "topic-{{ topic.id }}-{{ current_account.id }}">
+			<a class="btn btn-info follow-topic" id = "topic-{{ topic.id }}-{{ current_account.id }}">
 				关注
 			</a>
 		{% endif %}
 	    </span>
 	</div>
 	<div class='recent-news'>
-		{% if topic.timeline_ready %}
-    		<a href="{{topic.recent_news_link}}" target="_blank">{{topic.recent_news_title}}</a> 
-		{% else %}
-			{{topic.recent_news_title}}
-		{% endif %}
+		<ul class="unstyled">
+		{% for rn in topic.recent_news|keyvalue:topic.title%}
+			<li>
+			<a href="{{rn.link}}" target="_blank">{{rn.title}}</a>
+			<span class="label label-info" style="font-size:11px">{{rn.time_passed}}</span>
+			</li>
+		{% endfor%}
+		</ul>
 	</div>
 	<div class='more-news'>
 		{% if topic.timeline_ready %}
-			<a class="btn btn-mini btn-info " href="/news_timeline/{{topic.id}}"> 查看时间线　</a>
+			<a class="btn btn-mini btn-info " href="/news_timeline/{{topic.id}}"> 查看时间线</a>
 		{% endif %}
 	</div>
 </div>
