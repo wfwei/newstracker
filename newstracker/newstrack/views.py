@@ -42,7 +42,7 @@ def home(request):
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
     # 得到数据库其他的比较热门的5个话题
-    other_topics = Topic.objects.exclude(watcher__in=exclude_set).\
+    other_topics = Topic.alive_objects.exclude(watcher__in=exclude_set).\
     annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[:5]
     template_var['other_topics'] = other_topics
 
@@ -151,8 +151,17 @@ def show_more_topics(request):
     exclude_user：是否除去当前用户关注的话题
     TODO: exclude用法，简化代码
     '''
+    template_var = {}
+
     if not request.is_ajax():
         return HttpResponse('ERROR:NOT AJAX REQUEST')
+
+    if request.user.is_authenticated():
+        try:
+            current_account = User.objects.get(username=request.user.username).account_set.all()[0]
+            template_var['current_account'] = current_account
+        except:
+            pass
 
     post_data = simplejson.loads(request.raw_post_data)
     if _DEBUG:
@@ -166,7 +175,7 @@ def show_more_topics(request):
         current_account = User.objects.get(username=request.user.username).account_set.all()[0]
         exclude_set.append(current_account)
 
-    _available_count = Topic.objects.exclude(watcher__in=exclude_set).count()
+    _available_count = Topic.alive_objects.exclude(watcher__in=exclude_set).count()
 
     if _available_count < start_idx:
         count = 0
@@ -174,7 +183,7 @@ def show_more_topics(request):
         count = _available_count - start_idx
 
     if count > 0:
-        more_topics = Topic.objects.exclude(watcher__in=exclude_set).\
+        more_topics = Topic.alive_objects.exclude(watcher__in=exclude_set).\
         annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[start_idx: start_idx + count]
     else:
         more_topics = []
@@ -206,8 +215,8 @@ def show_more_topics(request):
                                                    'time_passed':_get_time_passed(datetime.datetime.now())})
             topic.timeline_ready = False
 
-    rendered = render_to_string('other_topic_item_set.html', {'topics': more_topics})
-
+    template_var['topics'] = more_topics
+    rendered = render_to_string('other_topic_item_set.html', template_var)
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
 
 
@@ -216,6 +225,9 @@ def show_more_topics(request):
 def _get_time_passed(from_dt, to_dt=datetime.datetime.now()):
     if from_dt > to_dt:
         return '未来式'
+        print 'from_dt', from_dt
+        print 'to_dt', to_dt
+
     tdelta = to_dt - from_dt
     d = {"days": tdelta.days}
     d["hours"], rem = divmod(tdelta.seconds, 3600)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Created on Nov 13, 2012
@@ -41,16 +41,16 @@ class readerAPI(object):
         return "<Google Reader object: %s>" % self.auth.username
 
     def __init__(self):
-        self.auth           = self._getOAuth2(CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, REDIRECT_URL)
-        self.userId         = None
-        self.lock           = threading.Lock()
-        
+        self.auth = self._getOAuth2(CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, REDIRECT_URL)
+        self.userId = None
+        self.lock = threading.Lock()
+
     def _getOAuth2(self, client_id, client_secret, refresh_token, redirect_url):
         auth = OAuth2Method(client_id, client_secret, refresh_token)
         auth.setRedirectUri(redirect_url)
-        if(len(refresh_token)<1):
+        if(len(refresh_token) < 1):
             url = auth.buildAuthUrl()
-            print '访问该地址授权',url
+            print '访问该地址授权', url
             auth.code = raw_input()
             auth.setAccessToken()
         else:
@@ -74,7 +74,7 @@ class readerAPI(object):
             for unread in unreadCounts:
                 unreadFeedsDict[unread['id']] = unread['count']
             return unreadFeedsDict
-    
+
     def fetchFeedItems(self, rss, excludeRead=False, continuation=None):
         """
         Return itemSet for a particular feed
@@ -83,7 +83,7 @@ class readerAPI(object):
         with self.lock:
             feed = Feed(self, 'title', rss)
             return self._getFeedContent(feed.fetchUrl, excludeRead, continuation)
-        
+
     def markFeedAsRead(self, feedId):
         '''
         feedId就是feed的url地址
@@ -91,7 +91,7 @@ class readerAPI(object):
         with self.lock:
             return self.httpPost(ReaderUrl.MARK_ALL_READ_URL, {'s': feedId, })
 
-    def subscribe(self, feedUrl, title = None):
+    def subscribe(self, feedUrl, title=None):
         """
         Adds a feed to the top-level subscription list
 
@@ -117,8 +117,7 @@ class readerAPI(object):
         """
         Removes a feed url from the top-level subscription list
 
-        Unsubscribing seems idempotent, you can unsubscribe multiple times
-        without error
+        TODO: does not work!!!!!!!!
 
         returns True or throws urllib2 HTTPError
         """
@@ -141,7 +140,7 @@ class readerAPI(object):
             userInfo = json.loads(userJson, strict=False)
             self.userId = userInfo['userId']
             return userInfo
-    
+
     def setUserId(self, userId=None):
         """
         set user id
@@ -152,7 +151,7 @@ class readerAPI(object):
             elif self.userId is None:
                 userJson = self.httpGet(ReaderUrl.USER_INFO_URL)
                 self.userId = json.loads(userJson, strict=False)['userId']
-        
+
     def _getFeedContent(self, url, excludeRead=False, continuation=None):
         """
         A list of itemSet (from a feed, a category or from URLs made with SPECIAL_ITEMS_URL)
@@ -179,7 +178,7 @@ class readerAPI(object):
         except:
             print 'contentJson:', contentJson
             raise
-        
+
     def httpGet(self, url, parameters=None):
         """
         Wrapper around AuthenticationMethod get()
@@ -194,4 +193,6 @@ class readerAPI(object):
 
 if __name__ == '__main__':
     reader = readerAPI()
+    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=nexus 4&um=1&ie=UTF-8&output=rss')
+    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=王鹏你妹&um=1&ie=UTF-8&output=rss')
     print 'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']

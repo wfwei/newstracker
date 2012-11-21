@@ -21,9 +21,14 @@ def remindUserTopicUpdates(topicTitle):
     logger.debug('Start remind user for topic: ' + topicTitle)
     try:
         topic = djangodb.Topic.objects.get(title=topicTitle)
-        topic_news = topic.news_set.all()[0]
+        if not topic.alive():
+            logger.info('topic %s is already dead, unsubscribe!' % topicTitle)
+            djangodb.add_task(topic=topic, type='unsubscribe')
+            return False
+        else:
+            topic_news = topic.news_set.all()[0]
     except djangodb.Topic.DoesNotExist:
-        logger.error('Topic:\t' + topicTitle + ' not exist!!!')
+        logger.warn('无法在数据库中找到对应话题,建议手动取消订阅：' + topicTitle)
         return False
     except:
         logger.debug('No news update for topic:\t' + topicTitle)
@@ -91,9 +96,7 @@ def subscribeTopic(topicRss, topicTitle=None):
 
 def unSubscribeTopic(topicRss):
     '''
-    TODO:test
-    目前取消订阅的逻辑是：
-    当admin在控制台删除话题后，先是删除了数据库中的数据，当再次请求reader的时候，发现本地Topic已经不存在，则添加取消订阅的任务
+    TODO:该方法不可用，API调用返回OK，但是没有取消订阅。。。
     '''
     try:
         if not reader.unsubscribe(feedUrl=topicRss):
@@ -117,31 +120,34 @@ def delTopic(topicTitle):
     try:
         topic = djangodb.Topic.objects.get(title=topicTitle)
     except djangodb.Topic.DoesNotExist:
-        logger.error('Topic:\t' + topicTitle + ' not exist!!!')
+        logger.warn('Topic:\t' + topicTitle + ' not exist!!!')
         return False
 
     # 取消订阅
     logger.info('un substribe topic')
     unSubscribeTopic(topic.rss)
     # 数据库中删除该话题的信息
-    logger.info('delete news and topic in db')
+    logger.info('delete news')
+    topic.news_set.all().delete()
+    logger.info('delete topic(mark topic as dead)')
     topic.delete()
     logger.info('delete topic: ' + topicTitle + ' OK')
 
 
 def t_exetask():
     while True:
-        unsubs_tasks = djangodb.get_tasks(type='unsubscribe', count=10)
-        logger.info('Start execute %d unsubscribe tasks' % len(unsubs_tasks))
-        for t in unsubs_tasks:
-            try:
-                unSubscribeTopic(topicRss=t.topic.rss)
-                time.sleep(61)  # 间隔两次请求
-            except:
-                logger.exception("Except in unsubscribeTopic()")
-                break
-            t.status = 0  # 更新成功，设置标志位
-            t.save()
+# 　　　　由于取消订阅的API无法成功取消订阅，手动取消～＝＝！
+#        unsubs_tasks = djangodb.get_tasks(type='unsubscribe', count=10)
+#        logger.info('Start execute %d unsubscribe tasks' % len(unsubs_tasks))
+#        for t in unsubs_tasks:
+#            try:
+#                unSubscribeTopic(topicRss=t.topic.rss)
+#                time.sleep(61)  # 间隔两次请求
+#            except:
+#                logger.exception("Except in unsubscribeTopic()")
+#                break
+#            t.status = 0  # 更新成功，设置标志位
+#            t.save()
 
         subs_tasks = djangodb.get_tasks(type='subscribe', count=5)
         logger.info('Start execute %d subscribe tasks' % len(subs_tasks))

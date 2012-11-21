@@ -39,10 +39,10 @@ class AuthenticationMethod(object):
     2. need to have GET method
     """
     def __init__(self):
-        self.client = "libgreader" #@todo: is this needed?
+        self.client = "scroll"  # @todo: is this needed?
 
     def getParameters(self, extraargs=None):
-        #ck is a timecode to help google with caching
+        # ck is a timecode to help google with caching
         parameters = {'ck':time.time(), 'client':self.client}
         if extraargs:
             parameters.update(extraargs)
@@ -63,10 +63,10 @@ class ClientAuthMethod(AuthenticationMethod):
 
     def __init__(self, USERNAME, PASSWORD):
         super(ClientAuthMethod, self).__init__()
-        self.username   = USERNAME
-        self.password   = PASSWORD
+        self.username = USERNAME
+        self.password = PASSWORD
         self.auth_token = self._getAuth()
-        self.token      = self._getToken()
+        self.token = self._getToken()
 
     def postParameters(self, post=None):
         post.update({'T': self.token})
@@ -78,7 +78,7 @@ class ClientAuthMethod(AuthenticationMethod):
         """
         getString = self.getParameters(parameters)
         req = urllib2.Request(url + "?" + getString)
-        req.add_header('Authorization','GoogleLogin auth=%s' % self.auth_token)
+        req.add_header('Authorization', 'GoogleLogin auth=%s' % self.auth_token)
         r = urllib2.urlopen(req)
         data = r.read()
         r.close()
@@ -91,7 +91,7 @@ class ClientAuthMethod(AuthenticationMethod):
         if urlParameters:
             url = url + "?" + self.getParameters(urlParameters)
         req = urllib2.Request(url)
-        req.add_header('Authorization','GoogleLogin auth=%s' % self.auth_token)
+        req.add_header('Authorization', 'GoogleLogin auth=%s' % self.auth_token)
         postString = self.postParameters(postParameters)
         r = urllib2.urlopen(req, data=postString)
         data = r.read()
@@ -111,13 +111,13 @@ class ClientAuthMethod(AuthenticationMethod):
             'Passwd'      : self.password,
             'accountType' : 'GOOGLE'})
         try:
-            conn = urllib2.urlopen(ClientAuthMethod.CLIENT_URL,parameters)
+            conn = urllib2.urlopen(ClientAuthMethod.CLIENT_URL, parameters)
             data = conn.read()
             conn.close()
         except urllib2.HTTPError:
             raise IOError("Error getting the Auth token, have you entered a"
                     "correct USERNAME and PASSWORD?")
-        #Strip newline and non token text.
+        # Strip newline and non token text.
         token_dict = dict(x.split('=') for x in data.split('\n') if x)
         return token_dict["Auth"]
 
@@ -129,7 +129,7 @@ class ClientAuthMethod(AuthenticationMethod):
         Returns token or raises IOError on error.
         """
         req = urllib2.Request(ReaderUrl.API_URL + 'token')
-        req.add_header('Authorization','GoogleLogin auth=%s' % self.auth_token)
+        req.add_header('Authorization', 'GoogleLogin auth=%s' % self.auth_token)
         try:
             conn = urllib2.urlopen(req)
             token = conn.read()
@@ -142,24 +142,24 @@ class OAuthMethod(AuthenticationMethod):
     """
     Loose wrapper around OAuth2 lib. Kinda awkward.
     """
-    GOOGLE_URL        = 'https://www.google.com/accounts/'
+    GOOGLE_URL = 'https://www.google.com/accounts/'
     REQUEST_TOKEN_URL = (GOOGLE_URL + 'OAuthGetRequestToken?scope=%s' %
                          ReaderUrl.READER_BASE_URL)
-    AUTHORIZE_URL     = GOOGLE_URL + 'OAuthAuthorizeToken'
-    ACCESS_TOKEN_URL  = GOOGLE_URL + 'OAuthGetAccessToken'
+    AUTHORIZE_URL = GOOGLE_URL + 'OAuthAuthorizeToken'
+    ACCESS_TOKEN_URL = GOOGLE_URL + 'OAuthGetAccessToken'
 
     def __init__(self, consumer_key, consumer_secret):
         if not has_oauth:
             raise ImportError("No module named oauth2")
         super(OAuthMethod, self).__init__()
-        self.oauth_key         = consumer_key
-        self.oauth_secret      = consumer_secret
-        self.consumer          = oauth.Consumer(self.oauth_key, self.oauth_secret)
+        self.oauth_key = consumer_key
+        self.oauth_secret = consumer_secret
+        self.consumer = oauth.Consumer(self.oauth_key, self.oauth_secret)
         self.authorized_client = None
-        self.token_key         = None
-        self.token_secret      = None
-        self.callback          = None
-        self.username          = "OAuth"
+        self.token_key = None
+        self.token_secret = None
+        self.callback = None
+        self.username = "OAuth"
 
     def setCallback(self, callback_url):
         self.callback = '&oauth_callback=%s' % callback_url
@@ -186,7 +186,7 @@ class OAuthMethod(AuthenticationMethod):
     def buildAuthUrl(self, token_key=None):
         if not token_key:
             token_key = self.token_key
-        #return auth url for user to click or redirect to
+        # return auth url for user to click or redirect to
         return "%s?oauth_token=%s" % (OAuthMethod.AUTHORIZE_URL, token_key)
 
     def setAccessToken(self):
@@ -194,7 +194,7 @@ class OAuthMethod(AuthenticationMethod):
 
     def setAccessTokenFromCallback(self, token_key, token_secret, verifier):
         token = oauth.Token(token_key, token_secret)
-        #step 2 depends on callback
+        # step 2 depends on callback
         if verifier:
             token.set_verifier(verifier)
         client = oauth.Client(self.consumer, token)
@@ -204,14 +204,14 @@ class OAuthMethod(AuthenticationMethod):
             raise IOError("Error setting Access Token")
         access_token = dict(urlparse.parse_qsl(content))
 
-        #created Authorized client using access tokens
+        # created Authorized client using access tokens
         self.authFromAccessToken(access_token['oauth_token'],
                                  access_token['oauth_token_secret'])
 
     def authFromAccessToken(self, oauth_token, oauth_token_secret):
-        self.token_key         = oauth_token
-        self.token_key_secret  = oauth_token_secret
-        token                  = oauth.Token(oauth_token,oauth_token_secret)
+        self.token_key = oauth_token
+        self.token_key_secret = oauth_token_secret
+        token = oauth.Token(oauth_token, oauth_token_secret)
         self.authorized_client = oauth.Client(self.consumer, token)
 
     def getAccessToken(self):
@@ -220,7 +220,7 @@ class OAuthMethod(AuthenticationMethod):
     def get(self, url, parameters=None):
         if self.authorized_client:
             getString = self.getParameters(parameters)
-            #can't pass in urllib2 Request object here?
+            # can't pass in urllib2 Request object here?
             resp, content = self.authorized_client.request(url + "?" + getString)
             return toUnicode(content)
         else:
@@ -237,7 +237,7 @@ class OAuthMethod(AuthenticationMethod):
             else:
                 req = urllib2.Request(url)
             postString = self.postParameters(postParameters)
-            resp,content = self.authorized_client.request(req, method="POST", body=postString)
+            resp, content = self.authorized_client.request(req, method="POST", body=postString)
             return toUnicode(content)
         else:
             raise IOError("No authorized client available.")
@@ -257,17 +257,17 @@ class OAuth2Method(AuthenticationMethod):
 
     def __init__(self, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN):
         super(OAuth2Method, self).__init__()
-        self.client_id         = CLIENT_ID
-        self.client_secret     = CLIENT_SECRET
+        self.client_id = CLIENT_ID
+        self.client_secret = CLIENT_SECRET
         self.authorized_client = None
-        self.code              = None
-        self.access_token      = None ## need in all request
-        self.action_token      = None ## need in post @note: http://code.google.com/p/google-reader-api/wiki/ActionToken
-        self.redirect_uri      = None
-        self.refresh_token     = REFRESH_TOKEN
-        self.username          = "OAuth2"
-        self.expires_access    = None ## access_token的失效日期时间（长度为60min）
-        self.expires_action    = None ## action_token的失效日期时间（长度为30min）
+        self.code = None
+        self.access_token = None  # # need in all request
+        self.action_token = None  # # need in post @note: http://code.google.com/p/google-reader-api/wiki/ActionToken
+        self.redirect_uri = None
+        self.refresh_token = REFRESH_TOKEN
+        self.username = "OAuth2"
+        self.expires_access = None  # # access_token的失效日期时间（长度为60min）
+        self.expires_action = None  # # action_token的失效日期时间（长度为30min）
 
     def setRedirectUri(self, redirect_uri):
         self.redirect_uri = redirect_uri
@@ -290,12 +290,12 @@ class OAuth2Method(AuthenticationMethod):
         '''
         self.action_token = self.get(ReaderUrl.ACTION_TOKEN_URL)
         current = int(time.time())
-        self.expires_action = current + 30*60
+        self.expires_action = current + 30 * 60
 
     def setAccessToken(self):
         params = {
             'grant_type': 'authorization_code',  # request auth code
-            'code': self.code,                   # server response code
+            'code': self.code,  # server response code
             'CLIENT_ID': self.client_id,
             'CLIENT_SECRET': self.client_secret,
             'redirect_uri': self.redirect_uri
@@ -315,8 +315,8 @@ class OAuth2Method(AuthenticationMethod):
         if 'access_token' not in response:
             raise IOError('Error getting Access Token')
         else:
-            self.authFromAccessToken(response['access_token'],response['REFRESH_TOKEN'])
-        
+            self.authFromAccessToken(response['access_token'], response['REFRESH_TOKEN'])
+
     '''
     @author: plex
     '''
@@ -328,7 +328,7 @@ class OAuth2Method(AuthenticationMethod):
             'client_secret': self.client_secret,
         }
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        
+
         request = urllib2.Request(
             self.ACCESS_TOKEN_URL,
             data=urllib.urlencode(params),
@@ -339,12 +339,12 @@ class OAuth2Method(AuthenticationMethod):
             response = json.loads(urllib2.urlopen(request).read())
         except :
             print 'WARN:'
-            print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +\
+            print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + \
              '\t获取授权失败，可能是网络timeout，休息十分钟后再次请求'
             time.sleep(600)
             self.refreshAccessToken()
-            return 
-        
+            return
+
         if 'access_token' not in response:
             raise IOError('Error getting Access Token')
         else:
@@ -354,11 +354,11 @@ class OAuth2Method(AuthenticationMethod):
         if not self.access_token:
             print 'ERROR in is_access_token_expires, there is no access_token: ', self.access_token
         return not self.access_token or time.time() >= self.expires_access
-    
+
     def is_action_token_expires(self):
         return not self.action_token or time.time() >= self.expires_action
-    
-    def authFromAccessToken(self, access_token, refresh_token=None, expires_in=60*60):
+
+    def authFromAccessToken(self, access_token, refresh_token=None, expires_in=60 * 60):
         self.access_token = access_token
         if(refresh_token is not None):
             self.refresh_token = refresh_token
@@ -371,7 +371,7 @@ class OAuth2Method(AuthenticationMethod):
         """
         if self.is_access_token_expires():
             self.refreshAccessToken()
-        
+
         if not self.access_token:
             raise IOError("No authorized client available.")
         if parameters is None:
@@ -388,7 +388,7 @@ class OAuth2Method(AuthenticationMethod):
         if self.is_access_token_expires():
             self.refreshAccessToken()
         if self.is_action_token_expires():
-            ## action token only needed in post request
+            # # action token only needed in post request
             self.setActionToken()
         """
         Convenience method for requesting to google with proper cookies/params.

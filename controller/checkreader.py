@@ -51,19 +51,13 @@ def fetchRssUpdates():
 
                 try:
                     topic = djangodb.Topic.objects.get(title=feedTopic)
-                except djangodb.Topic.DoesNotExist:
-                    if _DEBUG:
-                        # debug 模式下，如果数据库中不存在reader中订阅的话题，则本地重建
-                        topicrss = googlenews.GoogleNews(feedTopic).getRss()
-                        topic = djangodb.Topic.objects.create(title=feedTopic,
-                                                              rss=topicrss,
-                                                              time=datetime.now())
-                        readerlogger.warn('#' + feedTopic + '# 不存在, 重建后保存数据库')
-                    else:
-                        # 添加删除任务
-                        readerlogger.info('无法在数据库中找到对应话题,取消订阅feed:　' + feedTopic)
+                    if not topic.alive():
+                        readerlogger.info('topic %s is already dead, unsubscribe!' % topic.title)
                         djangodb.add_task(topic=topic, type='unsubscribe')
                         break
+                except djangodb.Topic.DoesNotExist:
+                    readerlogger.warn('无法在数据库中找到对应话题,建议手动取消订阅：' + feedTopic)
+                    break
 
                 for item in itemSet:
                     title = item['title']

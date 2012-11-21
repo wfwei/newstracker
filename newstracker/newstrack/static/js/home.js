@@ -54,7 +54,7 @@ function show_more_topics(start_idx, count, exclude_user) {
 
 $(document).ready(function () {
 	
-	$(".topic-operation").click(function (e) {
+	$(".topic-operation").live('click', function (e) {
 		if (!e.target) {
 		    return;
 		}

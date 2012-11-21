@@ -29,7 +29,7 @@ def fetchUserMention():
     # # 得到用户mentions
     lastMentionId = djangodb.get_last_mention_id()
     weibologger.info('\nget lastMentionId:' + str(lastMentionId))
-    
+
     mentions = weibo.getMentions(since_id=lastMentionId)
     time.sleep(15)  # # 间隔两次请求
     mention_list = mentions['statuses']
@@ -47,11 +47,11 @@ def fetchUserMention():
         else:
             is_retweeted = False
         weibologger.info('\nstep1: is_retweeted=' + str(is_retweeted))
-        
+
         # # step 2: 提取并构造用户对象
         muser = djangodb.get_or_create_account_from_weibo(mention['user'])
         weibologger.info('step3: muser:' + str(muser))
-        
+
         # # step 3: 提取话题相关的信息
         mtopictitle = None
         _search_content = mweibo.text
@@ -69,7 +69,8 @@ def fetchUserMention():
 
         # # step 4: 构建话题
         mtopic, created = djangodb.Topic.objects.get_or_create(title=mtopictitle)
-        if created:
+        if created or not mtopic.alive():
+            mtopic.activate()
             is_new_topic = True
             mtopic.rss = googlenews.GoogleNews(mtopic.title).getRss()
             mtopic.time = mweibo.created_at
@@ -97,13 +98,14 @@ def fetchUserMention():
         except:
             weibologger.error('step5: error to weibo.postComment(%s, %s) maybe access key outdated ' % (str(mweibo.weibo_id), remind_msg))
         time.sleep(15)  # # 间隔两次请求
-        
+
     weibologger.debug('getUserPostTopic() OK')
 
 def fetchHotTopic():
     '''
     获取微博上*每周*的热门话题,之后更新订阅
     MARK: not in use
+    有bug，当重建已删除的话题时候。。。
     '''
     # # 获取,解析和存储话题
     weekHotTopics = weibo.getHotTopics()
