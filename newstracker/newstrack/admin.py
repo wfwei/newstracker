@@ -1,9 +1,10 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 from newstracker.newstrack.models import Topic, News, Weibo, Task
+from newstracker.account.models import Account, Useroauth2
 from django.contrib import admin
-
+import datetime
 admin.site.register(News)
-admin.site.register(Weibo)
-admin.site.register(Task)
 
 def reset_state(modeladmin, request, queryset):
     queryset.update(state=1)
@@ -21,7 +22,7 @@ delete_topic_news.short_description = "permanently remove news"
 def add_unsubscribe_task(modeladmin, request, queryset):
     for topic in queryset:
         Task.objects.get_or_create(type='unsubscribe', topic=topic)
-delete_selected.short_description = "add unsubscribe task"
+add_unsubscribe_task.short_description = "add unsubscribe task"
 
 
 class TopicAdmin(admin.ModelAdmin):
@@ -44,3 +45,41 @@ class TopicAdmin(admin.ModelAdmin):
     count_news.short_description = 'news'
 
 admin.site.register(Topic, TopicAdmin)
+
+
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ['topic', 'type', 'status', 'time']
+    ordering = ['-status']
+
+admin.site.register(Task, TaskAdmin)
+
+class WeiboAdmin(admin.ModelAdmin):
+    list_display = ['weibo_id', 'text', 'calc_active', 'user', 'created_at' ]
+    ordering = ['-reposts_count', '-comments_count']
+
+    def calc_active(self, obj):
+        return '(%d,%d)' % (obj.reposts_count, obj.comments_count)
+    calc_active.short_description = '(repost, comment)'
+
+admin.site.register(Weibo, WeiboAdmin)
+
+
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ['user', 'weiboId', 'weiboName', 'comb' \
+                    , 'weiboStatusesCount', 'weiboVerified', 'weiboFollowMe']
+    def comb(self, obj):
+        return '%d(%d,%d)' % (obj.weiboFriendsCount / obj.weiboFollowersCount, obj.weiboFriendsCount, obj.weiboFollowersCount)
+    comb.short_description = '关注比(关注, 粉丝)'
+admin.site.register(Account, AccountAdmin)
+
+class Useroauth2Admin(admin.ModelAdmin):
+    list_display = ['server', 'u_id', 'access_token' \
+                    , 'format_time', 'is_expired']
+    def is_expired(self, obj):
+        return datetime.datetime.fromtimestamp(long(obj.expires_in)) > datetime.datetime.now()
+
+    def format_time(self, obj):
+        return datetime.datetime.fromtimestamp(long(obj.expires_in)).strftime('%Y-%m-%d %H:%M:%S')
+    format_time.short_description = 'expires_in'
+
+admin.site.register(Useroauth2, Useroauth2Admin)

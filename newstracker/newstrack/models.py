@@ -33,7 +33,7 @@ class Weibo(models.Model):
 
 class AliveTopicManager(models.Manager):
     def get_query_set(self):
-        return super(AliveTopicManager, self).get_query_set().exclude(state= -1)
+        return super(AliveTopicManager, self).get_query_set().exclude(state=0)
 
 class Topic(models.Model):
     '''
@@ -76,7 +76,7 @@ class Topic(models.Model):
 #        # 添加取消订阅该话题的任务 TODO:not working
 #        Task.objects.get_or_create(type='unsubscribe', topic=self)
         # 将话题状态改为死亡
-        self.state = -1
+        self.state = 0
         self.save()
 #        super(Topic, self).delete(*args, **kwargs)  # Call the "real" save() method.
 

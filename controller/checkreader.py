@@ -110,7 +110,7 @@ def t_checkreader():
         except:
             readerlogger.exception('Except in fetchRssUpdates')
         readerlogger.info('Start sleep for 3 hours')
-        time.sleep(3 * 60 * 60)
+        time.sleep(6 * 60 * 60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
             readerlogger.info('night sleep for ' + str(7 - time.localtime().tm_hour) + ' hours')

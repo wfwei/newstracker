@@ -219,14 +219,9 @@ def show_more_topics(request):
     rendered = render_to_string('other_topic_item_set.html', template_var)
     return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
 
-
-
-
 def _get_time_passed(from_dt, to_dt=datetime.datetime.now()):
     if from_dt > to_dt:
         return '未来式'
-        print 'from_dt', from_dt
-        print 'to_dt', to_dt
 
     tdelta = to_dt - from_dt
     d = {"days": tdelta.days}

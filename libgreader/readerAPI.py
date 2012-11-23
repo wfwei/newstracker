@@ -194,5 +194,5 @@ class readerAPI(object):
 if __name__ == '__main__':
     reader = readerAPI()
     print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=nexus 4&um=1&ie=UTF-8&output=rss')
-    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=王鹏你妹&um=1&ie=UTF-8&output=rss')
+    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=于丹北大&um=1&ie=UTF-8&output=rss')
     print 'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']
