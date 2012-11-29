@@ -118,7 +118,7 @@ def _filter_news(topic_news, limit=22):
             pre_ts = long(time.mktime(pre.pubDate.timetuple()))
             cur_ts = long(time.mktime(cur.pubDate.timetuple()))
             post_ts = long(time.mktime(post.pubDate.timetuple()))
-            _len = (abs(pre_ts - cur_ts) * 0.35 + abs(cur_ts - post_ts) * 0.15) % 100000000
+            _len = (abs(pre_ts - cur_ts) * 0.0618 + abs(cur_ts - post_ts) * 0.0382) % 100000000
             if _len < min_dist:
                 min_dist = _len
                 min_news = cur

@@ -16,6 +16,7 @@ encoding//libgreader/readerAPI.py=utf-8
 encoding//libgreader/url.py=utf-8
 encoding//libweibo/weibo.py=utf-8
 encoding//libweibo/weiboAPI.py=utf-8
+encoding//newstracker/account/forms.py=utf-8
 encoding//newstracker/account/models.py=utf-8
 encoding//newstracker/account/views.py=utf-8
 encoding//newstracker/newstrack/admin.py=utf-8

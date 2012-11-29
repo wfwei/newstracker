@@ -7,11 +7,11 @@ Created on Oct 10, 2012
 @author: plex
 '''
 
-# # 为什么要加上下面两行才不会出错？否则
-# # File "main.py", line 241, in remindUserTopicUpdates
-# #    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
-# # UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-4: ordinal not in range(128)
-# # 参考资料http://www.oschina.net/question/119303_21679
+# 为什么要加上下面两行才不会出错？否则
+# File "main.py", line 241, in remindUserTopicUpdates
+#    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + '(' + str(weibo.getShortUrl(topic_news.link)) + ')'
+# UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-4: ordinal not in range(128)
+# 参考资料http://www.oschina.net/question/119303_21679
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -80,8 +80,8 @@ import time
 from libweibo import weiboAPI
 from djangodb import djangodb
 [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
-if time.time() > expires_in:
-    raise Exception("授权过期了!")
+if time.time() > float(expires_in):
+    raise Exception("授权过期了，with expires_in:" + str(expires_in))
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
 fulllogger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 __builtin__.weibo = weibo

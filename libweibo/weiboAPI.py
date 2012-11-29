@@ -169,11 +169,58 @@ class weiboAPI(object):
         ''' 发布评论　'''
         self._checkAccessLimit('user_comment')
         with self.lock:
+            if len(content) > 139:
+                content = content[:139]
             try:
                 self.client.post.comments__create(comment=content, id=weibo_id)
                 return True
             except:
                 logger.warn('target weibo does not exist!\t' + str(weibo_id))
+            return False
+
+    def repostStatus(self, weibo_id, content, is_comment=3):
+        '''　转发微博
+        
+            一些参数：
+            参数    必选    类型及范围    说明
+            id    true    int64    要转发的微博ID。
+            status    false    string    添加的转发文本，必须做URLencode，内容不超过140个汉字，不填则默认为“转发微博”。
+            is_comment    false    int    是否在转发的同时发表评论，0：否、1：评论给当前微博、2：评论给原微博、3：都评论，默认为0 
+        '''
+        self._checkAccessLimit('user_status')
+        with self.lock:
+            if len(content) > 139:
+                content = content[:139]
+            try:
+                self.client.post.statuses__repost(id=weibo_id, \
+                                                  status=content, \
+                                                  is_comment=is_comment)
+                return True
+            except:
+                logger.warn('repost status error, maybe target weibo does not exist!\t' + str(weibo_id))
+            return False
+
+    def updateStatus(self, content, visible=0):
+        '''　发布新微博
+        
+            一些参数：
+            参数    必选    类型及范围    说明
+            status    true    string    要发布的微博文本内容，必须做URLencode，内容不超过140个汉字。
+            visible    false    int    微博的可见性，0：所有人能看，1：仅自己可见，2：密友可见，3：指定分组可见，默认为0。
+            list_id    false    string    微博的保护投递指定分组ID，只有当visible参数为3时生效且必选。
+            lat    false    float    纬度，有效范围：-90.0到+90.0，+表示北纬，默认为0.0。
+            long    false    float    经度，有效范围：-180.0到+180.0，+表示东经，默认为0.0。
+            annotations    false    string    元数据，主要是为了方便第三方应用记录一些适合于自己使用的信息，每条微博可以包含一个或者多个元数据，必须以json字串的形式提交，字串长度不超过512个字符，具体内容可以自定。
+        '''
+        self._checkAccessLimit('user_status')
+        with self.lock:
+            if len(content) > 139:
+                content = content[:139]
+            try:
+                self.client.post.statuses__update(status=content, visible=visible)
+                return True
+            except:
+                logger.warn('update status error!')
             return False
 
     def getShortUrl(self, url_long):

@@ -4,11 +4,13 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.contrib import messages
 from django.db.models import Count
 from django.utils import simplejson
 
 from newstracker.newstrack.models import Topic, News
 from newstracker.account.models import Account
+from newstracker.account.forms import SettingForm
 
 from libweibo.weiboAPI import weiboAPI
 
@@ -19,25 +21,32 @@ import re
 _DEBUG = True
 _mimetype = 'application/javascript, charset=utf8'
 
+def _get_account_from_req(request):
+    cur_acc = None
+    try:
+        cur_acc = User.objects.get(username=request.user.username).account_set.all()[0]
+    except:
+        print 'invalid user:' + request.user.username
+    return cur_acc
+
 '''
 TODO:
 1. 直接传输topic对象太大了，后面要什么传什么
-3. 模板改用bootstrap
 '''
 def home(request):
     template_var = {}
     my_topics = []
     exclude_set = []
     if request.user.is_authenticated():
-        try:
-            current_account = User.objects.get(username=request.user.username).account_set.all()[0]
-        except:
-            return HttpResponse('''当前用户没有Account帐号,<a href="/admin/">Admin?</a>''')
+        current_account = _get_account_from_req(request)
+        if not current_account:
+            return HttpResponse('''当前用户没有Account帐号''')
         my_topics = current_account.topic_set.all()
         template_var['current_account'] = current_account
         template_var['my_topics'] = my_topics
         exclude_set.append(current_account)
     else:
+        current_account = None
         # 用户weibo登录的认证链接
         template_var['authorize_url'] = weiboAPI().getAuthorizeUrl()
 
@@ -77,9 +86,23 @@ def home(request):
         for key in template_var:
             print key, template_var[key]
 
+    template_var["setting_form"] = _get_setting_form(current_account)
+
     return render_to_response("home.html",
                               template_var,
                               context_instance=RequestContext(request))
+
+def _get_setting_form(account=None):
+    if account:
+        return SettingForm(initial={'username': account.weiboName, \
+                                'email': account.user.email, \
+                                'cross_remind': account.allow_remind_others, \
+                                'comment_remind': account.comment_remind, \
+                                'repost_remind' : account.repost_remind, \
+                                'at_remind':account.at_remind, \
+                                'daily_remind_limit':account.remind_daily_limit})
+    else:
+        return SettingForm()
 
 def topic_view(request, topic_id):
 
@@ -144,6 +167,50 @@ def unfollow_topic(request):
         print 'post_data error...'
         return HttpResponse(simplejson.dumps(False), _mimetype)
     return HttpResponse(simplejson.dumps(True), _mimetype)
+
+def user_setting(request):
+    '''
+    保存用户配置
+    '''
+    template_var = {}
+    form = SettingForm()
+    if request.method == "POST" and request.is_ajax() and request.user.is_authenticated():
+        '''
+        <QueryDict: {
+        u'username': [u'WeBless'], 
+        u'daily_remind_limit': [u'1'], 
+        u'at_remind': [u'on'], 
+        u'cross_remind': [u'on'], 
+        u'repost_remind': [u'on'], #如果关掉则不会有该条记录
+        u'email': [u'1698863684@fakeemail.com'], 
+        u'comment_remind': [u'on']}>
+        '''
+        cur_acc = _get_account_from_req(request)
+        if cur_acc:
+            form = SettingForm(request.POST.copy())
+            # TODO: get to know is_valid and remove True
+            if True or form.is_valid():
+                form_data = request.POST.copy()
+                cur_acc.user.username = form_data["username"]
+                cur_acc.user.email = form_data["email"]
+                cur_acc.remind_daily_limit = int(form_data["daily_remind_limit"])
+                cur_acc.at_remind = 'at_remind' in form_data
+                cur_acc.allow_remind_others = "cross_remind" in form_data
+                cur_acc.repost_remind = "repost_remind" in form_data
+                cur_acc.comment_remind = "comment_remind" in form_data
+                cur_acc.save()
+                form = _get_setting_form(cur_acc)
+            else:
+                messages.add_message(request, messages.ERROR, '请检查输入')
+        else:
+            messages.add_message(request, messages.ERROR, '请先登录')
+
+    template_var["setting_form"] = form
+    template_var["messages"] = messages
+
+    rendered = render_to_string("settings.html", template_var)
+    return HttpResponse(simplejson.dumps(rendered), content_type='application/json')
+
 
 def show_more_topics(request):
     '''

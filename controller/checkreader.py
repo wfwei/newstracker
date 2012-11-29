@@ -32,6 +32,7 @@ def fetchRssUpdates():
             excludeRead = True
             continuation = None
             over = False
+            topic = None
 
             while not over:
                 feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
@@ -76,29 +77,30 @@ def fetchRssUpdates():
                         nnews.pubDate = pubDate
                         nnews.summary = summary
                     nnews.topic.add(topic)
+                    readerlogger.info("add news:%s to topic:%s" % (nnews.title, topic.title))
                     nnews.save()
 
+            if topic:
+                # 标记该feed为全部已读
+                try:
+                    if not reader.markFeedAsRead(feed):
+                        readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
+                    else:
+                        readerlogger.debug('Succeed mark ' + feedTopic + ' as read')
+                except:
+                    readerlogger.error('fail to mark feed as read:' + feedTopic)
+                    readerlogger.error('reader.auth:' + str(reader.auth))
+                    return  # TODO: 会执行finally么？？
+                finally:
+                    time.sleep(20)  # set request interval
 
-            # 标记该feed为全部已读
-            try:
-                if not reader.markFeedAsRead(feed):
-                    readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
-                else:
-                    readerlogger.debug('Succeed mark ' + feedTopic + ' as read')
-            except:
-                readerlogger.error('fail to mark feed as read:' + feedTopic)
-                readerlogger.error('reader.auth:' + str(reader.auth))
-                return  # TODO: 会执行finally么？？
-            finally:
-                time.sleep(20)  # set request interval
+                # 　更新话题的news timeline
+                readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')
+                create_or_update_news_timeline(feedTopic)
 
-            # 　更新话题的news timeline
-            readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')
-            create_or_update_news_timeline(feedTopic)
-
-            # 添加提醒任务
-            readerlogger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
-            djangodb.add_task(topic=topic, type='remind')
+                # 添加提醒任务
+                readerlogger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
+                djangodb.add_task(topic=topic, type='remind')
 
     readerlogger.debug('Fetch rss update over')
 

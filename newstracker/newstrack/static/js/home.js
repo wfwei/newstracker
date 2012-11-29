@@ -25,7 +25,7 @@ function unfollow_topic(topic_id, u_id) {
     success: function (unfollow_success) {
       if (unfollow_success) {
         //TODO: 位置移动。。。
-        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow_topic").removeClass("unfollow_topic").text("关注")
+        $('#topic-' + topic_id.toString() + '-' + u_id.toString()).addClass("follow-topic").removeClass("unfollow-topic").text("关注")
       }
     }
   });
@@ -52,6 +52,11 @@ function show_more_topics(start_idx, count, exclude_user) {
   return false;
 }
 
+function setting_alert(type, message) {
+    $("#setting-alert").append($("<div class='alert alert-" + type + " fade in' data-alert><p> " + message + " </p></div>"));
+    $("#setting-alert").delay(2000).fadeOut("slow", function () { $(this).remove(); });
+}
+
 $(document).ready(function () {
 	
 	$(".topic-operation").live('click', function (e) {
@@ -63,7 +68,7 @@ $(document).ready(function () {
 		u_id = parseInt(e.target.id.split("-")[2], 10);
 		if(!u_id) {
 		    alert('请先登录');
-		    return;
+		    //return;
 		}
 		if(e.target.className.indexOf("unfollow-topic") != -1){
 		    unfollow_topic(t_id, u_id);
@@ -82,6 +87,18 @@ $(document).ready(function () {
 	exclude_user = true;
 	show_more_topics(start_idx, count, exclude_user);
    });
+   
+   $('#setting-form').submit(function() { // catch the form's submit event
+	    $.ajax({ // create an AJAX call...
+	        data: $(this).serialize(), // get the form data
+	        type: $(this).attr('method'), // GET or POST
+	        url: $(this).attr('action'), // the file to call
+	        success: function(response) {
+	            setting_alert('success', '保存成功!');
+	        }
+    });
+    return false;
+});
         
 });
 

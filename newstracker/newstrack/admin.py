@@ -4,6 +4,7 @@ from newstracker.newstrack.models import Topic, News, Weibo, Task
 from newstracker.account.models import Account, Useroauth2
 from django.contrib import admin
 import datetime
+import time
 admin.site.register(News)
 
 def reset_state(modeladmin, request, queryset):
@@ -76,7 +77,7 @@ class Useroauth2Admin(admin.ModelAdmin):
     list_display = ['server', 'u_id', 'access_token' \
                     , 'format_time', 'is_expired']
     def is_expired(self, obj):
-        return datetime.datetime.fromtimestamp(long(obj.expires_in)) > datetime.datetime.now()
+        return float(obj.expires_in) < time.time()
 
     def format_time(self, obj):
         return datetime.datetime.fromtimestamp(long(obj.expires_in)).strftime('%Y-%m-%d %H:%M:%S')

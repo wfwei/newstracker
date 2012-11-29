@@ -70,7 +70,7 @@ class Topic(models.Model):
         self.state += 1
 
     def delete(self, *args, **kwargs):
-#        TODO: 一下操作失败？？！！！
+#        TODO: 以下操作失败？？！！！
 #        # 删除话题对应的新闻
 #        self.news_set.all().delete()
 #        # 添加取消订阅该话题的任务 TODO:not working

@@ -88,10 +88,12 @@ def login(request):
                    form.cleaned_data["password"]):
                 return HttpResponseRedirect("/")
     template_var["form"] = form
-    return HttpResponseRedirect('/home/')
+    return render_to_response("login.html",
+                              template_var,
+                              context_instance=RequestContext(request))
 
 def _login(request, name, password):
-    # # check if name is email
+    # check if name is email
     if re.match('^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$', name):
         try:
             temp = User.objects.get(email=name)
@@ -138,7 +140,13 @@ def weibo_callback(request):
 def weibo_callback_rm(request):
     '''
     当用户取消你的应用授权时，开放平台会回调你填写的这个地址。并传递给以下参数
-    source：应用appkey
+    source：应用appkeyorm()
+    if request.method == 'POST':
+        form = LoginForm(request.POST.copy())
+        if form.is_valid():
+            if _login(request,
+                   form.cleaned_data["username"],
+                   form.cl
     uid ：取消授权的用户
     auth_end ：取消授权的时间
     '''

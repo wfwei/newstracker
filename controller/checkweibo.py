@@ -10,6 +10,7 @@ Created on Nov 1, 2012
 from djangodb import djangodb
 from libgnews import googlenews
 
+import datetime
 import time
 import re
 
@@ -105,36 +106,47 @@ def fetchHotTopic():
     '''
     获取微博上*每周*的热门话题,之后更新订阅
     MARK: not in use
-    有bug，当重建已删除的话题时候。。。
     '''
-    # # 获取,解析和存储话题
+    # 获取,解析和存储话题
     weekHotTopics = weibo.getHotTopics()
-    time.sleep(15)  # # 间隔两次请求
+    time.sleep(61)  # 间隔两次请求
     for topictime in weekHotTopics.keys():
         for topic in weekHotTopics.get(topictime):
             topictitle = topic['query']
-            try:
-                djangodb.Topic.objects.get(title=topictitle)
-                weibologger.debug('topic #%s# already in track' % topictitle)
-            except djangodb.Topic.DoesNotExist:
-                topicrss = googlenews.GoogleNews(topictitle).getRss()
-                _topic = djangodb.Topic.objects.create(title=topictitle, rss=topicrss, time=topictime)
-                # # 添加订阅话题任务
+            hotopic, created = djangodb.Topic.objects.get_or_create(title=topictitle)
+            if created or not hotopic.alive():
+                hotopic.activate()
+                hotopic.rss = googlenews.GoogleNews(hotopic.title).getRss()
+#                hotopic.time = topictime #TODO: 目前使用默认值，但是最好可以解析时间字符串
                 weibologger.debug('add subscribe (#%s#) task to taskqueue' % topictitle)
-                djangodb.add_task(topic=_topic, type='subscribe')
+                djangodb.add_task(topic=hotopic, type='subscribe')
+            else:
+                weibologger.debug('topic #%s# already in track' % topictitle)
 
 
 def t_checkweibo():
     while True:
-        weibologger.info('Start fetching user mentions')
         try:
+            weibologger.info('Start fetching user mentions')
             fetchUserMention()
         except:
             weibologger.exception("Except in fetchUserMention()")
+        finally:
+            weibologger.info("Fetching today's user mentions over")
+
         weibologger.info('Start sleep for 15 minutes')
-        time.sleep(10 * 60)
+        time.sleep(15 * 60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+
+            try:
+                weibologger.info("Start fetching today's hot topics:")
+                fetchHotTopic()
+            except:
+                weibologger.exception("Except in fetchHotTopic()")
+            finally:
+                weibologger.info("Fetching today's hot topic over")
+
             weibologger.info('night sleep for ' + \
                              str(7 - time.localtime().tm_hour) + ' hours')
             time.sleep((7 - time.localtime().tm_hour) * 60 * 60)

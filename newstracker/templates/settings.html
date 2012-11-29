@@ -1,56 +1,93 @@
-<div>
-	<div class="alert fade in">
-		<a class="close" data-dismiss="alert" href="#">×</a>
-		<strong>提示！</strong> 后台还未实现该功能～
-	</div>
-	<form class="form-horizontal">
-	    <fieldset>
-			<legend>个人资料</legend>
-			
-			<div class="control-group">
-			  <label class="control-label" for="input01">您的尊姓大名</label>
-			  <div class="controls">
-			    <input type="text" class="input-xlarge" id="input01">
-			    <p class="help-block">字母，数字，汉字皆可</p>
-			  </div>
-			</div>
-			
-			<div class="control-group">
-			  <label class="control-label" for="input01">您的常用邮箱</label>
-			  <div class="controls">
-			    <input type="text" class="input-xlarge" id="input01">
-			    <p class="help-block">请输入您的常用邮箱，以便我们使用邮件提醒重要通知</p>
-			  </div>
-			</div>
-			
-			<legend>提醒机制设置</legend>
-			
-			<div class="control-group">
-				<label class="control-label"></label>
-				<div class="controls">
-					<label class="radio">
-						<input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked="">
-						一旦有更新就提醒
-					</label>
-				  　<label class="radio">
-						<input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
-						上午提醒
-			      　</label>
-			      　<label class="radio">
-						<input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
-						中午提醒
-			      　</label>
-			      　<label class="radio">
-						<input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
-						下午提醒
-			      　</label>
-			      　<label class="radio">
-						<input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
-						夜间提醒
-			      　</label>
-			　　　</div>
-		　　</div>
-          
-	    </fieldset>
+{% load bootstrap %}
+<div id="setting-div">
+	<div id="setting-info-alert" class="alert alert-info fade in">
+        <a class="close" data-dismiss="alert" href="#">×</a>
+        <strong>警告:</strong> 请小心更改～
+    </div>
+    <div id="setting-alert"></div>
+	<form id="setting-form" class="form-horizontal" action="/user_setting/" method="post">
+	    {{ setting_form|bootstrap }}
+	    <div class="form-actions">
+            <button type="submit" class="btn btn-primary">提交更改</button>
+            <button class="btn">取消</button>
+        </div>
 	</form>
 </div>
+
+<!--
+<fieldset>
+	    
+	<legend>个人资料</legend>
+	<div class="control-group">
+	  <label class="control-label" for="user-name">昵称</label>
+	  <div class="controls">
+	    <input type="text" class="input-xlarge" id="user-name">
+	    <p class="help-block">如果微博昵称不一致，请更新</p>
+	  </div>
+	</div>
+	<div class="control-group">
+	  <label class="control-label" for="user-email">常用邮箱</label>
+	  <div class="controls">
+	    <input type="text" class="input-xlarge" id="user-email">
+	    <p class="help-block">如果邮箱不正确，请更新</p>
+	  </div>
+	</div>
+	
+	<legend>提醒机制设置</legend>
+	<div class="control-group">
+	  <label class="control-label" for="repost-remind-checkbox">转发微博提醒</label>
+	  <div class="controls">
+	    <label class="checkbox">
+            <input type="checkbox" id="repost-remind-checkbox" value="option1">
+			开启后，我们会转发您订阅话题的微博提醒您
+      	</label>
+	  </div>
+	</div>
+	<div class="control-group">
+	  <label class="control-label" for="comment-remind-checkbox">评论微博提醒</label>
+	  <div class="controls">
+	    <label class="checkbox">
+            <input type="checkbox" id="comment-remind-checkbox" value="option1">
+			开启后，我们会评论您订阅话题的微博提醒您
+      	</label>
+	  </div>
+	</div>
+	<div class="control-group">
+	  <label class="control-label" for="at-remind-checkbox">＠提醒</label>
+	  <div class="controls">
+	    <label class="checkbox">
+            <input type="checkbox" id="at-remind-checkbox" value="option1">
+			开启后，我们会＠提醒您
+      	</label>
+	  </div>
+	</div>
+	<div class="control-group">
+	  <label class="control-label" for="cross-remind-checkbox">开启网友互相提醒</label>
+	  <div class="controls">
+	    <label class="checkbox">
+            <input type="checkbox" id="cross-remind-checkbox" value="option1">
+			开启后，应用能使用您的帐号提醒共同关注话题的其他用户
+      	</label>
+	  </div>
+	</div>
+	
+	<legend>提醒频次</legend>
+	<div class="control-group">
+	  <label class="control-label" for="select-remind-limit">每天提醒上限</label>
+	  <div class="controls">
+	    <select id="select-remind-limit">
+	    	<option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>5</option>
+            <option>8</option>
+            <option>10</option>
+            <option>20</option>
+      　</select>
+	  </div>
+	</div>
+  
+</fieldset>
+
+-->

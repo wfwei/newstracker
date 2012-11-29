@@ -1,0 +1,46 @@
+﻿{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block title %}登录狗狗追踪{% endblock%}
+
+{% block extra_css %}
+<link rel="stylesheet" media="all" charset="utf-8" href="{{STATIC_URL}}css/home.css"/>
+{% endblock %}
+
+{% block hnav %}
+<ul class="nav">
+　 {% if user.is_authenticated %}
+	  <li class="active"><a href="#my-topics">我的话题</a></li>
+	  <li><a href="#other-topics">热门话题</a></li>
+	  <li><a href="#settings">个人设置</a></li>
+	  <li><a href="#usercomments">用户留言</a></li>
+  {% else %}
+	  <li class="disabled"><a href="#my-topics">我的话题</a></li>
+	  <li class="active"><a href="#other-topics">热门话题</a></li>
+	  <li class="disabled"><a href="#settings">个人设置</a></li>
+	  <li><a href="#usercomments">用户留言</a></li>
+  {% endif %}
+  <li class="disabled"><a></a></li>
+</ul>
+{% endblock %}
+		    
+{% block main %}
+<div class="container-fluid">
+	<div class="login-form">
+	    <form id="login-form" class="form-horizontal" action="/login/" method="post">
+	    	{{ form|bootstrap }}
+		    <div class="form-actions">
+		        <button type="submit" class="btn btn-primary">登录</button>
+		        <a href="/account/register/">register here</a> 
+		    </div>
+		</form>
+	</div>
+</div><!--/container-->
+<hr>
+{% endblock %}
+{% block extra_scripts %}
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/home.js"></script>
+<script src="{{STATIC_URL}}js/bootstrap.js"></script>
+{% endblock %}
+
