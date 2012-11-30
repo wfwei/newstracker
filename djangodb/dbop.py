@@ -90,78 +90,35 @@ def get_or_create_account_from_weibo(weiboUserJson):
             account.save()
     return account
 
-def get_or_update_weibo_auth_info(u_id, access_token=None, expires_in=None):
-    '''得到或保存更新access_token和expires_in信息
+
+def get_weibo_auth_info(u_id):
     '''
-    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
-
-    if access_token is None or expires_in is None:
-        # 认为是获取信息
-        access_token = _oauth2info.access_token
-        expires_in = _oauth2info.expires_in
-
-        logger.info('get weibo auth info:')
-        logger.info('u_id:' + str(u_id))
-        logger.info('access_token:' + str(access_token))
-        logger.info('expires_in:' + str(expires_in))
-    else:
-        # 认为是更新信息
-        logger.info('update weibo auth info:')
-        logger.info('u_id:' + str(u_id))
-        logger.info('access_token:' + str(access_token))
-        logger.info('expires_in:' + str(expires_in))
-
-        _oauth2info.access_token = access_token
-        _oauth2info.expires_in = expires_in
-        _oauth2info.save()
-    return [access_token, expires_in]
-
-def get_or_create_weibo_auth_info(u_id, access_token=None, expires_in=None):
-    '''得到或创建access_token和expires_in信息
-    还未使用，TODO:test
+    得到或创建access_token和expires_in信息
+    成功返回对应的oauth，否则返回None
     '''
-    _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
-
-    if access_token and expires_in:
-        # 创建
-        _oauth2info.access_token = access_token
-        _oauth2info.expires_in = expires_in
-        _oauth2info.save()
-
-        logger.info('create weibo auth info:')
-        logger.info('u_id:' + str(u_id))
-        logger.info('access_token:' + str(access_token))
-        logger.info('expires_in:' + str(expires_in))
-    elif not created:
-        # 通过u_id获取信息
-        access_token = _oauth2info.access_token
-        expires_in = _oauth2info.expires_in
-
-        logger.info('get weibo auth info:')
-        logger.info('u_id:' + str(u_id))
-        logger.info('access_token:' + str(access_token))
-        logger.info('expires_in:' + str(expires_in))
+    _oauth = Useroauth2.objects.filter(server='weibo', u_id=u_id)
+    if _oauth:
+        return [_oauth[0].access_token, _oauth[0].expires_in]
     else:
-        logger.error('[u_id:%s]是新的，但是没有access_token等授权信息' % u_id)
         return None
 
-    return _oauth2info
-
-def update_weibo_auth_info(u_id, access_token, expires_in):
-    '''更新access_token和expires_in信息
-    还未使用，TODO:test
+def create_or_update_weibo_auth(u_id, access_token, expires_in):
+    '''
+    更新u_id对应oauth的access_token和expires_in信息
+    更新成功，返回auth，否则，返回None
     '''
 
     if u_id and access_token and expires_in:
         _oauth2info, created = Useroauth2.objects.get_or_create(server='weibo', u_id=u_id)
-        if created:
-            logger.warn('本方法是更新授权，但是却创建了新的授权！！！　对应的u_id:' + str(u_id))
         _oauth2info.access_token = access_token
         _oauth2info.expires_in = expires_in
         _oauth2info.save()
+        logger.info('create or update weibo auth:' + str(_oauth2info))
+        return _oauth2info
     else:
-        logger.warn('参数有误：[u_id:%s, access_token:%s, expires_in:%s]' % \
+        logger.warn('缺少参数：[u_id:%s, access_token:%s, expires_in:%s]' % \
                     (str(u_id), str(access_token), str(expires_in)))
+        return None
 
 
 def rm_weibo_auth(u_id):

@@ -129,10 +129,10 @@ def weibo_callback(request):
     _wb.client.set_access_token(access_token, expires_in)
     uinfo = _wb.getUserInfo(uid=u_id)
     # 保存授权信息
-    dbop.get_or_update_weibo_auth_info(u_id=u_id, access_token=access_token, expires_in=expires_in)
-
-    # MARK: 数据库编码没设置，导致一直存不进去，直接去该数据库编码貌似也不行，django不知道吧，所以删了数据库，重新syncdb
+    _oauth = dbop.create_or_update_weibo_auth(u_id=u_id, access_token=access_token, expires_in=expires_in)
     _account = dbop.get_or_create_account_from_weibo(uinfo)
+    _account.oauth = _oauth
+    _account.save()
     _account.user.backend = 'django.contrib.auth.backends.ModelBackend'
     auth_login(request, _account.user)
     return HttpResponseRedirect('/home/')

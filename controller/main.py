@@ -79,7 +79,7 @@ import time
 # Init weibo
 from libweibo import weiboAPI
 from djangodb import djangodb
-[access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(3041970403)
+[access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
 if time.time() > float(expires_in):
     raise Exception("授权过期了，with expires_in:" + str(expires_in))
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)

@@ -48,10 +48,18 @@ class TopicAdmin(admin.ModelAdmin):
 admin.site.register(Topic, TopicAdmin)
 
 
+def activate_task(modeladmin, request, queryset):
+    queryset.update(status=1)
+activate_task.short_description = "activate task"
+
+def mute_task(modeladmin, request, queryset):
+    queryset.update(status=0)
+mute_task.short_description = "mute task"
+
 class TaskAdmin(admin.ModelAdmin):
     list_display = ['topic', 'type', 'status', 'time']
-    ordering = ['-status']
-
+    ordering = ['-status', 'type', '-time']
+    actions = [activate_task, mute_task]
 admin.site.register(Task, TaskAdmin)
 
 class WeiboAdmin(admin.ModelAdmin):

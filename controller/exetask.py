@@ -48,7 +48,7 @@ def remindUserTopicUpdates(topicTitle):
     watcherWithoutAuth = set()
     for watcher in topicWatchers:
         if watcher.to_remind():
-            if watcher.has_auth():
+            if watcher.has_oauth():
                 watcherWithAuth.add(watcher)
             else:
                 watcherWithoutAuth.add(watcher)
@@ -96,7 +96,7 @@ def remindUserTopicUpdates(topicTitle):
         '''
         自己转发或评论自己的原始微博提醒自己，如果允许提醒他人的话，顺带提醒～
         '''
-        [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(watcher.weiboId)
+        [access_token, expires_in] = djangodb.get_weibo_auth_info(watcher.weiboId)
         _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                    expires_in=expires_in, \
                                    u_id=watcher.weiboId)
@@ -136,7 +136,7 @@ def remindUserTopicUpdates(topicTitle):
         '''
         发布一条新的微博，如果允许提醒他人的话，顺带提醒～
         '''
-        [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(watcher.weiboId)
+        [access_token, expires_in] = djangodb.get_weibo_auth_info(watcher.weiboId)
         _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                    expires_in=expires_in, \
                                    u_id=watcher.weiboId)
@@ -164,7 +164,7 @@ def remindUserTopicUpdates(topicTitle):
         '''
         if watcherWithAuth:
             _reminder = watcherWithAuth.pop()
-            [access_token, expires_in] = djangodb.get_or_update_weibo_auth_info(_reminder.weiboId)
+            [access_token, expires_in] = djangodb.get_weibo_auth_info(_reminder.weiboId)
             _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                        expires_in=expires_in, \
                                        u_id=_reminder.weiboId)
@@ -275,7 +275,7 @@ def t_exetask():
             t.status = 0  # 更新成功，设置标志位
             t.save()
 
-        remind_tasks = djangodb.get_tasks(type='remind', count=10)
+        remind_tasks = djangodb.get_tasks(type='remind', count=3)
         logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
             try:
@@ -288,4 +288,4 @@ def t_exetask():
             t.save()
 
         logger.info('long sleep for 30 minutes')
-        time.sleep(30 * 60)
+        time.sleep(15 * 60)

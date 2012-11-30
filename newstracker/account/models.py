@@ -26,7 +26,7 @@ class Account(models.Model):
     weiboFollowMe = models.BooleanField(default=False)
     weiboVerified = models.BooleanField(default=False)
 
-    oauth = models.ForeignKey("Useroauth2", blank=True)
+    oauth = models.ForeignKey("Useroauth2", blank=True, null=True, on_delete=models.SET_NULL)
     # TODO: change database
 
     # 　是否允许使用其帐号提醒他人
@@ -36,7 +36,7 @@ class Account(models.Model):
     remind_daily_limit = models.IntegerField(default=1)
 
     # 　提醒的历史记录，格式是"date1 date2 date3"，但制保留当天的记录
-    remind_history = models.TextField(default='')
+    remind_history = models.TextField(default=' ')
 
     # 是否允许转发微博来提醒自己
     repost_remind = models.BooleanField(default=True)
@@ -60,6 +60,8 @@ class Account(models.Model):
         '''
         new_remind_history = ''
         count = 0
+        if not self.remind_history:
+            self.remind_history = ' '
         for dt in self.remind_history.split(' '):
             if dt == datetime.date.today().strftime('%Y-%m-%d'):
                 count += 1
@@ -68,7 +70,7 @@ class Account(models.Model):
         self.remind_history = new_remind_history
         self.save()
         # 返回今天是否还要提醒用户
-        return self.remind_daily_limit < count
+        return self.remind_daily_limit > count
 
     def add_remind(self):
         self.remind_history += datetime.date.today().strftime('%Y-%m-%d') + ' '
@@ -80,7 +82,7 @@ class Account(models.Model):
         否则，返回False
         '''
         if self.oauth:
-            return self.oauth.is_expired()
+            return not self.oauth.is_expired()
         else:
             return False
 
@@ -105,7 +107,7 @@ class Useroauth2(models.Model):
         return float(self.expires_in) < time.time()
 
     def __unicode__(self):
-        _str = self.u_id + '@' + self.server + ':' + str(self.access_token)
+        _str = str(self.u_id) + '@' + self.server + ':' + str(self.access_token)
         if self.is_expired():
             _str += ' Expired!'
         return _str
