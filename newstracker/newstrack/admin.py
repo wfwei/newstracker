@@ -56,10 +56,14 @@ def mute_task(modeladmin, request, queryset):
     queryset.update(status=0)
 mute_task.short_description = "mute task"
 
+def change_to_subscribe_task(modeladmin, request, queryset):
+    queryset.update(type='subscribe', status=1)
+change_to_subscribe_task.short_description = "change to subscribe task"
+
 class TaskAdmin(admin.ModelAdmin):
     list_display = ['topic', 'type', 'status', 'time']
     ordering = ['-status', 'type', '-time']
-    actions = [activate_task, mute_task]
+    actions = [activate_task, mute_task, change_to_subscribe_task]
 admin.site.register(Task, TaskAdmin)
 
 class WeiboAdmin(admin.ModelAdmin):

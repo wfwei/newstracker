@@ -6,6 +6,7 @@ Created on Oct 13, 2012
 @author: plex
 '''
 from weibo import APIClient
+
 import time
 import threading
 
@@ -25,8 +26,7 @@ class weiboAPI(object):
     '''
     该类是线程安全的，特别是需要使用weibo链接网络的方法一定要加锁，还有就是判断访问频次的方法也要加锁
     如果要用户授权，要保证授权未过期！！
-    TODO:
-    1. 添加自动登录功能
+    
     '''
 
     def __init__(self, access_token=None, expires_in=None, u_id=None):
@@ -171,12 +171,7 @@ class weiboAPI(object):
         with self.lock:
             if len(content) > 139:
                 content = content[:139]
-            try:
-                self.client.post.comments__create(comment=content, id=weibo_id)
-                return True
-            except:
-                logger.warn('target weibo does not exist!\t' + str(weibo_id))
-            return False
+            return self.client.post.comments__create(comment=content, id=weibo_id)
 
     def repostStatus(self, weibo_id, content, is_comment=3):
         '''　转发微博
@@ -191,14 +186,9 @@ class weiboAPI(object):
         with self.lock:
             if len(content) > 139:
                 content = content[:139]
-            try:
-                self.client.post.statuses__repost(id=weibo_id, \
-                                                  status=content, \
-                                                  is_comment=is_comment)
-                return True
-            except:
-                logger.warn('repost status error, maybe target weibo does not exist!\t' + str(weibo_id))
-            return False
+            return self.client.post.statuses__repost(id=weibo_id, \
+                                                     status=content, \
+                                                     is_comment=is_comment)
 
     def updateStatus(self, content, visible=0):
         '''　发布新微博
@@ -216,12 +206,7 @@ class weiboAPI(object):
         with self.lock:
             if len(content) > 139:
                 content = content[:139]
-            try:
-                self.client.post.statuses__update(status=content, visible=visible)
-                return True
-            except:
-                logger.warn('update status error!')
-            return False
+            return self.client.post.statuses__update(status=content, visible=visible)
 
     def getShortUrl(self, url_long):
         ''' 获得短鏈　'''
@@ -239,10 +224,3 @@ class weiboAPI(object):
         '''  '''
         with self.lock:
             self.client.set_access_token(access_token, expires_in)
-
-
-if __name__ == '__main__':
-    pass
-
-
-

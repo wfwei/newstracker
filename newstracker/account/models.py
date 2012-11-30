@@ -56,7 +56,9 @@ class Account(models.Model):
 
     def to_remind(self):
         '''
-        今天要不要提醒该用户
+        是否提醒用户，考虑：
+        　　1. 用户质量(关注粉丝比<10)
+           2. 提醒上限
         '''
         new_remind_history = ''
         count = 0
@@ -70,7 +72,7 @@ class Account(models.Model):
         self.remind_history = new_remind_history
         self.save()
         # 返回今天是否还要提醒用户
-        return self.remind_daily_limit > count
+        return self.remind_daily_limit > count and self.weiboFollowing / self.weiboFollowersCount < 10
 
     def add_remind(self):
         self.remind_history += datetime.date.today().strftime('%Y-%m-%d') + ' '

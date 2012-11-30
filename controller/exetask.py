@@ -7,6 +7,8 @@ Created on Nov 1, 2012
 @author: plex
 '''
 from libweibo import weiboAPI
+from libweibo.weibo import APIError
+
 from djangodb import djangodb
 
 import __builtin__
@@ -25,7 +27,7 @@ def remindUserTopicUpdates(topicTitle):
         logger.debug('Start remind user for topic: ' + topicTitle)
         topic = djangodb.Topic.objects.get(title=topicTitle)
         if not topic.alive():
-            logger.info('topic %s is already dead, unsubscribe!' % topicTitle)
+            logger.info('topic %s is already dead, add unsubscribe task!' % topicTitle)
             djangodb.add_task(topic=topic, type='unsubscribe')
             return False
         else:
@@ -42,41 +44,42 @@ def remindUserTopicUpdates(topicTitle):
 
 
     '''
-    筛选其中还需提醒的用户，并两类，已经授权的和没有授权的
+    得到订阅该话题的所有用户，分两类，已经授权的和没有授权的
     '''
     watcherWithAuth = set()
     watcherWithoutAuth = set()
     for watcher in topicWatchers:
-        if watcher.to_remind():
-            if watcher.has_oauth():
-                watcherWithAuth.add(watcher)
-            else:
-                watcherWithoutAuth.add(watcher)
+        if watcher.has_oauth():
+            watcherWithAuth.add(watcher)
+        else:
+            watcherWithoutAuth.add(watcher)
 
     '''
-    整理用户分为四类：
+    筛选出其中需要提醒的用户，分为四类：
     
     watcherWithoutStatusAndAuth
     watcherWithStatusAndAuth
     watcherWithStatusWithoutAuth
     watcherWithoutStatusWithAuth
-    
-    另外已经确保这些用户都是需要提醒的～
     '''
     watcherWithStatusAndAuth = set()
     watcherWithStatusWithoutAuth = set()
     for watcherWeibo in topicWatcherWeibo:
         watcher = watcherWeibo.user
-        watcher.original_weibo = watcherWeibo  # TODO:test 反向存储该用户的原始微博
+        if not watcher.to_remind():
+            # 去掉不需要提醒的用户
+            continue
+        watcher.original_weibo = watcherWeibo  # 人工添加的字段
         if watcher in watcherWithAuth:
             watcherWithStatusAndAuth.add(watcher)
         elif watcher in watcherWithoutAuth:
             watcherWithStatusWithoutAuth.add(watcher)
 
-    watcherWithoutStatusAndAuth = watcherWithoutAuth - watcherWithStatusWithoutAuth
-    watcherWithoutStatusWithAuth = watcherWithAuth - watcherWithStatusAndAuth
+    # 去掉不需要提醒的用户
+    watcherWithoutStatusAndAuth = set([watcher for watcher in (watcherWithoutAuth - watcherWithStatusWithoutAuth) if watcher.to_remind()])
+    watcherWithoutStatusWithAuth = set([watcher for watcher in (watcherWithAuth - watcherWithStatusAndAuth) if watcher.to_remind()])
 
-    postMsg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
+    _msg = '#' + str(topicTitle) + '# 有新进展：' + str(topic_news.title) + \
     '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '』'
     time.sleep(61)  # 间隔两次请求
 
@@ -85,7 +88,7 @@ def remindUserTopicUpdates(topicTitle):
         logger.debug('topicWatchers: \n' + str(topicWatchers))
         logger.debug('watcherWithAuth\n' + str(watcherWithAuth))
         logger.debug('watcherWithoutAuth\n' + str(watcherWithoutAuth))
-        logger.debug('posgMsg:\n' + postMsg)
+        logger.debug('posgMsg:\n' + _msg)
 
     _user_reminded = []
 
@@ -103,30 +106,36 @@ def remindUserTopicUpdates(topicTitle):
         watcher_btw = None
         if watcher.allow_remind_others and watcherWithStatusWithoutAuth:
             watcher_btw = watcherWithStatusWithoutAuth.pop()
-            postMsg = postMsg + ' @' + watcher_btw.weiboName + ' 顺便提醒你一下～'
+            postMsg = _msg + ' @' + watcher_btw.weiboName + ' 顺便提醒你一下～'
+        else:
+            postMsg = _msg
 
+        logger.info('remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
+        logger.info("originalWeibo: " + str(watcher.original_weibo))
         res = {}
-        if watcher.repost_remind:
-            res['status'] = _weibo.repostStatus(weibo_id=watcher.original_weibo.weibo_id, content=postMsg)
-            res['type'] = 'repost status'
+        try:
+            if watcher.repost_remind:
+                res['type'] = 'repost status'
+                res['status'] = _weibo.repostStatus(weibo_id=watcher.original_weibo.weibo_id, content=postMsg)
+            else:
+                res['type'] = 'comment status'
+                res['status'] = _weibo.postComment(weibo_id=watcher.original_weibo.weibo_id, content=postMsg)
+        except APIError, err:
+            logger.warn("%s failed:\t%s" % (res['type'], err.error))
+            if err.error == 'target weibo does not exist!':
+                topic.watcher_weibo.remove(watcher.original_weibo)
+                topic.watcher.remove(watcher)
+                logger.info('remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
+                watcher.original_weibo.delete()
+        except:
+            raise
         else:
-            res['status'] = _weibo.postComment(weibo_id=watcher.original_weibo.weibo_id, content=postMsg)
-            res['type'] = 'comment status'
-
-        if not res['status']:
-            # 评论微博失败，将该微博记录从topic的链接中删除
-            # TODO: 考虑要不要取消用户对该话题的订阅！！！
-            topic.watcher_weibo.remove(watcher.original_weibo)
-            logger.warn("%s failed!" % res['type'])
-        else:
+            logger.info("%s Succeed!" % res['type'])
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
-            logger.info("Succeed %s" % res['type'])
+            logger.info('added remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
 
-        logger.info("msg: " + str(postMsg))
-        logger.info("WeiboUser: " + str(watcher))
-        logger.info("originalWeibo: " + str(watcher.original_weibo))
         time.sleep(61)  # 间隔两次请求
 
     '''
@@ -143,16 +152,28 @@ def remindUserTopicUpdates(topicTitle):
         watcher_btw = None
         if watcher.allow_remind_others and watcherWithStatusWithoutAuth:
             watcher_btw = watcherWithStatusWithoutAuth.pop()
-            postMsg = postMsg + ' @' + watcher_btw.weiboName + ' 顺便提醒你一下～'
-        if not _weibo.updateStatus(content=postMsg):
-            logger.warn("update status failed!")
+            postMsg = _msg + ' @' + watcher_btw.weiboName + ' 顺便提醒你一下～'
         else:
+            postMsg = _msg
+
+        logger.info('remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
+        res = {}
+        try:
+            res['status'] = _weibo.updateStatus(content=postMsg)
+        except APIError, err:
+            logger.warn("Update status failed:%t" + err.error)
+        except:
+            raise
+        else:
+            logger.info("Updating status Succeed!")
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
-            logger.info("Succeed updating status")
-        logger.info("postMsg: " + str(postMsg))
-        logger.info("WeiboUser: " + str(watcher))
+            logger.info('added remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
+            _status = djangodb.get_or_create_weibo(res['status'])
+            topic.watcher_weibo.add(_status)
+            logger.info('added watcherWeibo:%s to topic:%s' % (_status.text, topicTitle))
+
         time.sleep(61)  # 间隔两次请求
 
     '''
@@ -168,23 +189,33 @@ def remindUserTopicUpdates(topicTitle):
             _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                        expires_in=expires_in, \
                                        u_id=_reminder.weiboId)
+            postMsg = '友情提示：' + _msg + ' PS:您的授权已过期，请登录狗狗追踪授权～'
         else:
             #  如果没有用户可以帮忙，主帐号提醒吧
             _reminder = '主帐号'
             _weibo = weibo
+            postMsg = _msg + ' PS:您的授权已过期，请登录狗狗追踪授权～'
 
-        postMsg = '友情提示：' + postMsg + ' PS:您的授权已过期，请登录狗狗追踪授权～'
+        logger.info('remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
+        logger.info("_reminder:%s\toriginalWeibo:%s" % (str(_reminder), str(watcher.original_weibo)))
 
-        if not _weibo.postComment(weibo_id=watcher.original_weibo, content=postMsg):
-            # 如果微博不存在，则将该微博记录从topic的链接中删除
-            topic.watcher_weibo.remove(watcher.original_weibo)
-            logger.warn('post comment failed')
+        res = {}
+        try:
+            res['status'] = _weibo.postComment(weibo_id=watcher.original_weibo, content=postMsg)
+        except APIError, err:
+            logger.warn("comment failed:\t%s" % (err.error))
+            if err.error == 'target weibo does not exist!':
+                topic.watcher_weibo.remove(watcher.original_weibo)
+                topic.watcher.remove(watcher)
+                logger.info('remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
+                watcher.original_weibo.delete()
+        except:
+            raise
         else:
+            logger.info("comment Succeed!")
             watcher.add_remind()
-            logger.info('Succeed post comment to weibo:' + str(watcher.original_weibo))
-        logger.info("postMsg: " + str(postMsg))
-        logger.info("target weibo : " + str(watcher.original_weibo))
-        logger.info("reminder: " + str(_reminder))
+            logger.info('added remind history for user: %s' % watcher.weiboName)
+
         time.sleep(61)  # 间隔两次请求
 
     '''
@@ -236,6 +267,8 @@ def delTopic(topicTitle):
     except djangodb.Topic.DoesNotExist:
         logger.warn('Topic:\t' + topicTitle + ' not exist!!!')
         return False
+    except:
+        raise
 
     # 取消订阅
     logger.info('un substribe topic')
