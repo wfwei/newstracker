@@ -1,2 +1,3 @@
 import sys
-sys.path.append('/home/wangfengwei/wksp/newstracker')
+reload(sys)
+sys.setdefaultencoding('utf-8')

@@ -8,18 +8,27 @@ Created on Oct 24, 2012
 '''
 
 from django.contrib.auth.models import User
-
-from newstracker.newstrack.models import Weibo, Topic, News, Task
+from newstracker.newstrack.models import Weibo, Task
 from newstracker.account.models import Account, Useroauth2
-
 from datetime import datetime
 
-import __builtin__
-try:
-    logger = __builtin__.fulllogger
-except:
-    import logging
-    logger = logging.getLogger('nonlogger')
+
+import logging
+# setup logging
+logger = logging.getLogger('dbop-logger')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('../logs/dbop.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with warn log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+# create logger output formater
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 def get_or_create_weibo(weiboJson):
     '''
@@ -93,7 +102,7 @@ def get_or_create_account_from_weibo(weiboUserJson):
 
 def get_weibo_auth_info(u_id):
     '''
-    得到或创建access_token和expires_in信息
+    得到access_token和expires_in信息
     成功返回对应的oauth，否则返回None
     '''
     _oauth = Useroauth2.objects.filter(server='weibo', u_id=u_id)
@@ -120,6 +129,34 @@ def create_or_update_weibo_auth(u_id, access_token, expires_in):
                     (str(u_id), str(access_token), str(expires_in)))
         return None
 
+def get_google_auth_info(u_id):
+    '''
+    得到access_token，refresh_token和expires_in(access_expires)信息
+    成功返回对应的oauth，否则返回None
+    '''
+    _oauth = Useroauth2.objects.filter(server='google', u_id=u_id)
+    if _oauth:
+        return [_oauth[0].access_token, _oauth[0].refresh_token, _oauth[0].expires_in]
+    else:
+        return None
+
+def create_or_update_google_auth(u_id, access_token, refresh_token, expires_in):
+    '''
+    更新u_id对应oauth的access_token, refresh_token和expires_in信息
+    更新成功，返回auth，否则，返回None
+    '''
+
+    if u_id and access_token and refresh_token and expires_in:
+        _oauth2info, created = Useroauth2.objects.get_or_create(server='google', u_id=u_id)
+        _oauth2info.access_token = access_token
+        _oauth2info.expires_in = expires_in
+        _oauth2info.save()
+        logger.info('create or update google auth:' + str(_oauth2info))
+        return _oauth2info
+    else:
+        logger.warn('缺少参数：[u_id:%s, access_token:%s, refresh_token:%s expires_in:%s]' % \
+                    (str(u_id), str(access_token), str(refresh_token), str(expires_in)))
+        return None
 
 def rm_weibo_auth(u_id):
     '''得到或保存更新access_token和expires_in信息

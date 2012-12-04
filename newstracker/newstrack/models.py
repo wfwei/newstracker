@@ -70,11 +70,6 @@ class Topic(models.Model):
         self.state += 1
 
     def delete(self, *args, **kwargs):
-#        TODO: 以下操作失败？？！！！
-#        # 删除话题对应的新闻
-#        self.news_set.all().delete()
-#        # 添加取消订阅该话题的任务 TODO:not working
-#        Task.objects.get_or_create(type='unsubscribe', topic=self)
         # 将话题状态改为死亡
         self.state = 0
         self.save()
@@ -82,7 +77,7 @@ class Topic(models.Model):
 
 class News(models.Model):
 
-    title = models.CharField(max_length=100, db_index=True)
+    title = models.CharField(max_length=100, db_index=True, unique=True)
     link = models.CharField(max_length=400)
     pubDate = models.DateTimeField(default=datetime.datetime.now, db_index=True)
     summary = models.TextField(blank=True)

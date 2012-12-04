@@ -10,65 +10,95 @@ from libgnews import googlenews
 from newstimeline import create_or_update_news_timeline
 
 from datetime import datetime
+import logging
 import time
 
-import __builtin__
-reader = __builtin__.reader
-readerlogger = __builtin__.readerlogger
+# setup logging
+logger = logging.getLogger('reader-logger')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('../logs/checkreader.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with warn log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+# create logger output formater
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
-_DEBUG = False
+# setup google reader
+from libgreader import readerAPI
+[access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=1)
+reader = readerAPI(u_id=1, access_token=access_token, \
+                   refresh_token=refresh_token, expires_access=access_expires)
+time.sleep(31)
+logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
+
 
 def fetchRssUpdates():
     '''
     检查更新rss订阅源,并存储更新的新闻,之后标记rss为已读
-    debug模式下,如果数据库中找不到订阅的rss,则会创建之
     '''
-    readerlogger.debug('Start fetch rss update')
+    logger.info('\nStart fetch rss update\n')
     unreadFeedsDict = reader.getUnreadFeeds()
     time.sleep(20)  # set request interval
-    readerlogger.debug('keys of unreadFeedsDict:\t' + str(unreadFeedsDict.keys()))
+    logger.info('keys of unreadFeedsDict:\n\t' + str(unreadFeedsDict.keys()))
     for feed in unreadFeedsDict.keys():
         if(feed.startswith('feed')):
             excludeRead = True
             continuation = None
-            over = False
             topic = None
 
-            while not over:
-                feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
-                time.sleep(20)  # set request interval
+            while True:
                 try:
+                    feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
                     continuation = feedContent['continuation']
                     if not continuation:
                         raise KeyError
-                except KeyError:
-                    over = True
+                    time.sleep(31)  # set request interval
+                except TypeError, te:
+                    logger.warn('feedContent fetch error:\n\t' + str(te))
+                    logger.warn('sleep 100s and retry once')
+                    time.sleep(100)
+                    try:
+                        feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
+                        continuation = feedContent['continuation']
+                    except Exception, e:
+                        logger.error('fail again to fetch feedContent:\n\t' + str(e))
+                        break
+
+                except (KeyError, Exception), e:
+                    logger.error('Exception:\n\t' + str(e))
+                    break
 
                 itemSet = feedContent['items']
                 # title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的
                 feedTopic = feedContent['title'][0:feedContent['title'].find(' - Google ')]
 
-                readerlogger.debug('feed topic:\t' + feedTopic + '\t item size:\t' + str(len(itemSet)))
+                logger.info('feed topic:\t' + feedTopic + '\t item size:\t' + str(len(itemSet)))
 
                 try:
                     topic = djangodb.Topic.objects.get(title=feedTopic)
                     if not topic.alive():
-                        readerlogger.info('topic %s is already dead, unsubscribe!' % topic.title)
+                        logger.info('topic %s is already dead, unsubscribe!' % topic.title)
                         djangodb.add_task(topic=topic, type='unsubscribe')
                         break
-                except djangodb.Topic.DoesNotExist:
-                    readerlogger.warn('无法在数据库中找到对应话题,建议手动取消订阅：' + feedTopic)
+                except djangodb.Topic.DoesNotExist, dne:
+                    logger.warn('无法在数据库中找到对应话题(%s),建议手动取消订阅!\n\t%s' % (feedTopic, str(dne)))
                     break
 
                 for item in itemSet:
                     title = item['title']
                     pubDate = datetime.fromtimestamp(float(item['published']))
-                    summary = item['summary']
                     try:
-                        link = item['alternate'][0]['href']
+                        summary = item['summary']
                     except:
-                        readerlogger.warn('fail to extract link from alternate attr\n' + str(item))
-                        link = 'http://www.fakeurl.com'
+                        logger.warn('fail to extract summary:\n' + str(item))
+                        summary = ''
+                    link = item['alternate'][0]['href']
                     if '&url=http' in link:
                         link = link[link.find('&url=http') + 5:]
                     nnews, created = djangodb.News.objects.get_or_create(title=title)
@@ -77,43 +107,43 @@ def fetchRssUpdates():
                         nnews.pubDate = pubDate
                         nnews.summary = summary
                     nnews.topic.add(topic)
-                    readerlogger.info("add news:%s to topic:%s" % (nnews.title, topic.title))
                     nnews.save()
+                    logger.info("add news:%s to topic:%s" % (nnews.title, topic.title))
 
             if topic:
                 # 标记该feed为全部已读
                 try:
                     if not reader.markFeedAsRead(feed):
-                        readerlogger.error('Error in mark ' + feedTopic + ' as read!!!')
+                        logger.error('Error in mark ' + feedTopic + ' as read!!!')
                     else:
-                        readerlogger.debug('Succeed mark ' + feedTopic + ' as read')
-                except:
-                    readerlogger.error('fail to mark feed as read:' + feedTopic)
-                    readerlogger.error('reader.auth:' + str(reader.auth))
-                    return  # TODO: 会执行finally么？？
+                        logger.info('Succeed mark ' + feedTopic + ' as read')
+                except Exception, e:
+                    logger.error('fail to mark feed(%s) as read!!!\n\t%s' % (feedTopic, str(feedTopic)))
                 finally:
-                    time.sleep(20)  # set request interval
+                    time.sleep(31)
 
                 # 　更新话题的news timeline
-                readerlogger.debug('begin update news.timeline for:' + feedTopic + '#')
+                logger.info('begin update news.timeline for:#' + feedTopic + '#')
                 create_or_update_news_timeline(feedTopic)
 
                 # 添加提醒任务
-                readerlogger.debug('add remind user topic(#%s#) updates task to taskqueue' % feedTopic)
+                logger.debug('add remind task for topic(#%s#) ' % feedTopic)
                 djangodb.add_task(topic=topic, type='remind')
 
-    readerlogger.debug('Fetch rss update over')
+    logger.debug('\nFetch rss update over\n')
 
-def t_checkreader():
+if __name__ == '__main__':
     while True:
-        readerlogger.info('Start fetching rss updates')
         try:
             fetchRssUpdates()
-        except:
-            readerlogger.exception('Except in fetchRssUpdates')
-        readerlogger.info('Start sleep for 3 hours')
-        time.sleep(6 * 60 * 60)
+        except Exception, e:
+            logger.error('Except in fetchRssUpdates:\n\t' + str(e))
+            logger.info('Sleep for 10 minutes to restart fetch rss updates')
+            time.sleep(600)
+        else:
+            logger.info('Start sleep for 6 hours')
+            time.sleep(6 * 60 * 60)
 
         if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
-            readerlogger.info('night sleep for ' + str(7 - time.localtime().tm_hour) + ' hours')
+            logger.info('night sleep for ' + str(7 - time.localtime().tm_hour) + ' hours')
             time.sleep((7 - time.localtime().tm_hour) * 60 * 60)

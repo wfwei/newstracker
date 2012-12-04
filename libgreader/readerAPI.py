@@ -17,13 +17,13 @@ except:
 from url import ReaderUrl
 from items import Item, Category, Feed
 from auth import OAuth2Method
+from djangodb import djangodb
 
-USERNAME = 'newstrackerpro@gmail.com'
-PASSWORD = 'wangfengwei'
+
 CLIENT_ID = '6030332710.apps.googleusercontent.com'
 CLIENT_SECRET = 'TZv3m1Zbodu_rqwg4XDa9CZC'
 REDIRECT_URL = 'urn:ietf:wg:oauth:2.0:oob'
-REFRESH_TOKEN = '1/Jh_gCO2V3EAtMU0_MbKOHt5Fq0fivY602aN56nikjmk'
+
 
 _DEBUG = True
 
@@ -40,20 +40,22 @@ class readerAPI(object):
     def __unicode__(self):
         return "<Google Reader object: %s>" % self.auth.username
 
-    def __init__(self):
-        self.auth = self._getOAuth2(CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, REDIRECT_URL)
-        self.userId = None
+    def __init__(self, u_id, access_token, refresh_token, expires_access):
+        self.auth = self._getOAuth2(u_id=u_id, client_id=CLIENT_ID, client_secret=CLIENT_SECRET, \
+                                    access_token=access_token, refresh_token=refresh_token, \
+                                    expires_access=expires_access, redirect_url=REDIRECT_URL)
         self.lock = threading.Lock()
 
-    def _getOAuth2(self, client_id, client_secret, refresh_token, redirect_url):
-        auth = OAuth2Method(client_id, client_secret, refresh_token)
-        auth.setRedirectUri(redirect_url)
-        if(len(refresh_token) < 1):
+    def _getOAuth2(self, u_id, client_id, client_secret, access_token, refresh_token, expires_access, redirect_url):
+        auth = OAuth2Method(u_id=u_id, client_id=client_id, client_secret=client_secret, \
+                           access_token=access_token, refresh_token=refresh_token, \
+                           expires_access=expires_access, redirect_url=redirect_url)
+        if not refresh_token:
             url = auth.buildAuthUrl()
             print '访问该地址授权', url
             auth.code = raw_input()
             auth.setAccessToken()
-        else:
+        elif auth.is_access_token_expires():
             auth.refreshAccessToken()
         auth.setActionToken()
         return auth
@@ -67,8 +69,6 @@ class readerAPI(object):
         '''
         with self.lock:
             unreadFeedsDict = {}
-            if not self.userId:
-                self.setUserId()
             unreadJson = self.httpGet(ReaderUrl.UNREAD_COUNT_URL, { 'output': 'json', })
             unreadCounts = json.loads(unreadJson, strict=False)['unreadcounts']
             for unread in unreadCounts:
@@ -138,19 +138,7 @@ class readerAPI(object):
         with self.lock:
             userJson = self.httpGet(ReaderUrl.USER_INFO_URL)
             userInfo = json.loads(userJson, strict=False)
-            self.userId = userInfo['userId']
             return userInfo
-
-    def setUserId(self, userId=None):
-        """
-        set user id
-        """
-        with self.lock:
-            if userId:
-                self.userId = userId
-            elif self.userId is None:
-                userJson = self.httpGet(ReaderUrl.USER_INFO_URL)
-                self.userId = json.loads(userJson, strict=False)['userId']
 
     def _getFeedContent(self, url, excludeRead=False, continuation=None):
         """
@@ -192,7 +180,25 @@ class readerAPI(object):
         return self.auth.post(url, post_parameters)
 
 if __name__ == '__main__':
-    reader = readerAPI()
-    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=nexus 4&um=1&ie=UTF-8&output=rss')
-    print reader.unsubscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=于丹北大&um=1&ie=UTF-8&output=rss')
+    # u_id=1对应的用户是
+    # USERNAME = 'newstrackerpro@gmail.com'
+    # PASSWORD = 'wangfengwei'
+    # REFRESH_TOKEN = '1/Jh_gCO2V3EAtMU0_MbKOHt5Fq0fivY602aN56nikjmk'
+    u_id = 1
+    [access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=u_id)
+
+    reader = readerAPI(u_id=u_id, access_token=access_token, \
+                       refresh_token=refresh_token, expires_access=access_expires)
+    time.sleep(31)
+    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=吸血鬼日记&um=1&ie=UTF-8&output=rss')
+    time.sleep(31)
+    reader2 = readerAPI(u_id=u_id, access_token=access_token, \
+                       refresh_token=refresh_token, expires_access=access_expires)
+    time.sleep(31)
+    print reader2.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=实习医生格雷&um=1&ie=UTF-8&output=rss')
+    time.sleep(31)
+
+    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=行尸走肉&um=1&ie=UTF-8&output=rss')
+
+
     print 'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']

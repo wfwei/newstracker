@@ -7,29 +7,29 @@ import datetime
 import time
 admin.site.register(News)
 
-def reset_state(modeladmin, request, queryset):
+def activate_topic(modeladmin, request, queryset):
     queryset.update(state=1)
-reset_state.short_description = "reset state"
+activate_topic.short_description = "Set state as alive(1)"
 
-def delete_selected(modeladmin, request, queryset):
+def mute_topic(modeladmin, request, queryset):
     queryset.update(state=0)
-delete_selected.short_description = "delete topic(mark as dead state)"
+mute_topic.short_description = "Set state as dead(0)"
 
 def delete_topic_news(modeladmin, request, queryset):
     for topic in queryset:
         topic.news_set.all().delete()
-delete_topic_news.short_description = "permanently remove news"
+delete_topic_news.short_description = "Permanently remove news"
 
-def add_unsubscribe_task(modeladmin, request, queryset):
+def unsubscribe_topic(modeladmin, request, queryset):
     for topic in queryset:
         Task.objects.get_or_create(type='unsubscribe', topic=topic)
-add_unsubscribe_task.short_description = "add unsubscribe task"
+unsubscribe_topic.short_description = "Add unsubscribe task"
 
 
 class TopicAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'count_weibo', 'count_news', 'state']
     ordering = ['-state']
-    actions = [reset_state, delete_selected, delete_topic_news, add_unsubscribe_task]
+    actions = [activate_topic, mute_topic, delete_topic_news, unsubscribe_topic]
 
     def queryset(self, request):
         """
@@ -50,15 +50,15 @@ admin.site.register(Topic, TopicAdmin)
 
 def activate_task(modeladmin, request, queryset):
     queryset.update(status=1)
-activate_task.short_description = "activate task"
+activate_task.short_description = "Activate task"
 
 def mute_task(modeladmin, request, queryset):
     queryset.update(status=0)
-mute_task.short_description = "mute task"
+mute_task.short_description = "Mute task"
 
 def change_to_subscribe_task(modeladmin, request, queryset):
     queryset.update(type='subscribe', status=1)
-change_to_subscribe_task.short_description = "change to subscribe task"
+change_to_subscribe_task.short_description = "Change to subscribe task"
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ['topic', 'type', 'status', 'time']

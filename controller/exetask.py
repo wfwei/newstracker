@@ -8,35 +8,55 @@ Created on Nov 1, 2012
 '''
 from libweibo import weiboAPI
 from libweibo.weibo import APIError
-
 from djangodb import djangodb
-
-import __builtin__
+import logging
 import time
 
-weibo = __builtin__.weibo
-reader = __builtin__.reader
-logger = __builtin__.tasklogger
-readerlogger = __builtin__.readerlogger
-weibologger = __builtin__.weibologger
+# setup logging
+logger = logging.getLogger('task-logger')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('../logs/exetask.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with warn log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+# create logger output formater
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
-_DEBUG = True
+# setup weibo
+[access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
+if time.time() > float(expires_in):
+    raise Exception("授权过期了，with expires_in:" + str(expires_in))
+weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
+time.sleep(31)
+logger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
+
+# setup google reader
+from libgreader import readerAPI
+[access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=1)
+reader = readerAPI(u_id=1, access_token=access_token, \
+                   refresh_token=refresh_token, expires_access=access_expires)
+time.sleep(31)
+logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
+
 
 def remindUserTopicUpdates(topicTitle):
     try:
         logger.debug('Start remind user for topic: ' + topicTitle)
         topic = djangodb.Topic.objects.get(title=topicTitle)
         if not topic.alive():
-            logger.info('topic %s is already dead, add unsubscribe task!' % topicTitle)
+            logger.warn('topic %s is already dead, add unsubscribe task!' % topicTitle)
             djangodb.add_task(topic=topic, type='unsubscribe')
             return False
         else:
             topic_news = topic.news_set.all()[0]
-    except djangodb.Topic.DoesNotExist:
-        logger.warn('无法在数据库中找到对应话题,建议手动取消订阅：' + topicTitle)
-        return False
-    except:
-        logger.debug('No news update for topic:\t' + topicTitle)
+    except Exception, e:
+        logger.error('topic or news not exists in database\n\t' + str(e))
         return False
 
     topicWatchers = topic.watcher.all()
@@ -83,12 +103,11 @@ def remindUserTopicUpdates(topicTitle):
     '『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(topic.id)) + '』'
     time.sleep(61)  # 间隔两次请求
 
-    if _DEBUG:
-        logger.debug('topicWatcherWeibo:\n' + str(topicWatcherWeibo))
-        logger.debug('topicWatchers: \n' + str(topicWatchers))
-        logger.debug('watcherWithAuth\n' + str(watcherWithAuth))
-        logger.debug('watcherWithoutAuth\n' + str(watcherWithoutAuth))
-        logger.debug('posgMsg:\n' + _msg)
+    logger.debug('topicWatcherWeibo:\n' + str(topicWatcherWeibo))
+    logger.debug('topicWatchers: \n' + str(topicWatchers))
+    logger.debug('watcherWithAuth\n' + str(watcherWithAuth))
+    logger.debug('watcherWithoutAuth\n' + str(watcherWithoutAuth))
+    logger.debug('posgMsg:\n' + _msg)
 
     _user_reminded = []
 
@@ -127,16 +146,14 @@ def remindUserTopicUpdates(topicTitle):
                 topic.watcher.remove(watcher)
                 logger.info('remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
                 watcher.original_weibo.delete()
-        except:
-            raise
         else:
             logger.info("%s Succeed!" % res['type'])
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
             logger.info('added remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
-
-        time.sleep(61)  # 间隔两次请求
+        finally:
+            time.sleep(61)
 
     '''
     更新有授权但没有发过微博的用户的状态
@@ -162,19 +179,17 @@ def remindUserTopicUpdates(topicTitle):
             res['status'] = _weibo.updateStatus(content=postMsg)
         except APIError, err:
             logger.warn("Update status failed:%t" + err.error)
-        except:
-            raise
         else:
-            logger.info("Updating status Succeed!")
+            logger.info("Update status succeed!")
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
-            logger.info('added remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
+            logger.info('add remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
             _status = djangodb.get_or_create_weibo(res['status'])
             topic.watcher_weibo.add(_status)
-            logger.info('added watcherWeibo:%s to topic:%s' % (_status.text, topicTitle))
-
-        time.sleep(61)  # 间隔两次请求
+            logger.info('add watcherWeibo:%s to topic:%s' % (_status.text, topicTitle))
+        finally:
+            time.sleep(61)  # 间隔两次请求
 
     '''
     更新没有授权但发过或转发过微博的用户的状态
@@ -189,19 +204,19 @@ def remindUserTopicUpdates(topicTitle):
             _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                        expires_in=expires_in, \
                                        u_id=_reminder.weiboId)
-            postMsg = '友情提示：' + _msg + ' PS:您的授权已过期，请登录狗狗追踪授权～'
+            postMsg = '友情提示：' + _msg
         else:
             #  如果没有用户可以帮忙，主帐号提醒吧
             _reminder = '主帐号'
             _weibo = weibo
-            postMsg = _msg + ' PS:您的授权已过期，请登录狗狗追踪授权～'
+            postMsg = _msg
 
         logger.info('remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
         logger.info("_reminder:%s\toriginalWeibo:%s" % (str(_reminder), str(watcher.original_weibo)))
 
         res = {}
         try:
-            res['status'] = _weibo.postComment(weibo_id=watcher.original_weibo, content=postMsg)
+            res['status'] = _weibo.postComment(weibo_id=watcher.original_weibo.weibo_id, content=postMsg)
         except APIError, err:
             logger.warn("comment failed:\t%s" % (err.error))
             if err.error == 'target weibo does not exist!':
@@ -209,30 +224,27 @@ def remindUserTopicUpdates(topicTitle):
                 topic.watcher.remove(watcher)
                 logger.info('remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
                 watcher.original_weibo.delete()
-        except:
-            raise
         else:
-            logger.info("comment Succeed!")
+            logger.info("comment succeed!")
             watcher.add_remind()
             logger.info('added remind history for user: %s' % watcher.weiboName)
-
-        time.sleep(61)  # 间隔两次请求
+        finally:
+            time.sleep(61)
 
     '''
     既没有授权也没有发过微博
     不再提醒
     '''
+    return True
 
 def subscribeTopic(topicRss, topicTitle=None):
     # 订阅的时候即便是加了title,最后谷歌还是会在后面加上' - Google 新闻'
     try:
         if not reader.subscribe(feedUrl=topicRss, title=topicTitle):
             logger.error('Fail to subscribed ' + topicRss)
-            readerlogger.error('in exetask:Fail to subscribed ' + topicRss)
             return False
         else:
             logger.debug('Succeed to subscribe ' + topicRss)
-            readerlogger.debug('in exetask:Succeed to subscribe ' + topicRss)
     except:
         logger.error('Fail to subscribed ' + topicRss)
         return False
@@ -246,11 +258,9 @@ def unSubscribeTopic(topicRss):
     try:
         if not reader.unsubscribe(feedUrl=topicRss):
             logger.error('Fail to unsubscribe ' + topicRss)
-            readerlogger.error('in exetask:Fail to unsubscribe ' + topicRss)
             return False
         else:
             logger.debug('Succeed to unsubscribe ' + topicRss)
-            readerlogger.debug('in exetask:Succeed to unsubscribe ' + topicRss)
     except:
         logger.error('Fail to unsubscribe ' + topicRss)
         return False
@@ -281,9 +291,9 @@ def delTopic(topicTitle):
     logger.info('delete topic: ' + topicTitle + ' OK')
 
 
-def t_exetask():
+if __name__ == '__main__':
     while True:
-# 　　　　由于取消订阅的API无法成功取消订阅，手动取消～＝＝！
+# 　　　　TODO: 由于取消订阅的API无法成功取消订阅，手动取消～＝＝！
 #        unsubs_tasks = djangodb.get_tasks(type='unsubscribe', count=10)
 #        logger.info('Start execute %d unsubscribe tasks' % len(unsubs_tasks))
 #        for t in unsubs_tasks:
@@ -297,28 +307,36 @@ def t_exetask():
 #            t.save()
 
         subs_tasks = djangodb.get_tasks(type='subscribe', count=5)
-        logger.info('Start execute %d subscribe tasks' % len(subs_tasks))
         for t in subs_tasks:
             try:
                 subscribeTopic(topicRss=t.topic.rss, topicTitle=t.topic.title)
-                time.sleep(61)  # 间隔两次请求
-            except:
-                logger.exception("Except in subscribeTopic()")
-                break
-            t.status = 0  # 更新成功，设置标志位
-            t.save()
+            except Exception, e:
+                logger.error('fail to subscribe topic(%s) \n\t%s' % (t.topic.title, str(e)))
+                continue
+            else:
+                t.status = 0  # 更新成功，设置标志位
+                t.save()
+                logger.info('succeed to subscribe:%s' % t.topic.title)
+            finally:
+                time.sleep(61)
+        else:
+            logger.info('no subscribe task!!!')
 
         remind_tasks = djangodb.get_tasks(type='remind', count=3)
-        logger.info('Start execute %d remind tasks' % len(remind_tasks))
         for t in remind_tasks:
             try:
                 remindUserTopicUpdates(topicTitle=t.topic.title)
-                time.sleep(61)  # 间隔两次请求
-            except:
-                logger.exception("Except in remindUserTopicUpdates()")
-                break
-            t.status = 0  # 更新成功，设置标志位
-            t.save()
+            except Exception, e:
+                logger.error('fail to subscribe topic(%s) \n\t%s' % (t.topic.title, str(e)))
+                continue
+            else:
+                t.status = 0  # 更新成功，设置标志位
+                t.save()
+                logger.info('succeed to remind topic:%s' % t.topic.title)
+            finally:
+                time.sleep(61)
+        else:
+            logger.info('no remind task!!!')
 
-        logger.info('long sleep for 30 minutes')
-        time.sleep(15 * 60)
+        logger.info('sleep for 20 minutes')
+        time.sleep(20 * 60)

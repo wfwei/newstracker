@@ -6,20 +6,29 @@ Created on Oct 29, 2012
 @author: plex
 '''
 from djangodb import djangodb
-import datetime
 import time
 import json
 import os
 import re
 
-import __builtin__
-try:
-    _DEBUG = __builtin__._DEBUG
-    logger = __builtin__.fulllogger
-except:
-    _DEBUG = True
-    import logging
-    logger = logging.getLogger('nonlogger')
+
+import logging
+# setup logging
+logger = logging.getLogger('dbop-logger')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('../logs/dbop.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with warn log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+# create logger output formater
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
+
 
 def create_or_update_news_timeline(topicTitle):
     '''
@@ -99,9 +108,11 @@ def update_all_news_timeline():
         create_or_update_news_timeline(topic.title)
     logger.info('update_all_news_timeline finished')
 
-# TODO: 可能会过滤掉最新消息！！！
 
 def _filter_news(topic_news, limit=22):
+    '''
+    可能会过滤掉最新消息！！！
+    '''
     total = len(topic_news)
     # set limit
     if total > limit * 2:

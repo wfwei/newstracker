@@ -15,12 +15,8 @@ APP_KEY = '4057638893'
 APP_SECRET = '29a39034c98cbd0c9703192707653f10'
 CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
 
-import __builtin__
-try:
-    logger = __builtin__.splogger
-except:
-    import logging
-    logger = logging.getLogger('nonlogger')
+import logging
+logger = logging.getLogger('closed')
 
 class weiboAPI(object):
     '''
@@ -126,11 +122,17 @@ class weiboAPI(object):
         '''该方法没有访问服务器，只是静态的字符串拼接，不需要加锁'''
         return self.client.get_authorize_url()
 
-    def getHotTopics(self):
+    def getWeeklyHotTopics(self):
         '''得到一周的热门话题'''
         self._checkAccessLimit()
         with self.lock:
             return self.client.get.trends__weekly()['trends']
+
+    def getDailyHotTopics(self):
+        '''得到一周的热门话题'''
+        self._checkAccessLimit()
+        with self.lock:
+            return self.client.get.trends__daily()['trends']
 
     def getUID(self):
         '''得到当前授权用户的ID
