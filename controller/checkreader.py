@@ -5,10 +5,8 @@ Created on Nov 1, 2012
 
 @author: plex
 '''
-from djangodb import djangodb
-from libgnews import googlenews
 from newstimeline import create_or_update_news_timeline
-
+from djangodb import djangodb
 from datetime import datetime
 import logging
 import time
@@ -32,7 +30,7 @@ logger.addHandler(ch)
 # setup google reader
 from libgreader import readerAPI
 [access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=1)
-reader = readerAPI(u_id=1, access_token=access_token, \
+reader = readerAPI.readerAPI(u_id=1, access_token=access_token, \
                    refresh_token=refresh_token, expires_access=access_expires)
 time.sleep(31)
 logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
@@ -51,28 +49,29 @@ def fetchRssUpdates():
             excludeRead = True
             continuation = None
             topic = None
-
-            while True:
+            over = False
+            while not over:
                 try:
                     feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
-                    continuation = feedContent['continuation']
-                    if not continuation:
-                        raise KeyError
-                    time.sleep(31)  # set request interval
                 except TypeError, te:
                     logger.warn('feedContent fetch error:\n\t' + str(te))
-                    logger.warn('sleep 100s and retry once')
-                    time.sleep(100)
+                    logger.warn('sleep 123s and retry once')
+                    time.sleep(123)
                     try:
                         feedContent = reader.fetchFeedItems(feed, excludeRead, continuation)
-                        continuation = feedContent['continuation']
                     except Exception, e:
                         logger.error('fail again to fetch feedContent:\n\t' + str(e))
                         break
+                finally:
+                    time.sleep(31)
 
+                try:
+                    continuation = feedContent['continuation']
+                    if not continuation:
+                        raise KeyError
                 except (KeyError, Exception), e:
-                    logger.error('Exception:\n\t' + str(e))
-                    break
+                    logger.info('Info:\n\t%s is None:' % str(e))
+                    over = True
 
                 itemSet = feedContent['items']
                 # title的形式:"镜头里的萝莉 - Google 新闻"  要截断后面的

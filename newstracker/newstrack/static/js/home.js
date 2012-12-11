@@ -32,9 +32,9 @@ function unfollow_topic(topic_id, u_id) {
   return false;
 }
 
-function show_more_topics(start_idx, count, exclude_user) {
+function show_more_topics(type, start_idx, count, exclude_user) {
 	// alert('show_more_topics:\nstart_idx:' + start_idx.toString() + '\ncount:' + count.toString() + '\nexclude_user:' + exclude_user.toString())
-    var post_more_topics = {'start_idx': start_idx, 'count': count, 'exclude_user': exclude_user}
+    var post_more_topics = {'type': type, 'start_idx': start_idx, 'count': count, 'exclude_user': exclude_user}
     $.ajax({
 	    url: '/show_more_topics/',
 	    type: 'post',
@@ -42,10 +42,16 @@ function show_more_topics(start_idx, count, exclude_user) {
 	    data: JSON.stringify(post_more_topics),
 	    success: function (more_topics) {
 	      if (more_topics) {
-	        $('#other-topic-list').append(more_topics)
-	        $('.more-topic').attr('id', 'more-topic-' + (start_idx + count).toString())
+	        if(type=='new'){
+	          $('#new-topic-list').append(more_topics)
+	          $('#more-new-topic-'+start_idx.toString()).attr('id', 'more-new-topic-' + (start_idx + count).toString())
+	        }else{
+	        // type==hot
+	          $('#other-topic-list').append(more_topics)
+  	          $('#more-hot-topic-'+start_idx.toString()).attr('id', 'more-hot-topic-' + (start_idx + count).toString())
+	        }
 	      }else{
-	        $('.more-topic').text('no more data available')
+	        alert('只有这么多啦～');
 	      }
 	    }
     });
@@ -82,10 +88,11 @@ $(document).ready(function () {
 	    return;
 	}
 	e.preventDefault();
-	start_idx = parseInt(e.target.id.split("-")[2], 10);
+	type = e.target.id.split("-")[1]
+	start_idx = parseInt(e.target.id.split("-")[3], 10);
 	count = 5;
 	exclude_user = true;
-	show_more_topics(start_idx, count, exclude_user);
+	show_more_topics(type, start_idx, count, exclude_user);
    });
    
    $('#setting-form').submit(function() { // catch the form's submit event

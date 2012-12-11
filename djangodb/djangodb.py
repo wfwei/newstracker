@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 
 '''
@@ -9,16 +9,18 @@ Created on Oct 12, 2012
 
 from django.conf import settings
 settings.configure(
-    DATABASE_ENGINE = 'django.db.backends.mysql',
-    DATABASE_NAME = 'newstracker',
-    DATABASE_USER = 'wangfengwei',
-    DATABASE_PASSWORD = 'wangfengwei',
-    DATABASE_HOST = 'localhost',
+    DATABASE_ENGINE='django.db.backends.mysql',
+    DATABASE_NAME='newstracker',
+    DATABASE_USER='wangfengwei',
+    DATABASE_PASSWORD='wangfengwei',
+    DATABASE_HOST='localhost',
 )
 from dbop import *
+
+
 if __name__ == '__main__':
     from newstracker.newstrack.models import Weibo, Topic, News, Task
-    nnews, created = News.objects.get_or_create(title = '街拍合肥三里庵官亭路美女穿搭欧美风御姐PK日系小萝莉 - 万家热线')
+    nnews, created = News.objects.get_or_create(title='街拍合肥三里庵官亭路美女穿搭欧美风御姐PK日系小萝莉 - 万家热线')
     print nnews
     print created
     try:
@@ -26,17 +28,17 @@ if __name__ == '__main__':
     except:
         raise
     print 'ok'
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     weiboJson = {'allow_all_act_msg': False,
  'allow_all_comment': True,
  'avatar_large': u'http://tp3.sinaimg.cn/2638714490/180/5620042495/0',

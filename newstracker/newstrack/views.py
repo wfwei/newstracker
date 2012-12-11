@@ -55,7 +55,11 @@ def home(request):
     annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[:5]
     template_var['other_topics'] = other_topics
 
-    for topic in itertools.chain(my_topics, other_topics):
+    # 得到数据库中最新的5个话题(原本就是按照时间排列的)
+    new_topics = Topic.alive_objects.exclude(watcher__in=exclude_set)[:5]
+    template_var['new_topics'] = new_topics
+
+    for topic in itertools.chain(my_topics, other_topics, new_topics):
         _news_count = topic.news_set.count()
         if _news_count > 0:
 
@@ -233,6 +237,7 @@ def show_more_topics(request):
     post_data = simplejson.loads(request.raw_post_data)
     if _DEBUG:
         print post_data
+    type = post_data['type']
     start_idx = post_data['start_idx']
     count = post_data['count']
     exclude_user = post_data['exclude_user']
@@ -250,8 +255,11 @@ def show_more_topics(request):
         count = _available_count - start_idx
 
     if count > 0:
-        more_topics = Topic.alive_objects.exclude(watcher__in=exclude_set).\
-        annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[start_idx: start_idx + count]
+        if type == 'new':
+            more_topics = Topic.alive_objects.exclude(watcher__in=exclude_set)[start_idx: start_idx + count]
+        else:
+            more_topics = Topic.alive_objects.exclude(watcher__in=exclude_set).\
+            annotate(watcher_count=Count('watcher')).order_by('-watcher_count')[start_idx: start_idx + count]
     else:
         more_topics = []
 
@@ -288,7 +296,7 @@ def show_more_topics(request):
 
 def _get_time_passed(from_dt, to_dt=datetime.datetime.now()):
     if from_dt > to_dt:
-        return '未来式'
+        return '未来式～'
 
     tdelta = to_dt - from_dt
     d = {"days": tdelta.days}

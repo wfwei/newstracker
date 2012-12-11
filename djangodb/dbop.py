@@ -8,27 +8,30 @@ Created on Oct 24, 2012
 '''
 
 from django.contrib.auth.models import User
-from newstracker.newstrack.models import Weibo, Task
+from newstracker.newstrack.models import *  # in other module, it is used!!!
 from newstracker.account.models import Account, Useroauth2
 from datetime import datetime
 
 
 import logging
 # setup logging
-logger = logging.getLogger('dbop-logger')
-logger.setLevel(logging.DEBUG)
-# create file handler which logs even debug messages
-fh = logging.FileHandler('../logs/dbop.log')
-fh.setLevel(logging.DEBUG)
-# create console handler with warn log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.WARN)
-# create logger output formater
-formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-logger.addHandler(fh)
-logger.addHandler(ch)
+try:
+    logger = logging.getLogger('dbop-logger')
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('../logs/dbop.log')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with warn log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARN)
+    # create logger output formater
+    formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+except:
+    logger = logging.getLogger()
 
 def get_or_create_weibo(weiboJson):
     '''

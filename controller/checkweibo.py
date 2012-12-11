@@ -157,7 +157,7 @@ def fetchHotTopic():
             if created or not hotopic.alive():
                 hotopic.activate()
                 hotopic.rss = googlenews.GoogleNews(hotopic.title).getRss()
-                hotopic.time = datetime.strptime(topictime, "%Y-%m-%d")
+                hotopic.time = datetime.strptime(topictime, "%Y-%m-%d %H:%M")
                 hotopic.save()
                 djangodb.add_task(topic=hotopic, type='to_filte')
                 logger.info('add to_filte task:  (#%s#)' % topictitle)
@@ -165,6 +165,7 @@ def fetchHotTopic():
                 logger.info('topic #%s# already in track' % topictitle)
 
 if __name__ == '__main__':
+    fetchHotTopic()
     while True:
         try:
             logger.info('Start fetching user mentions')

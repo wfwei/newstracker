@@ -39,7 +39,7 @@ logger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 # setup google reader
 from libgreader import readerAPI
 [access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=1)
-reader = readerAPI(u_id=1, access_token=access_token, \
+reader = readerAPI.readerAPI(u_id=1, access_token=access_token, \
                    refresh_token=refresh_token, expires_access=access_expires)
 time.sleep(31)
 logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
