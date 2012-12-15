@@ -20,7 +20,7 @@ from dbop import *
 
 if __name__ == '__main__':
     from newstracker.newstrack.models import Weibo, Topic, News, Task
-    nnews, created = News.objects.get_or_create(title='街拍合肥三里庵官亭路美女穿搭欧美风御姐PK日系小萝莉 - 万家热线')
+    nnews, created = News.objects.get_or_create(title=u'街拍合肥三里庵官亭路美女穿搭欧美风御姐PK日系小萝莉 - 万家热线')
     print nnews
     print created
     try:

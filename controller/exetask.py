@@ -31,10 +31,10 @@ logger.addHandler(ch)
 # setup weibo
 [access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
 if time.time() > float(expires_in):
-    raise Exception("授权过期了，with expires_in:" + str(expires_in))
+    raise Exception(u"授权过期了，with expires_in:" + str(expires_in))
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
 time.sleep(31)
-logger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
+logger.info(u'Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 
 # setup google reader
 from libgreader import readerAPI
@@ -42,7 +42,7 @@ from libgreader import readerAPI
 reader = readerAPI.readerAPI(u_id=1, access_token=access_token, \
                    refresh_token=refresh_token, expires_access=access_expires)
 time.sleep(31)
-logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
+logger.info(u'Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 
 
 def remindUserTopicUpdates(topicTitle):

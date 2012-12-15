@@ -36,10 +36,10 @@ logger.addHandler(ch)
 # setup weibo
 [access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
 if time.time() > float(expires_in):
-    raise Exception("授权过期了，with expires_in:" + str(expires_in))
+    raise Exception(u"授权过期了，with expires_in:" + str(expires_in))
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
 time.sleep(31)
-logger.info('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
+logger.info(u'Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 
 def fetchUserMention():
     '''
@@ -72,7 +72,7 @@ def fetchUserMention():
             mweibo_retweeted = djangodb.get_or_create_weibo(mention['retweeted_status'])
         else:
             is_retweeted = False
-        logger.info('step1:提取并构造微博对象 is_retweeted=' + str(is_retweeted))
+        logger.info('step1:extract weibo objects is_retweeted=' + str(is_retweeted))
 
         # step 2: 提取并构造用户对象
         muser = djangodb.get_or_create_account_from_weibo(mention['user'])
@@ -89,7 +89,7 @@ def fetchUserMention():
             mtopictitle = topic_res.group(1)
             logger.info('step3: mtopictitle=' + mtopictitle)
         else:
-            logger.info('step3: 本条@微博不含有话题:\t' + _search_content + \
+            logger.info('step3: no topic in the @ weibo:\t' + _search_content + \
                               ' from user: @' + muser.weiboName)
             continue
 
@@ -113,12 +113,12 @@ def fetchUserMention():
         # step 5: 提醒用户订阅成功
         try:
             if is_new_topic:
-                remind_msg = '订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！『' + weibo.getShortUrl("http://110.76.40.188:81") + '』'
+                remind_msg = u'订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！『' + weibo.getShortUrl("http://110.76.40.188:81") + '』'
             else:
-                remind_msg = '订阅成功，您可以到『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(mtopic.id)) + '』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
+                remind_msg = u'订阅成功，您可以到『' + weibo.getShortUrl("http://110.76.40.188:81/news_timeline/" + str(mtopic.id)) + '』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～'
         except APIError, err:
             logger.error('Failed to get short url:\n\t%s' % err.error)
-            remind_msg = '订阅成功～'
+            remind_msg = u'订阅成功～'
         finally:
             time.sleep(31)
 

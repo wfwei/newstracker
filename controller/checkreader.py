@@ -33,7 +33,7 @@ from libgreader import readerAPI
 reader = readerAPI.readerAPI(u_id=1, access_token=access_token, \
                    refresh_token=refresh_token, expires_access=access_expires)
 time.sleep(31)
-logger.info('Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
+logger.info(u'Google Reader 登录信息:\t' + reader.getUserInfo()['userName'])
 
 
 def fetchRssUpdates():
@@ -86,7 +86,7 @@ def fetchRssUpdates():
                         djangodb.add_task(topic=topic, type='unsubscribe')
                         break
                 except djangodb.Topic.DoesNotExist, dne:
-                    logger.warn('无法在数据库中找到对应话题(%s),建议手动取消订阅!\n\t%s' % (feedTopic, str(dne)))
+                    logger.warn('topic(%s) not found in database,manually unsubscribe!\n\t%s' % (feedTopic, str(dne)))
                     break
 
                 for item in itemSet:

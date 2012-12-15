@@ -20,7 +20,7 @@ weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id
 # print ('Sina Weibo 登录信息:\t' + weibo.getUserInfo()['name'])
 
 # wbs = weibo.client.search__topics(q='曼联', count=50, page=1)
-wbs2 = weibo.client.search__suggestions__statuses(q='曼联')
-users = weibo.client.suggestions__users__by_status(content='曼联')
+wbs2 = weibo.client.search__suggestions__statuses(q=u'曼联')
+users = weibo.client.suggestions__users__by_status(content=u'曼联')
 print wbs2
 

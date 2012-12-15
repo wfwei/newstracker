@@ -128,7 +128,7 @@ def create_or_update_weibo_auth(u_id, access_token, expires_in):
         logger.info('create or update weibo auth:' + str(_oauth2info))
         return _oauth2info
     else:
-        logger.warn('缺少参数：[u_id:%s, access_token:%s, expires_in:%s]' % \
+        logger.warn('not enough parameters：[u_id:%s, access_token:%s, expires_in:%s]' % \
                     (str(u_id), str(access_token), str(expires_in)))
         return None
 
@@ -157,7 +157,7 @@ def create_or_update_google_auth(u_id, access_token, refresh_token, expires_in):
         logger.info('create or update google auth:' + str(_oauth2info))
         return _oauth2info
     else:
-        logger.warn('缺少参数：[u_id:%s, access_token:%s, refresh_token:%s expires_in:%s]' % \
+        logger.warn(u'缺少参数：[u_id:%s, access_token:%s, refresh_token:%s expires_in:%s]' % \
                     (str(u_id), str(access_token), str(refresh_token), str(expires_in)))
         return None
 
