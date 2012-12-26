@@ -47,17 +47,6 @@
           </div>
           {% endif %}
 		　
-		　<div class="hero-unit topics" id="new-topics">
-            <h2>最新话题</h2>
-            <div class="topic-list" id="new-topic-list">
-		    {% for topic in new_topics %}
-		        {% set already_follow = 'false' %}
-		        {% include "topic_item.html"%}
-		    {% endfor %}
-		    </div>
-		    <a class="more-topic" id="more-new-topic-5" href="#">更多</a>
-          </div>
-          
           <div class="hero-unit topics" id="other-topics">
             <h2>热门话题</h2>
             <div class="topic-list" id="other-topic-list">
@@ -67,6 +56,17 @@
 		    {% endfor %}
 		    </div>
 		    <a class="more-topic" id="more-hot-topic-5" href="#">更多</a>
+          </div>
+          
+          <div class="hero-unit topics" id="new-topics">
+            <h2>最新话题</h2>
+            <div class="topic-list" id="new-topic-list">
+		    {% for topic in new_topics %}
+		        {% set already_follow = 'false' %}
+		        {% include "topic_item.html"%}
+		    {% endfor %}
+		    </div>
+		    <a class="more-topic" id="more-new-topic-5" href="#">更多</a>
           </div>
 			
 		  {% if 'true' or user.is_authenticated %}

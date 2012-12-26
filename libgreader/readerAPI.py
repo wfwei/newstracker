@@ -201,4 +201,4 @@ if __name__ == '__main__':
     print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=行尸走肉&um=1&ie=UTF-8&output=rss')
 
 
-    print 'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']
+    print u'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']
