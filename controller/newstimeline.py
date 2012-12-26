@@ -14,16 +14,16 @@ import re
 
 import logging
 # setup logging
-logger = logging.getLogger(u'dbop-logger')
+logger = logging.getLogger('dbop-logger')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler(u'../logs/dbop.log')
+fh = logging.FileHandler('../logs/dbop.log')
 fh.setLevel(logging.DEBUG)
 # create console handler with warn log level
 ch = logging.StreamHandler()
 ch.setLevel(logging.WARN)
 # create logger output formater
-formatter = logging.Formatter(u'%(asctime)s %(name)s %(levelname)s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 logger.addHandler(fh)
@@ -35,78 +35,75 @@ def create_or_update_news_timeline(topicTitle):
      生成指定话题的timeline，并保存到文件中
      文件放在newstrack的static目录下，以后可以放到media目录中
      文件的保存名称为: topicTitle.jsonp
+     生成时间线的数据不能制定为unicode
     '''
     try:
         topic = djangodb.Topic.objects.get(title=topicTitle)
         topic_news = _filter_news(list(topic.news_set.all()))
-        summary_template = u'<div><div style=\" height:100px; padding:10px; display:inline-block;\">%s</div><div style=\"width:500px; padding:0 10px 0 10px; display:inline-block; letter-spacing:1px; line-height:20px;\">%s</div></div>'
-        headline_template = u'<a href=\"%s\" target="_blank">%s</a>'
+        summary_template = '<div><div style=\" height:100px; padding:10px; display:inline-block;\">%s</div><div style=\"width:500px; padding:0 10px 0 10px; display:inline-block; letter-spacing:1px; line-height:20px;\">%s</div></div>'
+        headline_template = '<a href=\"%s\" target="_blank">%s</a>'
         news_list = []
         for news in topic_news:
-            _summary = news.summary[15:-24].decode(u'unicode-escape')
-            _res = re.findall(u'<td[^>]*>(.*?)</td>', _summary)
+            _summary = news.summary[15:-24].decode('unicode-escape')
+            _res = re.findall('<td[^>]*>(.*?)</td>', _summary)
             if len(_res) == 2:
                 _summary_pic = _res[0]
                 _summary_content = _res[1]
-                _summary_content = re.sub(u'<[/]?font[^>]*>', '', _summary_content)
-                _summary_content = re.sub(u'<[/]?div[^>]*>', '', _summary_content)
-                news_link = re.search(u'href="([^"]*)"', _summary_content).group(1)
+                _summary_content = re.sub('<[/]?font[^>]*>', '', _summary_content)
+                _summary_content = re.sub('<[/]?div[^>]*>', '', _summary_content)
+                news_link = re.search('href="([^"]*)"', _summary_content).group(1)
                 if 'url=http' in news_link:
-                    news_link = news_link[news_link.find(u'url=http') + 4:]
-                _summary_content = re.sub(u'<a[^>]*>.*?</a>', '', _summary_content)
-                _summary_content = re.sub(u'<b>[.]{3}</b>.*', '...', _summary_content)
+                    news_link = news_link[news_link.find('url=http') + 4:]
+                _summary_content = re.sub('<a[^>]*>.*?</a>', '', _summary_content)
+                _summary_content = re.sub('<b>[.]{3}</b>.*', '...', _summary_content)
             else:
-                _summary_content = u'<br /><br />获取摘要失败啦～～～<br /><hr /><br />我们会尽快解决这个问题的！'
-                _summary_pic = u''
-                news_link = u''
-                logger.error(u'_summary is not well structured in create_or_update_news_timeline()')
-                logger.error(u'_summary:' + _summary)
+                _summary_content = '<br /><br />获取摘要失败啦～～～<br /><hr /><br />我们会尽快解决这个问题的！'
+                _summary_pic = ''
+                news_link = ''
+                logger.error('_summary is not well structured in create_or_update_news_timeline() with summary:%s' % _summary)
             _summary = summary_template % (_summary_pic, _summary_content)
             news_title = news.title
-            if u' - ' in news_title :
-                news_title = news_title[:news_title.rfind(u' - ')]
+            if ' - ' in news_title :
+                news_title = news_title[:news_title.rfind(' - ')]
             _headline = headline_template % (news_link, news_title)
-            jnews = {u'startDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
-                    u'endDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
-                    u'headline':_headline,
-                    u'text':_summary,
-                    u'tag':u'',
-                    u'asset': {
-                        u'media':u'',
-                        u'thumbnail':u'',
-                        u'credit':u'',
-                        u'caption':u'',
+            jnews = {'startDate':news.pubDate.strftime('%Y,%m,%d,%H,%M'),
+                    'endDate':news.pubDate.strftime('%Y,%m,%d,%H,%M'),
+                    'headline':_headline,
+                    'text':_summary,
+                    'tag':'',
+                    'asset': {
+                        'media':'',
+                        'thumbnail':'',
+                        'credit':'',
+                        'caption':'',
                         }
                      }
             news_list.append(jnews)
 
         timeline = {}
-        timeline[u'headline'] = topic.title
-        timeline[u'type'] = u'default'
-        timeline[u'text'] = u'我们记录并跟踪了该事件的%d条新闻，希望可以帮您更好的了解该事件的来龙去脉～' % len(news_list)
-        timeline[u'date'] = news_list
+        timeline['headline'] = topic.title
+        timeline['type'] = 'default'
+        timeline['text'] = '我们记录并跟踪了该事件的%d条新闻，希望可以帮您更好的了解该事件的来龙去脉～' % len(news_list)
+        timeline['date'] = news_list
 
         # Save to file
-        f = open(str(os.getcwd()) + u'/../newstracker/newstrack/static/news.timeline/' + topicTitle + u'.jsonp', u'w+')
-        f.write(u'storyjs_jsonp_data = u')
-        f = open(str(os.getcwd()) + u'/../newstracker/newstrack/static/news.timeline/' + topicTitle + u'.jsonp', u'a')
-        json.dump({u'timeline': timeline}, f, encoding=u'utf-8')
-        logger.info(u'Generate news timeline: ' + str(os.getcwd()) + \
-                    u'/../newstracker/newstrack/static/news.timeline/' + \
-                    topicTitle + u'.jsonp \n')
+        f = open('%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % (os.getcwd(), topicTitle), 'w+')
+        f.write('storyjs_jsonp_data = ')
+        f = open('%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % (os.getcwd(), topicTitle), 'a')
+        json.dump({'timeline': timeline}, f, encoding='utf-8')
+        logger.info('Generate news timeline:%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % \
+                     (os.getcwd(), topicTitle))
     except djangodb.Topic.DoesNotExist:
-        logger.error(u'Topic:\t' + topicTitle + u' not exist!!!')
-        return False
+        logger.error('Topic:%s not exist!!!' % topicTitle)
     except:
-        logger.error(u'error in create_or_update_news_timeline:' + topicTitle)
-        raise
+        logger.exception('')
 
 def update_all_news_timeline():
-    logger.info(u'update_all_news_timeline start')
+    logger.info('update_all_news_timeline start')
     topic_list = djangodb.Topic.objects.all()
     for topic in topic_list:
         create_or_update_news_timeline(topic.title)
-    logger.info(u'update_all_news_timeline finished')
+    logger.info('update_all_news_timeline finished')
 
 
 def _filter_news(topic_news, limit=22):
@@ -137,12 +134,12 @@ def _filter_news(topic_news, limit=22):
         if min_news is not None:
             topic_news.remove(min_news)
         else:
-            logger.error(u'WARNING: Unreachable Code')
+            logger.error('WARNING: Unreachable Code')
             break
 
-    logger.info(u'filter news result: ' + str(len(topic_news)) + u' / ' + str(total))
+    logger.info('filter news result:%d/%d ' % (len(topic_news), total))
     return topic_news
 
-if __name__ == u'__main__':
-#    create_or_update_news_timeline(u'中渔民被韩海警射杀')
-    update_all_news_timeline()
+if __name__ == '__main__':
+    create_or_update_news_timeline('中渔民被韩海警射杀')
+#    update_all_news_timeline()
