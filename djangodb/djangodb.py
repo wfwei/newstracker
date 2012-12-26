@@ -9,11 +9,11 @@ Created on Oct 12, 2012
 
 from django.conf import settings
 settings.configure(
-    DATABASE_ENGINE='django.db.backends.mysql',
-    DATABASE_NAME='newstracker',
-    DATABASE_USER='wangfengwei',
-    DATABASE_PASSWORD='wangfengwei',
-    DATABASE_HOST='localhost',
+    DATABASE_ENGINE=u'django.db.backends.mysql',
+    DATABASE_NAME=u'newstracker',
+    DATABASE_USER=u'wangfengwei',
+    DATABASE_PASSWORD=u'wangfengwei',
+    DATABASE_HOST=u'localhost',
 )
 from dbop import *
 

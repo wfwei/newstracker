@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 '''
@@ -20,6 +20,6 @@ class GoogleNews(object):
         self.topic = topic
         self.rss = None
         self.sort = None
-        
+
     def getRss(self):
-        return 'feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=' + self.topic + '&um=1&ie=UTF-8&output=rss'
+        return u'feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=%s&um=1&ie=UTF-8&output=rss' % self.topic

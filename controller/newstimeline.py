@@ -66,16 +66,16 @@ def create_or_update_news_timeline(topicTitle):
             if u' - ' in news_title :
                 news_title = news_title[:news_title.rfind(u' - ')]
             _headline = headline_template % (news_link, news_title)
-            jnews = {'startDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
-                    'endDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
-                    'headline':_headline,
-                    'text':_summary,
-                    'tag':'',
-                    'asset': {
-                        'media':'',
-                        'thumbnail':'',
-                        'credit':'',
-                        'caption':'',
+            jnews = {u'startDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
+                    u'endDate':news.pubDate.strftime(u'%Y,%m,%d,%H,%M'),
+                    u'headline':_headline,
+                    u'text':_summary,
+                    u'tag':u'',
+                    u'asset': {
+                        u'media':u'',
+                        u'thumbnail':u'',
+                        u'credit':u'',
+                        u'caption':u'',
                         }
                      }
             news_list.append(jnews)
@@ -83,19 +83,19 @@ def create_or_update_news_timeline(topicTitle):
         timeline = {}
         timeline[u'headline'] = topic.title
         timeline[u'type'] = u'default'
-        timeline[u'text'] = u'我们记录并跟踪了该事件的' + str(len(news_list)) + '条新闻，希望可以帮您更好的了解该事件的来龙去脉～'
+        timeline[u'text'] = u'我们记录并跟踪了该事件的%d条新闻，希望可以帮您更好的了解该事件的来龙去脉～' % len(news_list)
         timeline[u'date'] = news_list
 
         # Save to file
-        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'w+')
+        f = open(str(os.getcwd()) + u'/../newstracker/newstrack/static/news.timeline/' + topicTitle + u'.jsonp', u'w+')
         f.write(u'storyjs_jsonp_data = u')
-        f = open(str(os.getcwd()) + '/../newstracker/newstrack/static/news.timeline/' + topicTitle + '.jsonp', 'a')
-        json.dump({u'timeline': timeline}, f, encoding='utf-8')
+        f = open(str(os.getcwd()) + u'/../newstracker/newstrack/static/news.timeline/' + topicTitle + u'.jsonp', u'a')
+        json.dump({u'timeline': timeline}, f, encoding=u'utf-8')
         logger.info(u'Generate news timeline: ' + str(os.getcwd()) + \
-                    '/../newstracker/newstrack/static/news.timeline/' + \
-                    topicTitle + '.jsonp \n')
+                    u'/../newstracker/newstrack/static/news.timeline/' + \
+                    topicTitle + u'.jsonp \n')
     except djangodb.Topic.DoesNotExist:
-        logger.error(u'Topic:\t' + topicTitle + ' not exist!!!')
+        logger.error(u'Topic:\t' + topicTitle + u' not exist!!!')
         return False
     except:
         logger.error(u'error in create_or_update_news_timeline:' + topicTitle)
@@ -140,7 +140,7 @@ def _filter_news(topic_news, limit=22):
             logger.error(u'WARNING: Unreachable Code')
             break
 
-    logger.info(u'filter news result: ' + str(len(topic_news)) + ' / ' + str(total))
+    logger.info(u'filter news result: ' + str(len(topic_news)) + u' / ' + str(total))
     return topic_news
 
 if __name__ == u'__main__':
