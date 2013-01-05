@@ -11,9 +11,9 @@ import time
 import threading
 
 # 网页应用的配置
-APP_KEY = '4057638893'
-APP_SECRET = '29a39034c98cbd0c9703192707653f10'
-CALLBACK_URL = 'http://110.76.40.188:81/weibo_callback/'
+APP_KEY = '3233912973'
+APP_SECRET = '289ae4ee3da84d8c4c359312dc2ca17d'
+CALLBACK_URL = 'http://110.76.40.188/weibo_callback/'
 
 import logging
 logger = logging.getLogger('closed')
