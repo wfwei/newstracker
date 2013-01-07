@@ -32,7 +32,7 @@ logger.addHandler(ch)
 # setup weibo
 [access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
 if time.time() > float(expires_in):
-    raise Exception(u'授权过期了，with expires_in:' + str(expires_in))
+    raise Exception(u'授权过期了，with expires_in:%s' % str(expires_in))
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
 reqInterval(31)
 logger.info(u'Sina Weibo 登录信息:\t' + weibo.getUserInfo()[u'name'])
@@ -181,7 +181,7 @@ def remindUserTopicUpdates(topicTitle):
         try:
             res[u'status'] = _weibo.updateStatus(content=postMsg)
         except APIError, err:
-            logger.warn(u'Update status failed:%t' + err.error)
+            logger.warn(u'Update status failed:%t' % err.error)
         else:
             logger.info(u'Update status succeed!')
             if watcher_btw:
@@ -266,7 +266,7 @@ def unSubscribeTopic(topicRss):
         sucUnsubscribe = reader.unsubscribe(feedUrl=topicRss)
     except:
         sucUnsubscribe = False
-        logger.exception(u'Fail to unsubscribe ' + topicRss)
+        logger.exception(u'Fail to unsubscribe %s' % topicRss)
     finally:
         if sucUnsubscribe:
             logger.debug(u'Succeed to unsubscribe topicrss:%s ' % topicRss)

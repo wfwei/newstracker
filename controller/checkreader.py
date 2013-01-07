@@ -71,7 +71,7 @@ def fetchRssUpdates():
                     if not continuation:
                         over = True
                 except:
-                    logger.warn(u'fail to extract continuation, may well be normal(over)')
+                    logger.info(u'fail to extract continuation, may well be normal(over)')
                     over = True
                 else:
                     logger.info('Extract continuation:%s' % continuation)

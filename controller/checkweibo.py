@@ -52,7 +52,7 @@ def fetchUserMention():
     '''
     # 得到用户mentions
     lastMentionId = djangodb.get_last_mention_id()
-    logger.info(u'Get lastMentionId:%s' + str(lastMentionId))
+    logger.info(u'Get lastMentionId:%s' % str(lastMentionId))
     try:
         mentions = weibo.getMentions(since_id=lastMentionId)
     except APIError, err:
@@ -85,7 +85,7 @@ def fetchUserMention():
         mtopictitle = None
         _search_content = mweibo.text
         if is_retweeted:
-            _search_content += ' / ' + mweibo_retweeted.text
+            _search_content += ' / ' % mweibo_retweeted.text
         topic_res = re.search(u'#([^#]+)#', _search_content)
         if topic_res:
             # 只能订阅一个话题，第一个井号标识的话题
@@ -115,10 +115,10 @@ def fetchUserMention():
         # step 5: 提醒用户订阅成功
         try:
             if is_new_topic:
-                shorturl = weibo.getShortUrl(u'http://110.76.40.188:81')
+                shorturl = weibo.getShortUrl(u'http://110.76.40.188')
                 remind_msg = u'订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！ 详见：『%s』' % shorturl
             else:
-                shorturl = weibo.getShortUrl(u'http://110.76.40.188:81/news_timeline/' + str(mtopic.id))
+                shorturl = weibo.getShortUrl(u'http://110.76.40.188/news_timeline/' % str(mtopic.id))
                 remind_msg = u'订阅成功，您可以到『%s』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～' % shorturl
         except APIError, err:
             logger.exception(u'Get short url exception:%s' % err.error)

@@ -190,15 +190,15 @@ if __name__ == '__main__':
     reader = readerAPI(u_id=u_id, access_token=access_token, \
                        refresh_token=refresh_token, expires_access=access_expires)
     time.sleep(31)
-    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=吸血鬼日记&um=1&ie=UTF-8&output=rss')
+    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=周杰伦&um=1&ie=UTF-8&output=rss')
     time.sleep(31)
     reader2 = readerAPI(u_id=u_id, access_token=access_token, \
                        refresh_token=refresh_token, expires_access=access_expires)
     time.sleep(31)
-    print reader2.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=实习医生格雷&um=1&ie=UTF-8&output=rss')
+    print reader2.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=李宇春&um=1&ie=UTF-8&output=rss')
     time.sleep(31)
 
-    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=行尸走肉&um=1&ie=UTF-8&output=rss')
+    print reader.subscribe('feed/http://news.google.com.hk/news?hl=zh-CN&gl=cn&q=张杰&um=1&ie=UTF-8&output=rss')
 
 
-    print u'Google Reader 登录信息:\t' + reader.getUserInfo()['userName']
+    print u'Google Reader 登录信息:\t' + reader.getUserInfo()[u'userName']

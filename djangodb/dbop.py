@@ -39,7 +39,7 @@ def get_or_create_weibo(weiboJson):
     '''
     logger.info(u'in get_or_create_weibo(weiboJson)\nweiboJson:%s' % weiboJson)
     nweibo, created = Weibo.objects.get_or_create(weibo_id=weiboJson[u'id'])
-    logger.info(u'created:%s' + created)
+    logger.info(u'created:%s' % created)
     if created:
         nweibo.created_at = datetime.strptime(weiboJson[u'created_at'], "%a %b %d %H:%M:%S +0800 %Y")
         nweibo.text = weiboJson[u'text']
@@ -125,7 +125,7 @@ def create_or_update_weibo_auth(u_id, access_token, expires_in):
         _oauth2info.access_token = access_token
         _oauth2info.expires_in = expires_in
         _oauth2info.save()
-        logger.info(u'create or update weibo auth:%s' + _oauth2info)
+        logger.info(u'create or update weibo auth:%s' % _oauth2info)
         return _oauth2info
     else:
         logger.warn(u'not enough parameters：[u_id:%d, access_token:%s, expires_in:%s]' % \
