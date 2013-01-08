@@ -148,7 +148,7 @@ def remindUserTopicUpdates(topicTitle):
                 logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
                 watcher.original_weibo.delete()
             else:
-                logger.exception()
+                logger.exception(u'')
         else:
             logger.info(u'%s Succeed!' % res[u'type'])
             if watcher_btw:
@@ -228,7 +228,7 @@ def remindUserTopicUpdates(topicTitle):
                 logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
                 watcher.original_weibo.delete()
         except:
-            logger.exception()
+            logger.exception(u'')
         else:
             logger.info(u'comment succeed!')
             watcher.add_remind()
@@ -247,7 +247,7 @@ def subscribeTopic(topicRss, topicTitle=None):
     订阅的时候即便是加了title,最后谷歌还是会在后面加上' - Google 新闻'
     '''
     try:
-        sucSubscribe = reader.subscribe(feedUrl=topicRss, title=topicTitle)
+        sucSubscribe = reader.subscribe(feedUrl=topicRss.encode('utf-8'), title=topicTitle.encode('utf-8'))
     except:
         sucSubscribe = False
         logger.exception(u'Fail to subscribed topicrss:%s' % topicRss)
@@ -263,7 +263,7 @@ def unSubscribeTopic(topicRss):
     TODO:该方法不可用，API调用返回OK，但是没有取消订阅。。。
     '''
     try:
-        sucUnsubscribe = reader.unsubscribe(feedUrl=topicRss)
+        sucUnsubscribe = reader.unsubscribe(feedUrl=topicRss.encode('utf-8'))
     except:
         sucUnsubscribe = False
         logger.exception(u'Fail to unsubscribe %s' % topicRss)
@@ -284,7 +284,7 @@ def delTopic(topicTitle):
     except djangodb.Topic.DoesNotExist:
         logger.warn(u'Topic:%s not exist!!!' % topicTitle)
     except:
-        logger.exception()
+        logger.exception(u'')
     else:
         # 取消订阅
         logger.info(u'unsubstribe topic:%s' % topicTitle)
@@ -323,7 +323,7 @@ if __name__ == u'__main__':
                 else:
                     logger.error(u'fail to subscribe topic:%s' % t.topic.title)
             except:
-                logger.exception()
+                logger.exception(u'')
             finally:
                 reqInterval(61)
 
@@ -337,7 +337,7 @@ if __name__ == u'__main__':
                 else:
                     logger.warn(u'fail to subscribe topic:%s' % t.topic.title)
             except:
-                logger.exception()
+                logger.exception(u'fail to remind user topic update')
             finally:
                 reqInterval(61)
 

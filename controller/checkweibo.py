@@ -79,7 +79,11 @@ def fetchUserMention():
 
         # step 2: 提取并构造用户对象
         muser = djangodb.get_or_create_account_from_weibo(mention[u'user'])
-        logger.info(u'step3: muser:%s' % muser)
+        if muser.is_robot():
+            logger.warn(u'robot user:%s' % muser)
+            continue
+        else:
+            logger.info(u'step3: muser:%s' % muser)
 
         # step 3: 提取话题相关的信息
         mtopictitle = None
