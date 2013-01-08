@@ -74,7 +74,7 @@ def get_or_create_account_from_weibo(weiboUserJson):
             user = User.objects.get(username=weiboUserJson[u'name'])
         except:
             user = User.objects.create_user(username=weiboUserJson[u'name'],
-                                            email=weiboUserJson[u'id'] + u'@fakeemail.com',
+                                            email=str(weiboUserJson[u'id']) + u'@fakeemail.com',
                                             password=weiboUserJson[u'id'])
         account, created = Account.objects.get_or_create(user=user)
         logger.info(u'created:%s' % created)

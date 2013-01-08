@@ -26,7 +26,7 @@ class Weibo(models.Model):
     user = models.ForeignKey(account_models.Account, blank=True, null=True)
 
     def __unicode__(self):
-        return '[Weibo , ' + str(self.weibo_id) + ']'
+        return u'[Weibo , %d]' % self.weibo_id
 
     class Meta:
         ordering = ["-weibo_id"]
@@ -55,7 +55,7 @@ class Topic(models.Model):
     alive_objects = AliveTopicManager()  # The Dahl-specific manager.
 
     def __unicode__(self):
-        return '[Topic , ' + self.title + ']'
+        return u'[Topic, %s]' % self.title
 
     class Meta:
         ordering = ["-time"]
@@ -87,7 +87,7 @@ class News(models.Model):
     topic = models.ManyToManyField(Topic)
 
     def __unicode__(self):
-        return '[News, ' + self.title + ']'
+        return u'[News, %s]' % self.title
 
     class Meta:
         ordering = ["-pubDate"]
@@ -101,7 +101,7 @@ class Task(models.Model):
     time = models.DateTimeField(default=datetime.datetime.now, db_index=True)
 
     def __unicode__(self):
-        return '[Task, ' + str(self.type) + ',' + self.topic.title + ']'
+        return u'[Task, %s, %s]' % (self.type, self.topic.title)
 
     class Meta:
         ordering = ["-status"]

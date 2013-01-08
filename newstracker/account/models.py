@@ -49,10 +49,10 @@ class Account(models.Model):
 
     def __unicode__(self):
         if self.weiboName is None or self.weiboId == 0:
-            wname = '未绑定微博帐号'
+            wname = u'未绑定微博帐号'
         else:
             wname = self.weiboName
-        return '[account:' + self.user.username + ', weibo:' + wname + ']'
+        return '[account: %s, weibo:%s ]' % (self.user.username, wname)
 
     def to_remind(self):
         '''
@@ -88,6 +88,14 @@ class Account(models.Model):
         else:
             return False
 
+    def is_robot(self):
+        '''
+        判断当前用户是不是机器人,跟据: 
+        1. 用户的关注/粉丝比例判定（大于10即认定是机器人）
+        2. 用戶关注数量大于600
+        '''
+        return (self.weiboFollowing / self.weiboFollowersCount) >= 9 and self.weiboFollowing > 600
+
     @staticmethod
     def get_account(user):
         return Account.objects.get(user=user)
@@ -109,8 +117,6 @@ class Useroauth2(models.Model):
         return float(self.expires_in) < time.time()
 
     def __unicode__(self):
-        _str = str(self.u_id) + '@' + self.server + ':' + str(self.access_token)
-        if self.is_expired():
-            _str += ' Expired!'
-        return _str
+        return u'[u_id:%d, serv:%s, acc:%s, expired:%s]' % \
+            (self.u_id, self.server, self.access_token, self.is_expired())
 
