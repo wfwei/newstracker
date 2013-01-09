@@ -100,14 +100,14 @@ def remindUserTopicUpdates(topicTitle):
     watcherWithoutStatusAndAuth = set([watcher for watcher in (watcherWithoutAuth - watcherWithStatusWithoutAuth) if watcher.to_remind()])
     watcherWithoutStatusWithAuth = set([watcher for watcher in (watcherWithAuth - watcherWithStatusAndAuth) if watcher.to_remind()])
 
-    _shorturl = weibo.getShortUrl(u'http://110.76.40.188:81/news_timeline/%s' % topic.id)
+    _shorturl = weibo.getShortUrl(u'http://110.76.40.188/news_timeline/%d' % topic.id)
     _msg = u'topic:%s 有新进展：%s 『%s』' % (topicTitle, topic_news.title, _shorturl)
     reqInterval(61)
 
-    logger.debug(u'topicWatcherWeibo:%s' % topicWatcherWeibo)
-    logger.debug(u'topicWatchers:%s' % topicWatchers)
-    logger.debug(u'watcherWithAuth:%s' % watcherWithAuth)
-    logger.debug(u'watcherWithoutAuth:%s' % watcherWithoutAuth)
+    logger.debug(u'topicWatcherWeibo:%s' % str(topicWatcherWeibo))
+    logger.debug(u'topicWatchers:%s' % str(topicWatchers))
+    logger.debug(u'watcherWithAuth:%s' % str(watcherWithAuth))
+    logger.debug(u'watcherWithoutAuth:%s' % str(watcherWithoutAuth))
     logger.debug(u'posgMsg:%s' % _msg)
 
     _user_reminded = []
