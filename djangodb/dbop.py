@@ -102,6 +102,15 @@ def get_or_create_account_from_weibo(weiboUserJson):
             account.save()
     return account
 
+def get_root_account():
+    try:
+        root_acc = Account.objects.get(weiboId=3041970403);
+    except:
+        raise
+    else:
+        return root_acc
+
+
 
 def get_weibo_auth_info(u_id):
     '''

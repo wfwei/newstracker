@@ -52,7 +52,7 @@ class Account(models.Model):
             wname = u'未绑定微博帐号'
         else:
             wname = self.weiboName
-        return '[account: %s, weibo:%s ]' % (self.user.username, wname)
+        return u'[account: %s, weibo:%s ]' % (self.user.username, wname)
 
     def to_remind(self):
         '''

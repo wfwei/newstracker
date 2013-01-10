@@ -20,7 +20,4 @@ from dbop import *
 
 if __name__ == '__main__':
     from newstracker.newstrack.models import Weibo, Topic, News, Task
-    ts = get_tasks(type=u'subscribe', count=5)
-    print type(ts)
-    print u'tasks:%s' % ts
-    print 'ok'
+    print 'get root account:', get_root_account()

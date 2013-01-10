@@ -32,7 +32,7 @@ logger.addHandler(ch)
 # setup weibo
 [access_token, expires_in] = djangodb.get_weibo_auth_info(3041970403)
 if time.time() > float(expires_in):
-    raise Exception(u'授权过期了，with expires_in:%s' % str(expires_in))
+    raise Exception(u'授权过期了，with expires_in:%s' % expires_in)
 weibo = weiboAPI.weiboAPI(access_token=access_token, expires_in=expires_in, u_id=3041970403)
 reqInterval(31)
 logger.info(u'Sina Weibo 登录信息:\t' + weibo.getUserInfo()[u'name'])
@@ -104,10 +104,10 @@ def remindUserTopicUpdates(topicTitle):
     _msg = u'topic:%s 有新进展：%s 『%s』' % (topicTitle, topic_news.title, _shorturl)
     reqInterval(61)
 
-    logger.debug(u'topicWatcherWeibo:%s' % str(topicWatcherWeibo))
-    logger.debug(u'topicWatchers:%s' % str(topicWatchers))
-    logger.debug(u'watcherWithAuth:%s' % str(watcherWithAuth))
-    logger.debug(u'watcherWithoutAuth:%s' % str(watcherWithoutAuth))
+    logger.debug(u'topicWatcherWeibo:%s' % topicWatcherWeibo)
+    logger.debug(u'topicWatchers:%s' % topicWatchers)
+    logger.debug(u'watcherWithAuth:%s' % watcherWithAuth)
+    logger.debug(u'watcherWithoutAuth:%s' % watcherWithoutAuth)
     logger.debug(u'posgMsg:%s' % _msg)
 
     _user_reminded = []
@@ -145,7 +145,7 @@ def remindUserTopicUpdates(topicTitle):
             if err.error == u'target weibo does not exist!':
                 topic.watcher_weibo.remove(watcher.original_weibo)
                 topic.watcher.remove(watcher)
-                logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
+                logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (watcher, watcher.original_weibo))
                 watcher.original_weibo.delete()
             else:
                 logger.exception(u'')
@@ -154,7 +154,7 @@ def remindUserTopicUpdates(topicTitle):
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
-            logger.info(u'added remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
+            logger.info(u'added remind history for user: [%s, %s]' % (watcher.weiboName, watcher_btw))
         finally:
             reqInterval(61)
 
@@ -187,7 +187,7 @@ def remindUserTopicUpdates(topicTitle):
             if watcher_btw:
                 watcher_btw.add_remind()
             watcher.add_remind()
-            logger.info(u'add remind history for user: [%s, %s]' % (watcher.weiboName, str(watcher_btw)))
+            logger.info(u'add remind history for user: [%s, %s]' % (watcher.weiboName, watcher_btw))
             _status = djangodb.get_or_create_weibo(res[u'status'])
             topic.watcher_weibo.add(_status)
             logger.info(u'add watcherWeibo:%s to topic:%s' % (_status.text, topicTitle))
@@ -210,12 +210,12 @@ def remindUserTopicUpdates(topicTitle):
             postMsg = u'友情提示：' + _msg
         else:
             #  如果没有用户可以帮忙，主帐号提醒吧
-            _reminder = u'主帐号'
+            _reminder = djangodb.get_root_account()
             _weibo = weibo
             postMsg = _msg
 
-        logger.info(u'remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
-        logger.info(u'_reminder:%s\toriginalWeibo:%s' % (str(_reminder), str(watcher.original_weibo)))
+        logger.info(u'remind user:%s topic:%s update with msg:%s' % (watcher, topicTitle, postMsg))
+        logger.info(u'_reminder:%s\toriginalWeibo:%s' % (_reminder, watcher.original_weibo))
 
         res = {}
         try:
@@ -225,7 +225,7 @@ def remindUserTopicUpdates(topicTitle):
             if err.error == u'target weibo does not exist!':
                 topic.watcher_weibo.remove(watcher.original_weibo)
                 topic.watcher.remove(watcher)
-                logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (str(watcher), str(watcher.original_weibo)))
+                logger.info(u'remove watcher:%s and delete watcherWeibo:%s' % (watcher, watcher.original_weibo))
                 watcher.original_weibo.delete()
         except:
             logger.exception(u'')
