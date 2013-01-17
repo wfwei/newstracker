@@ -20,4 +20,5 @@ from dbop import *
 
 if __name__ == '__main__':
     from newstracker.newstrack.models import Weibo, Topic, News, Task
-    print 'get root account:', get_root_account()
+    rtasks = get_tasks(type=u'remind', count=3)
+    print 'get remind tasks:', rtasks

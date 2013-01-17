@@ -314,6 +314,7 @@ if __name__ == u'__main__':
 #            t.save()
 
         subs_tasks = djangodb.get_tasks(type=u'subscribe', count=5)
+        logger.info('subscribe task number:%d' % len(subs_tasks))
         for t in subs_tasks:
             try:
                 if subscribeTopic(topicRss=t.topic.rss, topicTitle=t.topic.title):
@@ -328,6 +329,7 @@ if __name__ == u'__main__':
                 reqInterval(61)
 
         remind_tasks = djangodb.get_tasks(type=u'remind', count=3)
+        logger.info('remind tasks number:%d' % len(remind_tasks))
         for t in remind_tasks:
             try:
                 if remindUserTopicUpdates(topicTitle=t.topic.title):

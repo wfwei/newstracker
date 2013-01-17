@@ -23,7 +23,7 @@ fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.WARN)
 # create logger output formater
-formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+formatter = logging.Formatter(u'%(asctime)s %(name)s %(levelname)s %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 logger.addHandler(fh)
@@ -40,6 +40,8 @@ def create_or_update_news_timeline(topicTitle):
     try:
         topic = djangodb.Topic.objects.get(title=topicTitle)
         topic_news = _filter_news(list(topic.news_set.all()))
+        if(len(topic_news) < 1):
+            return
         summary_template = '<div><div style=\" height:100px; padding:10px; display:inline-block;\">%s</div><div style=\"width:500px; padding:0 10px 0 10px; display:inline-block; letter-spacing:1px; line-height:20px;\">%s</div></div>'
         headline_template = '<a href=\"%s\" target="_blank">%s</a>'
         news_list = []
@@ -91,8 +93,8 @@ def create_or_update_news_timeline(topicTitle):
         f.write('storyjs_jsonp_data = ')
         f = open('%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % (os.getcwd(), topicTitle), 'a')
         json.dump({'timeline': timeline}, f, encoding='utf-8')
-        logger.info('Generate news timeline:%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % \
-                     (os.getcwd(), topicTitle))
+#        logger.info('Generate news timeline:%s/../newstracker/newstrack/static/news.timeline/%s.jsonp' % \
+#                     (os.getcwd(), topicTitle))
     except djangodb.Topic.DoesNotExist:
         logger.error('Topic:%s not exist!!!' % topicTitle)
     except:
@@ -141,5 +143,5 @@ def _filter_news(topic_news, limit=22):
     return topic_news
 
 if __name__ == '__main__':
-    create_or_update_news_timeline('中渔民被韩海警射杀')
+    create_or_update_news_timeline('春运火车票')
 #    update_all_news_timeline()
