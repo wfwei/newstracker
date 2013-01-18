@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:wb=“http://open.weibo.com/wb”>
     <head>
 	    <meta charset="utf-8">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -45,7 +45,7 @@
           		{% block hnav %}
 		   	    {% endblock %}
 	            <form class="navbar-search pull-left">
-	              <input type="text" class="search-query" placeholder="Search topics">
+	              <input type="text" class="search-query" placeholder="Not Searchable">
 	            </form>
 	          </div><!--/.nav-collapse -->
 	        </div>
@@ -67,6 +67,7 @@
 
 		<script type="text/javascript" src="{{STATIC_URL}}js/base.js"></script>
 		<script src="http://tjs.sjs.sinajs.cn/t35/apps/opent/js/frames/client.js" language="JavaScript"></script>
+		<script src="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script>
 		{% block extra_scripts %}{% endblock %}
     </body>
 </html>

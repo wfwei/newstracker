@@ -207,6 +207,7 @@ def add_task(topic, type):
         logger.info(u'create task:%s' % task)
 
 def get_tasks(type, count=1, excludeDead=True):
+    Task.objects.update()  # 刷新缓存
     tasks = Task.objects.exclude(status=0).filter(type=type)[:count]
     logger.info(u'get %d %s tasks' % (len(tasks), type))
     return tasks

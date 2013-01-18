@@ -101,7 +101,7 @@ def remindUserTopicUpdates(topicTitle):
     watcherWithoutStatusWithAuth = set([watcher for watcher in (watcherWithAuth - watcherWithStatusAndAuth) if watcher.to_remind()])
 
     _shorturl = weibo.getShortUrl(u'http://110.76.40.188/news_timeline/%d' % topic.id)
-    _msg = u'topic:%s 有新进展：%s 『%s』' % (topicTitle, topic_news.title, _shorturl)
+    _msg = u'#%s#有新进展：%s 『%s』' % (topicTitle, topic_news.title, _shorturl)
     reqInterval(61)
 
     logger.debug(u'topicWatcherWeibo:%s' % topicWatcherWeibo)
@@ -128,7 +128,7 @@ def remindUserTopicUpdates(topicTitle):
             watcher_btw = watcherWithStatusWithoutAuth.pop()
             postMsg = _msg + u' @' + watcher_btw.weiboName + u' 顺便提醒你一下～'
         else:
-            postMsg = _msg
+            postMsg = _msg + u' @' + watcher.weiboName
 
         logger.info(u'remind user:%s \ntopic:%s \nupdate with msg:%s\noriginalWeibo:%s' % \
                      (watcher.weiboName, topicTitle, postMsg, watcher.original_weibo))
@@ -174,7 +174,7 @@ def remindUserTopicUpdates(topicTitle):
             watcher_btw = watcherWithStatusWithoutAuth.pop()
             postMsg = _msg + u' @' + watcher_btw.weiboName + u' 顺便提醒你一下～'
         else:
-            postMsg = _msg
+            postMsg = _msg + u' @' + watcher.weiboName
 
         logger.info(u'remind user:%s topic:%s update with msg:%s' % (watcher.weiboName, topicTitle, postMsg))
         res = {}
@@ -207,12 +207,12 @@ def remindUserTopicUpdates(topicTitle):
             _weibo = weiboAPI.weiboAPI(access_token=access_token, \
                                        expires_in=expires_in, \
                                        u_id=_reminder.weiboId)
-            postMsg = u'友情提示：' + _msg
+            postMsg = u'友情提示：' + _msg + u' @' + watcher.weiboName
         else:
             #  如果没有用户可以帮忙，主帐号提醒吧
             _reminder = djangodb.get_root_account()
             _weibo = weibo
-            postMsg = _msg
+            postMsg = _msg + u' @' + watcher.weiboName
 
         logger.info(u'remind user:%s topic:%s update with msg:%s' % (watcher, topicTitle, postMsg))
         logger.info(u'_reminder:%s\toriginalWeibo:%s' % (_reminder, watcher.original_weibo))

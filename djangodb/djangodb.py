@@ -16,9 +16,12 @@ settings.configure(
     DATABASE_HOST=u'110.76.40.188',
 )
 from dbop import *
-
+import time
+from datetime import datetime
 
 if __name__ == '__main__':
     from newstracker.newstrack.models import Weibo, Topic, News, Task
-    rtasks = get_tasks(type=u'remind', count=3)
-    print 'get remind tasks:', rtasks
+    for i in range(100):
+        rtasks = get_tasks(type=u'remind', count=3)
+        print datetime.now(), ' get remind tasks:', rtasks
+        time.sleep(600)
