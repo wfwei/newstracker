@@ -13,6 +13,7 @@ from libgnews import googlenews
 from libweibo.weibo import APIError
 from datetime import datetime
 from utils import reqInterval
+from utils import Conf
 import logging
 import time
 import re
@@ -119,10 +120,10 @@ def fetchUserMention():
         # step 5: 提醒用户订阅成功
         try:
             if is_new_topic:
-                shorturl = weibo.getShortUrl(u'http://110.76.40.188')
+                shorturl = weibo.getShortUrl(Conf.site_url)
                 remind_msg = u'订阅成功，我们正在整理资料，之后会将该事件的来龙去脉和最新消息推送给您！ 详见：『%s』' % shorturl
             else:
-                shorturl = weibo.getShortUrl(u'http://110.76.40.188/news_timeline/' % str(mtopic.id))
+                shorturl = weibo.getShortUrl(Conf.get_timeline_url(topicId=mtopic.id))
                 remind_msg = u'订阅成功，您可以到『%s』获取该事件的来龙去脉，同时我们会将发展动态即时推送给您～' % shorturl
         except APIError, err:
             logger.exception(u'Get short url exception:%s' % err.error)

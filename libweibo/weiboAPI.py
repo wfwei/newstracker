@@ -6,14 +6,15 @@ Created on Oct 13, 2012
 @author: plex
 '''
 from weibo import APIClient
+from controller.utils import Conf
 
 import time
 import threading
 
 # 网页应用的配置
-APP_KEY = '3233912973'
-APP_SECRET = '289ae4ee3da84d8c4c359312dc2ca17d'
-CALLBACK_URL = 'http://110.76.40.188/weibo_callback/'
+APP_KEY = Conf.weibo_app_key
+APP_SECRET = Conf.weibo_app_secret
+CALLBACK_URL = Conf.callback_url
 
 import logging
 logger = logging.getLogger('closed')

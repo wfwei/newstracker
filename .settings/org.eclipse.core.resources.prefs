@@ -4,6 +4,7 @@ encoding//controller/checkweibo.py=utf-8
 encoding//controller/exetask.py=utf-8
 encoding//controller/freetest.py=utf-8
 encoding//controller/newstimeline.py=utf-8
+encoding//controller/utils.py=utf-8
 encoding//djangodb/dbop.py=utf-8
 encoding//djangodb/djangodb.py=utf-8
 encoding//libgnews/googlenews.py=utf-8

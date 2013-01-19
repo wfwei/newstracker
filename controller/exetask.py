@@ -9,7 +9,7 @@ Created on Nov 1, 2012
 from libweibo import weiboAPI
 from libweibo.weibo import APIError
 from djangodb import djangodb
-from utils import reqInterval
+from utils import reqInterval, Conf
 import logging
 import time
 
@@ -100,7 +100,7 @@ def remindUserTopicUpdates(topicTitle):
     watcherWithoutStatusAndAuth = set([watcher for watcher in (watcherWithoutAuth - watcherWithStatusWithoutAuth) if watcher.to_remind()])
     watcherWithoutStatusWithAuth = set([watcher for watcher in (watcherWithAuth - watcherWithStatusAndAuth) if watcher.to_remind()])
 
-    _shorturl = weibo.getShortUrl(u'http://110.76.40.188/news_timeline/%d' % topic.id)
+    _shorturl = weibo.getShortUrl(Conf.get_timeline_url(topic.id))
     _msg = u'#%s#有新进展：%s 『%s』' % (topicTitle, topic_news.title, _shorturl)
     reqInterval(61)
 
