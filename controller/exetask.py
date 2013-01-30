@@ -12,6 +12,7 @@ from djangodb import djangodb
 from utils import reqInterval, Conf
 import logging
 import time
+from datetime import datetime
 
 # setup logging
 logger = logging.getLogger(u'task-logger')
@@ -41,7 +42,7 @@ logger.info(u'Sina Weibo 登录信息:\t' + weibo.getUserInfo()[u'name'])
 from libgreader import readerAPI
 [access_token, refresh_token, access_expires] = djangodb.get_google_auth_info(u_id=1)
 reader = readerAPI.readerAPI(u_id=1, access_token=access_token, \
-                   refresh_token=refresh_token, expires_access=access_expires)
+                  refresh_token=refresh_token, expires_access=access_expires)
 reqInterval(31)
 logger.info(u'Google Reader 登录信息:\t' + reader.getUserInfo()[u'userName'])
 
@@ -297,8 +298,71 @@ def delTopic(topicTitle):
         return True
     return False
 
+def broadcastTopic(topicTitle):
+    try:
+        logger.debug(u'Start broadcast topic:%s' % topicTitle)
+        topic = djangodb.Topic.objects.get(title=topicTitle)
+        if topic.alive():
+            topic_news = topic.news_set.all()[0]
+        else:
+            logger.warn(u'topic:%s is already dead, add unsubscribe task!' % topicTitle)
+            djangodb.add_task(topic=topic, type=u'unsubscribe')
+            return False
+    except:
+        logger.exception(u'topic or news may not exist in database')
+        return False
+
+    alreadyFetchedWeibos = topic.relevant_weibo.all()
+
+    fetchedWeibos = weibo.getRelevantWeibo(topicTitle=topicTitle, count=50)['statuses']
+    logger.info(u'feteched %d weibo about topic:%s' % (len(fetchedWeibos), topicTitle))
+    for awb in fetchedWeibos:
+        aweibo = djangodb.get_or_create_weibo(awb)
+        if aweibo.comments_count < 200 and aweibo in alreadyFetchedWeibos:
+            # 这条微薄已经推广过了，由于时间关系，后续的微薄理论上也应该推广过了
+            continue
+            break
+        else:
+            topic.relevant_weibo.add(aweibo)
+
+        auser = djangodb.get_or_create_account_from_weibo(awb['user'])
+        if aweibo.comments_count < 200 and auser in topic.watcher.all():
+            # 该用户已经使用服务，不需要推广
+            continue
+        if aweibo.comments_count < 200 and len(auser.remind_history.strip()) > 0:
+            # 已经推广过至少一次或正在使用服务
+            continue
+
+        topic.relevant_user.add(auser)
+        # 评论推广
+        _shorturl = weibo.getShortUrl(Conf.get_timeline_url(topic.id))
+        reqInterval(10)
+        msg = u'#%s# %s 『%s』 ^ ^' % (topicTitle, topic_news.title, _shorturl)
+
+        try:
+            weibo.postComment(weibo_id=aweibo.weibo_id, content=msg)
+        except APIError, err:
+            logger.warn(u'comment failed:\t%s' % (err.error))
+            if err.error == u'target weibo does not exist!':
+                topic.relevant_user.remove(auser)
+                topic.relevant_weibo.remove(aweibo)
+                aweibo.delete()
+                logger.info(u'remove relevant user:%s and delete weibo:%s' % (auser, aweibo))
+        except:
+            logger.exception(u'fail to post comment')
+        else:
+            logger.info(u'broadcast comment succeed!')
+            auser.remind_history += u'%d#%d#%s ' % (topic.id, aweibo.weibo_id, datetime.date.today().strftime('%Y-%m-%d'))
+            auser.save()
+            logger.info(u'added broadcast history for user: %s topic:%s' % (auser.weiboName, topicTitle))
+        finally:
+            reqInterval(61)
+
 
 if __name__ == u'__main__':
+
+#    broadcastTopic('镇海PX项目')
+
     while True:
 # 　　　　TODO: 由于取消订阅的API无法成功取消订阅，手动取消～＝＝！
 #        unsubs_tasks = djangodb.get_tasks(type=u'unsubscribe', count=10)
@@ -337,9 +401,19 @@ if __name__ == u'__main__':
                     t.save()
                     logger.info(u'succeed to remind topic:%s' % t.topic.title)
                 else:
-                    logger.warn(u'fail to subscribe topic:%s' % t.topic.title)
+                    logger.warn(u'fail to remind topic:%s' % t.topic.title)
             except:
                 logger.exception(u'fail to remind user topic update')
+            finally:
+                reqInterval(61)
+
+        # 目前认为提醒任务就是要宣传的任务
+        logger.info('broadcast tasks number:%d' % len(remind_tasks))
+        for t in remind_tasks:
+            try:
+                broadcastTopic(topicTitle=t.topic.title)
+            except:
+                logger.exception(u'exception in broadcasting topic')
             finally:
                 reqInterval(61)
 

@@ -167,6 +167,16 @@ class weiboAPI(object):
                                                       page=page, \
                                                       since_id=since_id, \
                                                       trim_user=trim_user)
+    def getRelevantWeibo(self, topicTitle, count=10, page=1):
+        '''
+        得到和topicTitle相关的最新微薄
+        count [0,50]
+        '''
+        self._checkAccessLimit()
+        with self.lock:
+            return self.client.get.search__topics(q=topicTitle, \
+                                                  count=count, \
+                                                  page=page)
 
     def postComment(self, weibo_id, content):
         ''' 发布评论　'''

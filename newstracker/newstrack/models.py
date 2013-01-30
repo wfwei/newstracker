@@ -48,6 +48,9 @@ class Topic(models.Model):
     watcher = models.ManyToManyField(account_models.Account, blank=True)
     watcher_weibo = models.ManyToManyField(Weibo, blank=True)
 
+    relevant_weibo = models.ManyToManyField(Weibo, blank=True, related_name='relevant_weibo')
+    relevant_user = models.ManyToManyField(account_models.Account, blank=True, related_name='relevant_user')
+
     # 话题状态 0:dead;1:normal;2:active...
     state = models.IntegerField(default=1, db_index=True)
 

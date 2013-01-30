@@ -46,7 +46,7 @@ logger.info(u'Sina Weibo 登录信息:%s' % weibo.getUserInfo()[u'name'])
 def fetchUserMention():
     '''
     获取微博上用户的订阅话题,之后更新订阅
-    用户订阅话题的方式可以发布包含:@xwzz新闻追踪 *订阅或取消订阅* #话题内容#的微博；或者转发上述微博
+    用户订阅话题的方式可以发布包含:@狗狗追踪 *订阅或取消订阅* #话题内容#的微博；或者转发上述微博
 
     TODO:
     1. mentions只获取了前50条
@@ -74,6 +74,10 @@ def fetchUserMention():
         if 'retweeted_status' in mention:
             is_retweeted = True
             mweibo_retweeted = djangodb.get_or_create_weibo(mention[u'retweeted_status'])
+            # 过滤掉用户转发自己的微薄
+            # TODO 如果用户转发自己微薄重新订阅，则需要再设计
+            if mweibo_retweeted.user.weiboId == mweibo.user.weiboId:
+                continue
         else:
             is_retweeted = False
         logger.info(u'weibo:%s\nis_retweeted:%s' % (mweibo, is_retweeted))
@@ -90,7 +94,7 @@ def fetchUserMention():
         mtopictitle = None
         _search_content = mweibo.text
         if is_retweeted:
-            _search_content += ' / ' % mweibo_retweeted.text
+            _search_content += ' / %s' % mweibo_retweeted.text
         topic_res = re.search(u'#([^#]+)#', _search_content)
         if topic_res:
             # 只能订阅一个话题，第一个井号标识的话题
@@ -179,7 +183,6 @@ def fetchHotTopic():
                 logger.info(u'topic:%s already in track' % topictitle)
 
 if __name__ == '__main__':
-    fetchHotTopic()
     while True:
         try:
             logger.info(u'Start fetching user mentions')
@@ -191,7 +194,8 @@ if __name__ == '__main__':
 
         reqInterval(15 * 60)
 
-        if time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
+        # stop fetching hot topics
+        if False and time.localtime().tm_hour > 0 and time.localtime().tm_hour < 7:
 
             try:
                 logger.info(u'Start fetching today\'s hot topics:')

@@ -29,13 +29,14 @@ class Account(models.Model):
     oauth = models.ForeignKey("Useroauth2", blank=True, null=True, on_delete=models.SET_NULL)
     # TODO: change database
 
-    # 　是否允许使用其帐号提醒他人
+    # 是否允许使用其帐号提醒他人
     allow_remind_others = models.BooleanField(default=True)
 
-    # 　每天的提醒上限
+    # 每天的提醒上限
     remind_daily_limit = models.IntegerField(default=1)
 
-    # 　提醒的历史记录，格式是"date1 date2 date3"，但制保留当天的记录
+    # 提醒的历史记录，格式是"date1 date2 date3"，但制保留当天的记录
+    # 在用户还没有订阅前，也就是作为潜在推广用户的时候，这个字段存放已经提醒的次数和话题，格式:话题id#微薄id#时间 话题id#微薄id#时间 ...
     remind_history = models.TextField(default=' ')
 
     # 是否允许转发微博来提醒自己
@@ -117,6 +118,6 @@ class Useroauth2(models.Model):
         return float(self.expires_in) < time.time()
 
     def __unicode__(self):
-        return u'[u_id:%d, serv:%s, acc:%s, expired:%s]' % \
+        return u'[u_id:%s, serv:%s, acc:%s, expired:%s]' % \
             (self.u_id, self.server, self.access_token, self.is_expired())
 
